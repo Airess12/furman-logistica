@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Furman Agronegócios</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+        <div class="logo">
+            <img
+                src="img/LOGO.jpeg"
+                alt="Furman Agronegócios"
+                class="logo-img"
+            >
+        </div>
+
+        <button
+            class="menu-btn active"
+            onclick="abrirAba('dashboard', this)"
+        >
+            📊 Dashboard
+        </button>
+
+        <button
+            class="menu-btn"
+            onclick="abrirAba('motoristas', this)"
+        >
+            👤 Motoristas
+        </button>
+
+        <button
+            class="menu-btn"
+            onclick="abrirAba('expedicao', this)"
+        >
+            🚚 Expedição
+        </button>
+
+        <button
+            class="menu-btn"
+            onclick="abrirAba('relatorios', this)"
+        >
+            📄 Relatórios
+        </button>
+
+    </aside>
+
+    <!-- CONTEÚDO -->
+    <main class="main">
+
+        <!-- TOPO -->
+        <header class="topbar">
+
+            <div>
+                <h1>Painel Operacional</h1>
+
+                <p>
+                    Sistema Operacional Logístico • Furman Agronegócios
+                </p>
+            </div>
+
+        </header>
+
+        <!-- DASHBOARD -->
+        <section id="dashboard" class="aba ativa">
+
+            <div class="dashboard-grid">
+
+                <div class="kpi">
+
+                    <span>📦</span>
+
+                    <div>
+                        <p>Total Expedições</p>
+                        <h2 id="totalCarretas">0</h2>
+                    </div>
+
+                </div>
+
+                <div class="kpi">
+
+                    <span>⚖️</span>
+
+                    <div>
+                        <p>Peso Estimado</p>
+                        <h2 id="totalBags">0 kg</h2>
+                    </div>
+
+                </div>
+
+                <div class="kpi">
+
+                    <span>🚚</span>
+
+                    <div>
+                        <p>Status</p>
+                        <h2>Online</h2>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- MOTORISTAS -->
+        <section id="motoristas" class="aba">
+
+            <div class="card">
+
+                <h2>👤 Cadastro de Motorista</h2>
+
+                <div class="form-grid">
+
+                    <input
+                        type="text"
+                        id="placaCadastro"
+                        placeholder="Placa do cavalo"
+                    >
+
+                    <input
+                        type="text"
+                        id="motoristaCadastro"
+                        placeholder="Nome do motorista"
+                    >
+
+                    <input
+                        type="file"
+                        id="fotoCadastro"
+                        accept="image/*"
+                    >
+
+                </div>
+
+                <button
+                    class="primary-btn"
+                    onclick="cadastrarMotorista()"
+                >
+                    Cadastrar Motorista
+                </button>
+
+                <div id="mensagemCadastro"></div>
+
+            </div>
+
+        </section>
+
+        <!-- EXPEDIÇÃO -->
+        <section id="expedicao" class="aba">
+
+            <div class="card">
+
+                <h2>🚚 Nova Expedição</h2>
+
+                <div class="form-grid">
+
+                    <!-- PLACA CAVALO -->
+                    <input
+                        type="text"
+                        id="placaCavalo"
+                        placeholder="Placa do cavalo"
+                        oninput="buscarMotorista()"
+                    >
+
+                    <!-- MOTORISTA -->
+                    <input
+                        type="text"
+                        id="motorista"
+                        placeholder="Motorista"
+                        readonly
+                    >
+
+                    <!-- PRODUTOR -->
+                    <input
+                        type="text"
+                        id="produtor"
+                        placeholder="Nome do produtor"
+                    >
+
+                    <!-- ORIGEM -->
+                    <select id="origem">
+
+                        <option value="">
+                            Origem
+                        </option>
+
+                        <option>
+                            Fazenda BOY - Palmas/PR
+                        </option>
+
+                        <option>
+                            Izidoro Furman – Palmas/PR
+                        </option>
+
+                        <option>
+                            Fazenda São João
+                        </option>
+
+                        <option>
+                            Barracão Central
+                        </option>
+
+                    </select>
+
+                    <!-- VEÍCULO -->
+                    <select
+                        id="veiculo"
+                        onchange="definirPeso()"
+                    >
+
+                        <option value="">
+                            Tipo de veículo
+                        </option>
+
+                        <option>
+                            4º Eixo
+                        </option>
+
+                        <option>
+                            Rodo Caçamba
+                        </option>
+
+                    </select>
+
+                    <!-- CARRETA 1 -->
+                    <input
+                        type="text"
+                        id="placaCarreta1"
+                        placeholder="Placa da carreta 1"
+                    >
+
+                    <!-- VARIEDADE 1 -->
+                    <select id="variedade1">
+
+                        <option value="">
+                            Variedade carreta 1
+                        </option>
+
+                        <option>
+                            MARKIES
+                        </option>
+
+                        <option>
+                            ASTERIX
+                        </option>
+
+                        <option>
+                            ROYAL
+                        </option>
+
+                    </select>
+
+                    <!-- CARRETA 2 -->
+                    <div
+                        id="campoCarreta2"
+                        class="campo-extra"
+                    >
+
+                        <input
+                            type="text"
+                            id="placaCarreta2"
+                            placeholder="Placa da carreta 2"
+                        >
+
+                    </div>
+
+                    <!-- VARIEDADE 2 -->
+                    <div
+                        id="campoVariedade2"
+                        class="campo-extra"
+                    >
+
+                        <select id="variedade2">
+
+                            <option value="">
+                                Variedade carreta 2
+                            </option>
+
+                            <option>
+                                MARKIES
+                            </option>
+
+                            <option>
+                                ASTERIX
+                            </option>
+
+                            <option>
+                                ROYAL
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <!-- PESO -->
+                    <input
+                        type="text"
+                        id="peso"
+                        placeholder="Peso estimado"
+                        readonly
+                    >
+
+                </div>
+
+                <!-- FOTO CAMINHÃO -->
+                <div
+                    id="fotoCaminhaoBox"
+                    class="foto-box escondido"
+                >
+
+                    <p>Foto do caminhão</p>
+
+                    <img
+                        id="fotoCaminhao"
+                        src=""
+                        alt="Foto do caminhão"
+                    >
+
+                </div>
+
+                <!-- BOTÕES -->
+                <div class="buttons">
+
+                    <button
+                        class="primary-btn"
+                        onclick="gerarRelatorio()"
+                    >
+                        Gerar Relatório
+                    </button>
+
+                    <button
+                        class="primary-btn whatsapp-btn"
+                        onclick="copiarRelatorioWhatsapp()"
+                    >
+                        📋 Copiar Relatório
+                    </button>
+
+                    <button
+                        class="primary-btn whatsapp-btn"
+                        onclick="abrirWhatsapp()"
+                    >
+                        📲 Abrir WhatsApp
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- RELATÓRIOS -->
+        <section id="relatorios" class="aba">
+
+            <div class="card">
+
+                <h2>📄 Relatórios</h2>
+
+                <div
+                    id="relatorio"
+                    class="relatorio-vazio"
+                >
+                    Nenhum relatório gerado ainda.
+                </div>
+
+                <br>
+
+                <button
+                    class="primary-btn"
+                    onclick="carregarHistorico()"
+                >
+                    Atualizar Histórico
+                </button>
+
+                <br><br>
+
+                <div class="table-container">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+
+                                <th>Produtor</th>
+                                <th>Motorista</th>
+                                <th>Cavalo</th>
+                                <th>Origem</th>
+                                <th>Destino</th>
+                                <th>Veículo</th>
+                                <th>Carreta 1</th>
+                                <th>Variedade 1</th>
+                                <th>Carreta 2</th>
+                                <th>Variedade 2</th>
+                                <th>Peso</th>
+                                <th>Saída</th>
+                                <th>Ações</th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="tabelaHistorico"></tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
