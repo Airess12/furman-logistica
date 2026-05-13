@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Furman Agronegócios</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="login-body">
+
+    <div class="login-card">
+
+        <img src="img/LOGO.jpeg" class="login-logo">
+
+        <h2>Acesso ao Sistema</h2>
+
+        <input type="text" id="usuario" placeholder="Usuário">
+
+        <input type="password" id="senha" placeholder="Senha">
+
+        <button class="primary-btn" onclick="login()">
+            Entrar
+        </button>
+
+        <p id="erroLogin"></p>
+
+    </div>
+
+    <script>
+        async function login() {
+            const usuario = document.getElementById('usuario').value;
+            const senha = document.getElementById('senha').value;
+
+            const resposta = await fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    usuario,
+                    senha
+                })
+            });
+
+            const dados = await resposta.json();
+
+            if (dados.status === 'ok') {
+                window.location.href = '/';
+            } else {
+                document.getElementById('erroLogin').innerText =
+                    'Usuário ou senha incorretos';
+            }
+        }
+    </script>
+
+</body>
+
+</html>

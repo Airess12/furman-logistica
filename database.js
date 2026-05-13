@@ -1,5 +1,6 @@
 const sqlite3 = require('sqlite3');
 const { open } = require('sqlite');
+const bcrypt = require('bcrypt');
 
 async function conectar() {
     return open({
@@ -12,12 +13,34 @@ async function adicionarColuna(db, tabela, coluna, tipo) {
     try {
         await db.exec(`ALTER TABLE ${tabela} ADD COLUMN ${coluna} ${tipo}`);
     } catch (erro) {
-        // coluna já existe
+        // ignora se a coluna já existir
     }
 }
 
 async function criarTabelas() {
     const db = await conectar();
+
+    await db.exec(`
+        CREATE TABLE IF NOT EXISTS usuarios (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            usuario TEXT UNIQUE,
+            senha TEXT
+        )
+    `);
+
+    const admin = await db.get(
+        `SELECT * FROM usuarios WHERE usuario = ?`,
+        ['admin']
+    );
+
+    if (!admin) {
+        const senhaCriptografada = await bcrypt.hash('Furman2026', 10);
+
+        await db.run(
+            `INSERT INTO usuarios (usuario, senha) VALUES (?, ?)`,
+            ['Funcionario', senhaCriptografada]
+        );
+    }
 
     await db.exec(`
         CREATE TABLE IF NOT EXISTS motoristas (

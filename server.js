@@ -1,6 +1,9 @@
 const express = require('express');
+const session = require('express-session');
+const bcrypt = require('bcrypt');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 
 const {
     conectar,
@@ -8,12 +11,78 @@ const {
 } = require('./database');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+
+fs.mkdirSync('public/uploads', { recursive: true });
 
 app.use(express.json());
-app.use(express.static('public'));
+
+app.use(session({
+    secret: 'furman_sistema_logistico',
+    resave: false,
+    saveUninitialized: false
+}));
 
 criarTabelas();
+
+app.use('/img', express.static('public/img'));
+app.use('/style.css', express.static('public/style.css'));
+
+app.get('/login', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
+app.post('/login', async (req, res) => {
+    const db = await conectar();
+
+    const {
+        usuario,
+        senha
+    } = req.body;
+
+    const user = await db.get(
+        `SELECT * FROM usuarios WHERE usuario = ?`,
+        [usuario]
+    );
+
+    if (!user) {
+        return res.json({ status: 'erro' });
+    }
+
+    const senhaValida = await bcrypt.compare(senha, user.senha);
+
+    if (!senhaValida) {
+        return res.json({ status: 'erro' });
+    }
+
+    req.session.usuario = user.usuario;
+
+    res.json({ status: 'ok' });
+});
+
+app.post('/logout', (req, res) => {
+    req.session.destroy(() => {
+        res.json({ status: 'ok' });
+    });
+});
+
+function proteger(req, res, next) {
+    if (req.session.usuario) {
+        return next();
+    }
+
+    return res.redirect('/login');
+}
+
+app.get('/', proteger, (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.get('/script.js', proteger, (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'script.js'));
+});
+
+app.use('/uploads', proteger, express.static('public/uploads'));
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -21,16 +90,19 @@ const storage = multer.diskStorage({
     },
     filename: (req, file, cb) => {
         const extensao = path.extname(file.originalname);
-        const nomeArquivo = Date.now() + '-' + Math.round(Math.random() * 1E9) + extensao;
+
+        const nomeArquivo =
+            Date.now() + '-' + Math.round(Math.random() * 1E9) + extensao;
+
         cb(null, nomeArquivo);
     }
 });
 
 const upload = multer({ storage });
 
-// BUSCAR MOTORISTA
-app.get('/motorista/:placa', async (req, res) => {
+app.get('/motorista/:placa', proteger, async (req, res) => {
     const db = await conectar();
+
     const placa = req.params.placa.toUpperCase();
 
     const motorista = await db.get(
@@ -41,8 +113,7 @@ app.get('/motorista/:placa', async (req, res) => {
     res.json(motorista || {});
 });
 
-// CADASTRAR MOTORISTA COM FOTO
-app.post('/motoristas', upload.single('foto'), async (req, res) => {
+app.post('/motoristas', proteger, upload.single('foto'), async (req, res) => {
     const db = await conectar();
 
     const placa = req.body.placa.toUpperCase();
@@ -78,8 +149,7 @@ app.post('/motoristas', upload.single('foto'), async (req, res) => {
     res.json({ status: 'ok' });
 });
 
-// LISTAR MOTORISTAS
-app.get('/motoristas', async (req, res) => {
+app.get('/motoristas', proteger, async (req, res) => {
     const db = await conectar();
 
     const motoristas = await db.all(
@@ -89,8 +159,7 @@ app.get('/motoristas', async (req, res) => {
     res.json(motoristas);
 });
 
-// SALVAR EXPEDIÇÃO
-app.post('/expedicoes', async (req, res) => {
+app.post('/expedicoes', proteger, async (req, res) => {
     const db = await conectar();
 
     const {
@@ -146,8 +215,7 @@ app.post('/expedicoes', async (req, res) => {
     res.json({ status: 'ok' });
 });
 
-// LISTAR EXPEDIÇÕES
-app.get('/expedicoes', async (req, res) => {
+app.get('/expedicoes', proteger, async (req, res) => {
     const db = await conectar();
 
     const expedicoes = await db.all(
@@ -157,8 +225,7 @@ app.get('/expedicoes', async (req, res) => {
     res.json(expedicoes);
 });
 
-// EDITAR EXPEDIÇÃO
-app.put('/expedicoes/:id', async (req, res) => {
+app.put('/expedicoes/:id', proteger, async (req, res) => {
     const db = await conectar();
     const id = req.params.id;
 
@@ -214,9 +281,9 @@ app.put('/expedicoes/:id', async (req, res) => {
     res.json({ status: 'ok' });
 });
 
-// EXCLUIR EXPEDIÇÃO
-app.delete('/expedicoes/:id', async (req, res) => {
+app.delete('/expedicoes/:id', proteger, async (req, res) => {
     const db = await conectar();
+
     const id = req.params.id;
 
     await db.run(
@@ -227,8 +294,7 @@ app.delete('/expedicoes/:id', async (req, res) => {
     res.json({ status: 'ok' });
 });
 
-// DASHBOARD
-app.get('/dashboard', async (req, res) => {
+app.get('/dashboard', proteger, async (req, res) => {
     const db = await conectar();
 
     const totalExpedicoes = await db.get(
