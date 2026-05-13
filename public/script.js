@@ -179,17 +179,27 @@ async function gerarRelatorio() {
     document.getElementById('relatorio').className = '';
     document.getElementById('relatorio').innerHTML = `
         <div class="relatorio-card">
-            <h3>🚚 Expedição Gerada</h3>
-            <p>🌱 <strong>Produtor:</strong> ${produtor}</p>
-            <p>👤 <strong>Motorista:</strong> ${motorista}</p>
-            <p>🚛 <strong>Cavalo:</strong> ${placa_cavalo}</p>
-            <p>📍 <strong>Origem:</strong> ${origem}</p>
-            <p>🏭 <strong>Destino:</strong> ${destino}</p>
-            <p>🕒 <strong>Saída:</strong> ${saida}</p>
-            <p>🚚 <strong>Veículo:</strong> ${veiculo}</p>
-            <p>🚛 <strong>Carreta 1:</strong> ${placa_carreta1} - ${variedade1}</p>
-            <p>🚛 <strong>Carreta 2:</strong> ${placa_carreta2 || 'Não informado'} - ${variedade2 || 'Não informado'}</p>
-            <p>⚖️ <strong>Peso Estimado:</strong> ${peso}</p>
+<p>🌱 <strong>Produtor:</strong> ${produtor}</p>
+
+<p>👤 <strong>Motorista:</strong> ${motorista}</p>
+
+<p>🚛 <strong>Cavalo:</strong> ${placa_cavalo}</p>
+
+<p>🚛 <strong>Carreta 1:</strong> ${placa_carreta1} - ${variedade1}</p>
+
+${veiculo === "Rodo Caçamba"
+? `<p>🚛 <strong>Carreta 2:</strong> ${placa_carreta2 || "Não informado"} - ${variedade2 || "Não informado"}</p>`
+: ""}
+
+<p>🚚 <strong>Veículo:</strong> ${veiculo}</p>
+
+<p>📍 <strong>Origem:</strong> ${origem}</p>
+
+<p>🏭 <strong>Destino:</strong> ${destino}</p>
+
+<p>🕒 <strong>Saída:</strong> ${saida}</p>
+
+<p>⚖️ <strong>Peso Estimado:</strong> ${peso}</p>
         </div>
     `;
 
