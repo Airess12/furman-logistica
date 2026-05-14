@@ -36,12 +36,11 @@ async function criarTabelas() {
     if (!admin) {
         const senhaCriptografada = await bcrypt.hash('Furman2026', 10);
 
-        await db.run(
-            `INSERT INTO usuarios (usuario, senha) VALUES (?, ?)`,
-            ['Funcionario', senhaCriptografada]
-        );
+    await db.run(
+    `INSERT OR IGNORE INTO usuarios (usuario, senha) VALUES (?, ?)`,
+    ['admin', senhaCriptografada]
+);
     }
-
     await db.exec(`
         CREATE TABLE IF NOT EXISTS motoristas (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
