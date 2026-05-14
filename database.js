@@ -1,58 +1,86 @@
-const sqlite3 = require('sqlite3');
-const { open } = require('sqlite');
+require('dotenv').config();
+
+const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
 
-async function conectar() {
-    return open({
-        filename: './banco.db',
-        driver: sqlite3.Database
+let pool;
+
+function getPool() {
+    if (!pool) {
+        pool = new Pool({
+            connectionString: process.env.DATABASE_URL,
+            ssl: {
+                rejectUnauthorized: false
+            }
+        });
+    }
+
+    return pool;
+}
+
+function converterParametros(sql) {
+    let contador = 0;
+
+    return sql.replace(/\?/g, () => {
+        contador++;
+        return `$${contador}`;
     });
 }
 
-async function adicionarColuna(db, tabela, coluna, tipo) {
-    try {
-        await db.exec(`ALTER TABLE ${tabela} ADD COLUMN ${coluna} ${tipo}`);
-    } catch (erro) {
-        // ignora se a coluna já existir
-    }
+async function conectar() {
+    const db = getPool();
+
+    return {
+        get: async (sql, params = []) => {
+            const resultado = await db.query(
+                converterParametros(sql),
+                params
+            );
+
+            return resultado.rows[0];
+        },
+
+        all: async (sql, params = []) => {
+            const resultado = await db.query(
+                converterParametros(sql),
+                params
+            );
+
+            return resultado.rows;
+        },
+
+        run: async (sql, params = []) => {
+            await db.query(
+                converterParametros(sql),
+                params
+            );
+        }
+    };
 }
 
 async function criarTabelas() {
-    const db = await conectar();
+    const db = getPool();
 
-    await db.exec(`
+    await db.query(`
         CREATE TABLE IF NOT EXISTS usuarios (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             usuario TEXT UNIQUE,
             senha TEXT
         )
     `);
 
-    const admin = await db.get(
-        `SELECT * FROM usuarios WHERE usuario = ?`,
-        ['admin']
-    );
-
-    if (!admin) {
-        const senhaCriptografada = await bcrypt.hash('Furman2026', 10);
-
-    await db.run(
-    `INSERT OR IGNORE INTO usuarios (usuario, senha) VALUES (?, ?)`,
-    ['admin', senhaCriptografada]
-);
-    }
-    await db.exec(`
+    await db.query(`
         CREATE TABLE IF NOT EXISTS motoristas (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             placa TEXT UNIQUE,
             motorista TEXT,
             foto TEXT
         )
     `);
 
-    await db.exec(`
+    await db.query(`
         CREATE TABLE IF NOT EXISTS expedicoes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             produtor TEXT,
             placa_cavalo TEXT,
             motorista TEXT,
@@ -68,16 +96,18 @@ async function criarTabelas() {
         )
     `);
 
-    await adicionarColuna(db, 'motoristas', 'foto', 'TEXT');
+    const senhaCriptografada = await bcrypt.hash('Furman2026', 10);
 
-    await adicionarColuna(db, 'expedicoes', 'produtor', 'TEXT');
-    await adicionarColuna(db, 'expedicoes', 'placa_cavalo', 'TEXT');
-    await adicionarColuna(db, 'expedicoes', 'placa_carreta1', 'TEXT');
-    await adicionarColuna(db, 'expedicoes', 'variedade1', 'TEXT');
-    await adicionarColuna(db, 'expedicoes', 'placa_carreta2', 'TEXT');
-    await adicionarColuna(db, 'expedicoes', 'variedade2', 'TEXT');
+    await db.query(
+        `
+        INSERT INTO usuarios (usuario, senha)
+        VALUES ($1, $2)
+        ON CONFLICT (usuario) DO NOTHING
+        `,
+        ['Administração', senhaCriptografada]
+    );
 
-    console.log('✅ Banco conectado');
+    console.log('✅ Banco PostgreSQL conectado');
 }
 
 module.exports = {
