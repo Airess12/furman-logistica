@@ -388,6 +388,71 @@ body::after {
 .btn-excluir-analise:hover {
     transform: translateY(-2px) scale(1.03);
 }
+textarea#q_defeito {
+    width: 100% !important;
+    min-height: 140px !important;
+    padding: 18px !important;
+
+    border-radius: 18px !important;
+    border: 1px solid rgba(255,255,255,.12) !important;
+
+    background: rgba(15,23,42,.95) !important;
+    color: white !important;
+
+    font-size: 15px !important;
+    font-family: 'Segoe UI', sans-serif !important;
+
+    resize: vertical !important;
+    outline: none !important;
+}
+
+textarea#q_defeito::placeholder {
+    color: #94a3b8 !important;
+}
+
+textarea#q_defeito:focus {
+    border-color: #21ff9d !important;
+    box-shadow: 0 0 0 4px rgba(33,255,157,.12) !important;
+}
+.qualidade-chart-card {
+    margin-top: 24px;
+
+    background: rgba(15,23,42,.92);
+
+    border-radius: 24px;
+
+    padding: 24px;
+
+    min-height: 420px;
+
+    border: 1px solid rgba(255,255,255,.06);
+
+    box-shadow:
+        0 15px 35px rgba(0,0,0,.25);
+}
+
+.qualidade-chart-card canvas {
+    width: 100% !important;
+    height: 320px !important;
+}
+
+.qualidade-chart-card .card-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    margin-bottom: 24px;
+}
+
+.qualidade-chart-card h3 {
+    color: white;
+    font-size: 24px;
+}
+
+.qualidade-chart-card span {
+    color: #21ff9d;
+    font-size: 14px;
+}
 </style>
 </head>
 
@@ -782,7 +847,92 @@ body::after {
         </section>
         <section id="qualidade" class="aba">
     <div class="card">
+
         <h2>🔬 Análise de Qualidade</h2>
+
+        <!-- CARDS -->
+        <div class="dashboard-grid premium-grid">
+
+            <div class="kpi premium-kpi">
+                <span>🔬</span>
+                <div>
+                    <p>Total de Análises</p>
+                    <h2 id="qtdAnalisesQualidade">0</h2>
+                </div>
+            </div>
+
+            <div class="kpi premium-kpi">
+                <span>🧪</span>
+                <div>
+                    <p>Média de Sólidos</p>
+                    <h2 id="mediaSolidosQualidade">0%</h2>
+                </div>
+            </div>
+
+            <div class="kpi premium-kpi">
+                <span>⚖️</span>
+                <div>
+                    <p>Média Peso Total</p>
+                    <h2 id="mediaPesoQualidade">0</h2>
+                </div>
+            </div>
+
+            <div class="kpi premium-kpi">
+                <span>⚠️</span>
+                <div>
+                    <p>Total de Pontos</p>
+                    <h2 id="totalPontosQualidade">0</h2>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- GRÁFICO -->
+        <div class="chart-card qualidade-chart-card">
+
+            <div class="card-title">
+                <h3>📈 Evolução de Sólidos</h3>
+                <span>Últimas análises</span>
+            </div>
+
+            <canvas id="graficoSolidosQualidade"></canvas>
+
+        </div>
+
+
+    <div class="kpi premium-kpi">
+        <span>🔬</span>
+        <div>
+            <p>Total de Análises</p>
+            <h2 id="qtdAnalisesQualidade">0</h2>
+        </div>
+    </div>
+
+    <div class="kpi premium-kpi">
+        <span>🧪</span>
+        <div>
+            <p>Média de Sólidos</p>
+            <h2 id="mediaSolidosQualidade">0%</h2>
+        </div>
+    </div>
+
+    <div class="kpi premium-kpi">
+        <span>⚖️</span>
+        <div>
+            <p>Média Peso Total</p>
+            <h2 id="mediaPesoQualidade">0</h2>
+        </div>
+    </div>
+
+    <div class="kpi premium-kpi">
+        <span>⚠️</span>
+        <div>
+            <p>Total de Pontos</p>
+            <h2 id="totalPontosQualidade">0</h2>
+        </div>
+    </div>
+
+</div>
 
         <h3>🟩 Inserção de dados</h3>
 
@@ -829,7 +979,6 @@ body::after {
     id="q_defeito" 
     placeholder="Digite os defeitos encontrados. Ex: VERDE - 2 pontos / BROCADO - 1 ponto / PODRIDÃO - 3 pontos"
     rows="5"
-    style="width:100%; resize:vertical;"
 ></textarea>
 
 <br><br>
@@ -848,6 +997,10 @@ body::after {
 
         <button type="button" class="primary-btn" onclick="limparAnaliseQualidade()">
             🧹 Limpar
+        </button>
+
+        <button type="button" class="primary-btn" onclick="gerarPDFQualidade()">
+            📄 Gerar PDF
         </button>
 
         <div id="q_resultado" class="relatorio-card relatorio-vazio">   
@@ -886,6 +1039,9 @@ body::after {
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
 <script src="./script.js"></script>
 
 </body>

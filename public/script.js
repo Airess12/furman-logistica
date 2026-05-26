@@ -26,7 +26,11 @@ function mostrarAba(id, elemento) {
 
     if (id === 'relatorios') carregarHistorico();
     if (id === 'dashboard') carregarDashboard();
-    if (id === 'qualidade') carregarAnalisesQualidade();
+  if (id === 'qualidade') {
+    carregarAnalisesQualidade();
+    carregarDashboardQualidade();
+    carregarGraficoSolidosQualidade();
+}
 
     if (id === 'expedicao') {
         carregarProdutores();
@@ -1089,10 +1093,16 @@ async function salvarAnaliseQualidade() {
     }
 
     try {
-        const resposta = await fetch('/analises-qualidade', {
-            method: 'POST',
-            body: formData
-        });
+        const url = analiseEditandoId
+    ? `/analises-qualidade/${analiseEditandoId}`
+    : '/analises-qualidade';
+
+    const metodo = analiseEditandoId ? 'PUT' : 'POST';
+
+    const resposta = await fetch(url, {
+    method: metodo,
+    body: formData
+});
 
         if (!resposta.ok) {
             throw new Error('Erro ao salvar análise');
@@ -1109,13 +1119,15 @@ async function salvarAnaliseQualidade() {
         `;
 
         await carregarAnalisesQualidade();
-
+        
+        analiseEditandoId = null;
+        
         alert('Análise salva no banco com foto!');
 
     } catch (erro) {
-        console.error(erro);
-        alert('Erro ao salvar análise no banco.');
-    }
+    console.error('ERRO AO SALVAR ANÁLISE:', erro);
+    alert('Erro ao salvar análise no banco. Veja o Console F12.');
+}
 }
 
     async function carregarAnalisesQualidade() {
@@ -1175,7 +1187,7 @@ async function salvarAnaliseQualidade() {
 
             <td>${new Date(item.criado_em).toLocaleString('pt-BR')}</td>
 
-            <td>
+           <td>
     <div style="display:flex; gap:8px; justify-content:center; align-items:center;">
 
         <button
@@ -1188,14 +1200,22 @@ async function salvarAnaliseQualidade() {
 
         <button
             type="button"
+            class="btn-ver-analise"
+            onclick='editarAnaliseQualidade(${JSON.stringify(item)})'
+        >
+            ✏️ Editar
+        </button>
+
+        <button
+            type="button"
             class="btn-excluir-analise"
             onclick="excluirAnaliseQualidade(${item.id})"
         >
             🗑️
         </button>
 
-        </div>
-        </td>
+    </div>
+</td>
         </tr>
     `;
 });
@@ -1340,5 +1360,182 @@ async function excluirAnaliseQualidade(id) {
     } catch (erro) {
         console.error(erro);
         alert('Erro ao excluir análise.');
+    }
+}
+async function gerarPDFQualidade() {
+    const elemento = document.getElementById('q_resultado');
+
+    if (!elemento || elemento.classList.contains('relatorio-vazio')) {
+        alert('Abra uma análise no botão Ver antes de gerar o PDF.');
+        return;
+    }
+
+    const canvas = await html2canvas(elemento, {
+        scale: 2,
+        backgroundColor: '#111827',
+        useCORS: true
+    });
+
+    const imgData = canvas.toDataURL('image/png');
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+
+    const pageWidth = 210;
+    const pageHeight = 297;
+    const margin = 10;
+
+    const imgWidth = pageWidth - margin * 2;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    pdf.setFillColor(17, 24, 39);
+    pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+
+const logo = new Image();
+
+logo.src = '/img/LOGO.jpeg';
+
+await new Promise((resolve) => {
+    logo.onload = resolve;
+    logo.onerror = resolve;
+});
+
+pdf.addImage(
+    logo,
+    'JPEG',
+    10,
+    8,
+    24,
+    24
+);
+
+const agora = new Date().toLocaleString('pt-BR');
+
+pdf.setTextColor(255,255,255);
+
+pdf.setFontSize(17);
+pdf.text('RELATÓRIO DE QUALIDADE', 42, 16);
+
+pdf.setFontSize(10);
+pdf.text('Furman Logística • Sistema de Qualidade', 42, 23);
+
+pdf.setFontSize(9);
+pdf.text(`Laboratorista: Luiz Aires`, 42, 29);
+pdf.text(`Emitido em: ${agora}`, 42, 34);
+
+
+
+   pdf.addImage(imgData, 'PNG', 10, 42, imgWidth, imgHeight);
+
+    pdf.save('analise-qualidade.pdf');
+}
+let analiseEditandoId = null;
+
+function editarAnaliseQualidade(item) {
+    analiseEditandoId = item.id;
+
+    document.getElementById('q_variedade').value = item.variedade || '';
+    document.getElementById('q_solidos').value = item.solidos || '';
+    document.getElementById('q_peso_agua').value = item.peso_agua || '';
+    document.getElementById('q_placa').value = item.placa || '';
+    document.getElementById('q_peso_total').value = item.peso_total || '';
+    document.getElementById('q_peso_lavado').value = item.peso_lavado || '';
+
+    document.getElementById('q_diametro_35').value = item.diametro_35 || '';
+    document.getElementById('q_diametro_35_45').value = item.diametro_35_45 || '';
+    document.getElementById('q_diametro_45').value = item.diametro_45 || '';
+
+    document.getElementById('q_menos75_qtd').value = item.menos75_qtd || '';
+    document.getElementById('q_menos75_peso').value = item.menos75_peso || '';
+    document.getElementById('q_mais75_qtd').value = item.mais75_qtd || '';
+    document.getElementById('q_mais75_peso').value = item.mais75_peso || '';
+    document.getElementById('q_mais100_qtd').value = item.mais100_qtd || '';
+    document.getElementById('q_mais100_peso').value = item.mais100_peso || '';
+    document.getElementById('q_mais150_qtd').value = item.mais150_qtd || '';
+    document.getElementById('q_mais150_peso').value = item.mais150_peso || '';
+
+    document.getElementById('q_defeito').value = item.defeito || '';
+    document.getElementById('q_pontos').value = item.pontos || '';
+
+    const resultado = document.getElementById('q_resultado');
+    resultado.classList.remove('relatorio-vazio');
+    resultado.innerHTML = `
+        <h3>✏️ Editando análise</h3>
+        <p><strong>Placa:</strong> ${item.placa || '-'}</p>
+        <p>Altere os campos acima e clique em <strong>Salvar Análise</strong>.</p>
+        <p><small>Se escolher uma nova foto, ela substituirá a anterior.</small></p>
+    `;
+
+    document.getElementById('qualidade').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+async function carregarDashboardQualidade() {
+    try {
+        const resposta = await fetch('/dashboard-qualidade');
+        const dados = await resposta.json();
+
+        document.getElementById('qtdAnalisesQualidade').textContent = dados.totalAnalises || 0;
+        document.getElementById('mediaSolidosQualidade').textContent = `${dados.mediaSolidos || 0}%`;
+        document.getElementById('mediaPesoQualidade').textContent = dados.mediaPesoTotal || '0';
+        document.getElementById('totalPontosQualidade').textContent = dados.totalPontos || 0;
+
+    } catch (erro) {
+        console.error('Erro ao carregar dashboard qualidade:', erro);
+    }
+}
+let graficoSolidosQualidade = null;
+
+async function carregarGraficoSolidosQualidade() {
+    try {
+        const resposta = await fetch('/analises-qualidade');
+        const analises = await resposta.json();
+
+        const ultimas = analises.slice(0, 8).reverse();
+
+        const labels = ultimas.map(item => item.placa || '-');
+
+        const dados = ultimas.map(item => {
+            return parseFloat(String(item.solidos || '0').replace(',', '.')) || 0;
+        });
+
+        const ctx = document.getElementById('graficoSolidosQualidade');
+
+        if (!ctx) return;
+
+        if (graficoSolidosQualidade) {
+            graficoSolidosQualidade.destroy();
+        }
+
+        graficoSolidosQualidade = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [{
+                    label: 'Sólidos %',
+                    data: dados,
+                    borderWidth: 3,
+                    tension: 0.35,
+                    fill: false
+                }]
+            },
+            options: {
+            responsive: true,
+            maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        ticks: {
+                            color: '#cbd5e1'
+                        }
+                    },
+                    y: {
+                        ticks: {
+                            color: '#cbd5e1'
+                        }
+                    }
+                }
+            }
+        });
+
+    } catch (erro) {
+        console.error('Erro ao carregar gráfico de sólidos:', erro);
     }
 }

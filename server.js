@@ -569,6 +569,78 @@ app.delete('/analises-qualidade/:id', protegerApi, async (req, res) => {
     res.json({ status: 'ok' });
 });
 
+app.put('/analises-qualidade/:id', protegerApi, upload.single('foto_analise'), async (req, res) => {
+    const db = await conectar();
+
+    const foto_analise = req.file ? '/uploads/' + req.file.filename : null;
+
+    const {
+        variedade, solidos, peso_agua, placa, peso_total, peso_lavado,
+        diametro_35, diametro_35_45, diametro_45,
+        menos75_qtd, menos75_peso,
+        mais75_qtd, mais75_peso,
+        mais100_qtd, mais100_peso,
+        mais150_qtd, mais150_peso,
+        defeito, pontos
+    } = req.body;
+
+    await db.run(`
+        UPDATE analises_qualidade
+        SET
+            variedade = ?, solidos = ?, peso_agua = ?, placa = ?,
+            peso_total = ?, peso_lavado = ?,
+            diametro_35 = ?, diametro_35_45 = ?, diametro_45 = ?,
+            menos75_qtd = ?, menos75_peso = ?,
+            mais75_qtd = ?, mais75_peso = ?,
+            mais100_qtd = ?, mais100_peso = ?,
+            mais150_qtd = ?, mais150_peso = ?,
+            defeito = ?, pontos = ?,
+            foto_analise = COALESCE(?, foto_analise)
+        WHERE id = ?
+    `, [
+        variedade, solidos, peso_agua, placa,
+        peso_total, peso_lavado,
+        diametro_35, diametro_35_45, diametro_45,
+        menos75_qtd, menos75_peso,
+        mais75_qtd, mais75_peso,
+        mais100_qtd, mais100_peso,
+        mais150_qtd, mais150_peso,
+        defeito, pontos,
+        foto_analise,
+        req.params.id
+    ]);
+
+    res.json({ status: 'ok' });
+});
+
+app.get('/dashboard-qualidade', protegerApi, async (req, res) => {
+    const db = await conectar();
+
+    const resumo = await db.get(`
+        SELECT
+            COUNT(*) AS total_analises,
+            AVG(NULLIF(REPLACE(solidos, ',', '.'), '')::numeric) AS media_solidos,
+            AVG(NULLIF(REPLACE(peso_total, ',', '.'), '')::numeric) AS media_peso_total,
+            SUM(NULLIF(REPLACE(pontos, ',', '.'), '')::numeric) AS total_pontos
+        FROM analises_qualidade
+    `);
+
+    const ultimas = await db.all(`
+        SELECT placa, variedade, solidos, pontos, criado_em
+        FROM analises_qualidade
+        ORDER BY id DESC
+        LIMIT 5
+    `);
+
+    res.json({
+        totalAnalises: Number(resumo.total_analises || 0),
+        mediaSolidos: Number(resumo.media_solidos || 0).toFixed(2),
+        mediaPesoTotal: Number(resumo.media_peso_total || 0).toFixed(3),
+        totalPontos: Number(resumo.total_pontos || 0),
+        ultimas
+    });
+});
+
 
 app.listen(PORT, () => {
     console.log(`🚀 Rodando em http://localhost:${PORT}`);
