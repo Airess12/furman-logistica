@@ -453,6 +453,179 @@ textarea#q_defeito:focus {
     color: #21ff9d;
     font-size: 14px;
 }
+@media (max-width: 768px) {
+
+    .layout {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100% !important;
+        height: auto;
+        position: relative;
+        padding: 14px !important;
+    }
+
+    .sidebar:not(:hover) {
+        width: 100% !important;
+        padding: 14px !important;
+    }
+
+    .sidebar-logo {
+        display: none;
+    }
+
+    .sidebar nav {
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
+        overflow-x: auto;
+        padding-bottom: 8px;
+    }
+
+    .menu-btn,
+    .sidebar:not(:hover) .menu-btn {
+        width: auto !important;
+        min-width: 120px !important;
+        height: 46px !important;
+        padding: 0 14px !important;
+        font-size: 13px !important;
+        justify-content: center !important;
+    }
+
+    .sidebar:not(:hover) .menu-text {
+        opacity: 1;
+        width: auto;
+    }
+
+    .main {
+        padding: 14px !important;
+    }
+
+    .card,
+    .dashboard-premium,
+    .chart-card {
+        border-radius: 18px !important;
+        padding: 16px !important;
+    }
+
+    .dashboard-grid,
+    .premium-grid,
+    .quick-actions,
+    .form-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .kpi,
+    .premium-kpi {
+        min-height: 120px !important;
+    }
+
+    .qualidade-chart-card {
+        min-height: 340px !important;
+    }
+
+    .qualidade-chart-card canvas {
+        height: 260px !important;
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .relatorios-table {
+        min-width: 900px;
+    }
+
+    #q_resultado > div {
+        flex-direction: column !important;
+    }
+
+    #q_resultado img {
+        max-height: 420px !important;
+    }
+
+    .primary-btn,
+    .btn-ver-analise,
+    .btn-excluir-analise {
+        width: 100%;
+        margin-top: 8px;
+    }
+}
+/* ===== REFINAMENTO VISUAL - QUALIDADE ===== */
+
+#qualidade .card {
+    background:
+        radial-gradient(circle at top right, rgba(33,255,157,.08), transparent 30%),
+        rgba(15,23,42,.94);
+    border: 1px solid rgba(255,255,255,.08);
+    box-shadow: 0 18px 45px rgba(0,0,0,.32);
+}
+
+#qualidade h2 {
+    font-size: 30px;
+    letter-spacing: -.5px;
+}
+
+#qualidade h3 {
+    margin-top: 28px;
+    color: #e5e7eb;
+}
+
+#qualidade .form-grid input,
+#qualidade textarea {
+    border-radius: 16px !important;
+    border: 1px solid rgba(255,255,255,.10) !important;
+    background: rgba(2,6,23,.72) !important;
+    color: white !important;
+    transition: .25s ease !important;
+}
+
+#qualidade .form-grid input:focus,
+#qualidade textarea:focus {
+    border-color: #21ff9d !important;
+    box-shadow: 0 0 0 4px rgba(33,255,157,.10) !important;
+}
+
+#qualidade .premium-kpi {
+    transition: .25s ease;
+}
+
+#qualidade .premium-kpi:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 42px rgba(0,0,0,.35);
+}
+
+#q_resultado {
+    margin-top: 24px;
+    border-radius: 24px;
+    background:
+        linear-gradient(135deg, rgba(124,58,237,.12), rgba(33,255,157,.06)),
+        rgba(2,6,23,.82);
+    border: 1px solid rgba(255,255,255,.10);
+}
+
+#q_resultado h3,
+#q_resultado h4 {
+    color: #ffffff;
+}
+
+#q_resultado p {
+    color: #cbd5e1;
+    line-height: 1.6;
+}
+
+#q_resultado strong {
+    color: #ffffff;
+}
+
+#q_resultado img {
+    transition: .25s ease;
+}
+
+#q_resultado img:hover {
+    transform: scale(1.02);
+}
 </style>
 </head>
 
@@ -973,13 +1146,32 @@ textarea#q_defeito:focus {
 
         <br>
 
-        <h3>⚠️ Defeitos</h3>
+        <h3>⚠️ Defeitos McCain</h3>
 
-    <textarea 
+<div class="form-grid">
+    <select id="q_defeito_select" onchange="carregarOpcoesDefeito()">
+        <option value="">Selecione o defeito</option>
+    </select>
+
+    <select id="q_opcao_defeito">
+        <option value="">Selecione a dimensão/pontuação</option>
+    </select>
+
+    <button type="button" class="primary-btn" onclick="adicionarDefeitoMcCain()">
+        ➕ Adicionar Defeito
+    </button>
+</div>
+
+<div id="listaDefeitosSelecionados" class="relatorio-card relatorio-vazio">
+    Nenhum defeito adicionado.
+</div>
+
+<textarea 
     id="q_defeito" 
-    placeholder="Digite os defeitos encontrados. Ex: VERDE - 2 pontos / BROCADO - 1 ponto / PODRIDÃO - 3 pontos"
-    rows="5"
-></textarea>
+    style="display:none;">
+</textarea>
+
+<input type="hidden" id="q_pontos" value="0">
 
 <br><br>
 

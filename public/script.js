@@ -39,6 +39,63 @@ function mostrarAba(id, elemento) {
     }
 }
 
+function obterStatusQualidade(pontos, defeitosTexto = '') {
+    const total = parseFloat(
+        String(pontos || '0').replace(',', '.')
+    ) || 0;
+
+    const texto = String(defeitosTexto || '');
+
+    for (const nomeDefeito in defeitosMcCain) {
+        const regex = new RegExp(`${nomeDefeito}\\s*-\\s*(\\d+)`, 'gi');
+
+        let somaDefeito = 0;
+        let match;
+
+        while ((match = regex.exec(texto)) !== null) {
+            somaDefeito += Number(match[1] || 0);
+        }
+
+        const limite = Number(defeitosMcCain[nomeDefeito].limite || 0);
+
+        if (limite && somaDefeito > limite) {
+            return {
+                texto: `⛔ Reprovado — limite de ${nomeDefeito} excedido`,
+                cor: '#ef4444'
+            };
+        }
+    }
+
+    if (total >= 40) {
+        return {
+            texto: '⛔ Reprovado — limite total de 40 pontos excedido',
+            cor: '#ef4444'
+        };
+    }
+
+    if (total >= 21) {
+        return {
+            texto: '🔴 Crítico',
+            cor: '#ef4444'
+        };
+    }
+
+    if (total >= 11) {
+        return {
+            texto: '🟡 Atenção',
+            cor: '#facc15'
+        };
+    }
+
+    return {
+        texto: '🟢 Dentro do padrão',
+        cor: '#22c55e'
+    };
+}
+
+
+
+
 /* =========================
    LOGOUT
 ========================= */
@@ -1010,6 +1067,163 @@ async function carregarGraficoQualidade(aprovados, reprovados, percentual) {
     const centro = document.getElementById('taxaAprovacaoCircle');
     if (centro) centro.innerText = `${percentual || 0}%`;
 }
+
+const defeitosMcCain = {
+    "Danos Mecânicos": {
+        dimensao: "Diâmetro",
+        opcoes: [
+            { texto: "5mm - 15mm", pontos: 1 },
+            { texto: "16mm - 30mm", pontos: 2 },
+            { texto: "> 30mm", pontos: 3 }
+        ],
+        limite: 20
+    },
+
+    "Nematóides": {
+        dimensao: "Diâmetro",
+        opcoes: [
+            { texto: "5mm - 15mm", pontos: 1 },
+            { texto: "16mm - 30mm", pontos: 2 },
+            { texto: "> 30mm", pontos: 3 }
+        ],
+        limite: 10
+    },
+
+    "Danos por Insetos": {
+        dimensao: "Profundidade",
+        opcoes: [
+            { texto: "> 10mm", pontos: 3 }
+        ],
+        limite: 10
+    },
+
+    "Rachadura": {
+        dimensao: "Comp./Prof.",
+        opcoes: [
+            { texto: "> 1/3 tub 5mm - 10mm", pontos: 2 },
+            { texto: "> 1/3 tub > 10mm", pontos: 3 }
+        ],
+        limite: 10
+    },
+
+    "Embonecamento": {
+        dimensao: "Comp./Ângulo",
+        opcoes: [
+            { texto: ">20mm < 90°", pontos: 3 }
+        ],
+        limite: 10
+    },
+
+    "Translúcidas": {
+        dimensao: "Comprimento",
+        opcoes: [
+            { texto: "< 10mm", pontos: 2 }
+        ],
+        limite: 10
+    },
+
+    "Verde": {
+        dimensao: "Comprimento",
+        opcoes: [
+            { texto: "10mm - 20mm", pontos: 1 },
+            { texto: "21mm - 30mm", pontos: 2 },
+            { texto: "> 30mm", pontos: 3 }
+        ],
+        limite: 5
+    },
+
+    "Sarna profunda": {
+        dimensao: "Comprimento",
+        opcoes: [
+            { texto: "10mm - 20mm", pontos: 1 },
+            { texto: "21mm - 30mm", pontos: 2 },
+            { texto: "> 30mm", pontos: 3 }
+        ],
+        limite: 5
+    },
+
+    "Sarna superficial": {
+        dimensao: "Diâmetro",
+        opcoes: [
+            { texto: "10mm - 20mm", pontos: 1 },
+            { texto: "21mm - 30mm", pontos: 2 },
+            { texto: "> 30mm", pontos: 3 }
+        ],
+        limite: 10
+    },
+
+    "Podridão Bacteriana": {
+        dimensao: "Unidade",
+        opcoes: [
+            { texto: "unidade", pontos: 9 }
+        ],
+        limite: 9
+    },
+
+    "Podridão Seca": {
+        dimensao: "Unidade",
+        opcoes: [
+            { texto: "unidade", pontos: 9 }
+        ],
+        limite: 9
+    },
+
+    "Brotação Externa": {
+        dimensao: "Comprimento",
+        opcoes: [
+            { texto: "#=1 5mm - 10mm", pontos: 1 },
+            { texto: "#=1 > 10mm", pontos: 2 },
+            { texto: "#=1 > 15mm", pontos: 3 }
+        ],
+        limite: 10
+    },
+
+    "Brotação Interna": {
+        dimensao: "Comprimento",
+        opcoes: [
+            { texto: "5mm - 10mm", pontos: 2 },
+            { texto: "> 10mm", pontos: 3 }
+        ],
+        limite: 10
+    },
+
+    "Coração-Preto": {
+        dimensao: "Diâmetro",
+        opcoes: [
+            { texto: "16mm - 30mm", pontos: 2 },
+            { texto: "> 30mm", pontos: 3 }
+        ],
+        limite: 10
+    },
+
+    "Coração-Oco": {
+        dimensao: "Diâmetro",
+        opcoes: [
+            { texto: "> 15mm", pontos: 3 }
+        ],
+        limite: 10
+    },
+
+    "PLRV": {
+        dimensao: "Comprimento",
+        opcoes: [
+            { texto: "20mm - 30mm", pontos: 2 },
+            { texto: "> 30mm", pontos: 3 }
+        ],
+        limite: 10
+    },
+
+    "Queimadas": {
+        dimensao: "Diâmetro",
+        opcoes: [
+            { texto: "5mm - 15mm", pontos: 1 },
+            { texto: "16mm - 30mm", pontos: 2 },
+            { texto: "> 30mm", pontos: 3 }
+        ],
+        limite: 10
+    }
+};
+
 /* =========================
    WHATSAPP / COPIAR
 ========================= */
@@ -1269,7 +1483,8 @@ function verDetalhesQualidade(item) {
 
     const resultado = document.getElementById('q_resultado');
     resultado.classList.remove('relatorio-vazio');
-
+    
+    const status = obterStatusQualidade(item.pontos, item.defeito);    
     resultado.innerHTML = `
         <div style="display:flex; gap:30px; align-items:flex-start; flex-wrap:wrap;">
 
@@ -1302,6 +1517,22 @@ function verDetalhesQualidade(item) {
 
                 <h4>⚠️ Defeitos</h4>
                 <p><strong>Identificado:</strong> ${item.defeito || '-'}</p>
+                <div style="
+                margin: 18px 0;
+                padding: 14px 18px;
+                border-radius: 16px;
+                background: rgba(255,255,255,.04);
+                border-left: 5px solid ${status.cor};
+                font-weight: 700;
+                color: ${status.cor};
+                font-size: 16px;
+                ">
+                ${status.texto}
+                </div>
+
+<p><strong>Pontos:</strong> ${item.pontos || '0'}</p>
+                
+                
                 <p><strong>Pontos:</strong> ${item.pontos || '0'}</p>
             </div>
 
@@ -1362,6 +1593,8 @@ async function excluirAnaliseQualidade(id) {
         alert('Erro ao excluir análise.');
     }
 }
+
+
 async function gerarPDFQualidade() {
     const elemento = document.getElementById('q_resultado');
 
@@ -1370,15 +1603,28 @@ async function gerarPDFQualidade() {
         return;
     }
 
+    const imagens = elemento.querySelectorAll('img');
+
+    await Promise.all([...imagens].map(img => {
+        if (img.complete) return Promise.resolve();
+
+        return new Promise(resolve => {
+            img.onload = resolve;
+            img.onerror = resolve;
+        });
+    }));
+
     const canvas = await html2canvas(elemento, {
         scale: 2,
         backgroundColor: '#111827',
-        useCORS: true
+        useCORS: true,
+        allowTaint: true
     });
 
     const imgData = canvas.toDataURL('image/png');
 
     const { jsPDF } = window.jspdf;
+
     const pdf = new jsPDF('p', 'mm', 'a4');
 
     const pageWidth = 210;
@@ -1391,44 +1637,41 @@ async function gerarPDFQualidade() {
     pdf.setFillColor(17, 24, 39);
     pdf.rect(0, 0, pageWidth, pageHeight, 'F');
 
-const logo = new Image();
+    const logo = new Image();
+    logo.src = '/img/LOGO.jpeg';
 
-logo.src = '/img/LOGO.jpeg';
+    await new Promise(resolve => {
+        logo.onload = resolve;
+        logo.onerror = resolve;
+    });
 
-await new Promise((resolve) => {
-    logo.onload = resolve;
-    logo.onerror = resolve;
-});
+    pdf.addImage(
+        logo,
+        'JPEG',
+        10,
+        8,
+        24,
+        24
+    );
 
-pdf.addImage(
-    logo,
-    'JPEG',
-    10,
-    8,
-    24,
-    24
-);
+    const agora = new Date().toLocaleString('pt-BR');
 
-const agora = new Date().toLocaleString('pt-BR');
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFontSize(17);
+    pdf.text('RELATÓRIO DE QUALIDADE', 42, 16);
 
-pdf.setTextColor(255,255,255);
+    pdf.setFontSize(10);
+    pdf.text('Furman Logística • Sistema de Qualidade', 42, 23);
 
-pdf.setFontSize(17);
-pdf.text('RELATÓRIO DE QUALIDADE', 42, 16);
+    pdf.setFontSize(9);
+    pdf.text('Laboratorista: Luiz Aires', 42, 29);
+    pdf.text(`Emitido em: ${agora}`, 42, 34);
 
-pdf.setFontSize(10);
-pdf.text('Furman Logística • Sistema de Qualidade', 42, 23);
-
-pdf.setFontSize(9);
-pdf.text(`Laboratorista: Luiz Aires`, 42, 29);
-pdf.text(`Emitido em: ${agora}`, 42, 34);
-
-
-
-   pdf.addImage(imgData, 'PNG', 10, 42, imgWidth, imgHeight);
+    pdf.addImage(imgData, 'PNG', 10, 42, imgWidth, imgHeight);
 
     pdf.save('analise-qualidade.pdf');
 }
+
 let analiseEditandoId = null;
 
 function editarAnaliseQualidade(item) {
@@ -1468,22 +1711,73 @@ function editarAnaliseQualidade(item) {
 
     document.getElementById('qualidade').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
+
 async function carregarDashboardQualidade() {
     try {
-        const resposta = await fetch('/dashboard-qualidade');
-        const dados = await resposta.json();
 
-        document.getElementById('qtdAnalisesQualidade').textContent = dados.totalAnalises || 0;
-        document.getElementById('mediaSolidosQualidade').textContent = `${dados.mediaSolidos || 0}%`;
-        document.getElementById('mediaPesoQualidade').textContent = dados.mediaPesoTotal || '0';
-        document.getElementById('totalPontosQualidade').textContent = dados.totalPontos || 0;
+        const resposta = await fetch('/dashboard-qualidade');
+
+        const analises = await resposta.json();
+
+        const numero = (valor) => {
+            return parseFloat(
+                String(valor || '0').replace(',', '.')
+            ) || 0;
+        };
+
+        const total = analises.length;
+
+        const somaSolidos = analises.reduce(
+            (acc, item) => acc + numero(item.solidos),
+            0
+        );
+
+        const somaPeso = analises.reduce(
+            (acc, item) => acc + numero(item.peso_total),
+            0
+        );
+
+        const somaPontos = analises.reduce(
+            (acc, item) => acc + numero(item.pontos),
+            0
+        );
+
+        const mediaSolidos =
+            total > 0
+                ? (somaSolidos / total).toFixed(2)
+                : '0.00';
+
+        const mediaPeso =
+            total > 0
+                ? (somaPeso / total).toFixed(3)
+                : '0.000';
+
+        document.getElementById(
+            'qtdAnalisesQualidade'
+        ).textContent = total;
+
+        document.getElementById(
+            'mediaSolidosQualidade'
+        ).textContent = `${mediaSolidos}%`;
+
+        document.getElementById(
+            'mediaPesoQualidade'
+        ).textContent = mediaPeso;
+
+        document.getElementById(
+            'totalPontosQualidade'
+        ).textContent = somaPontos;
 
     } catch (erro) {
-        console.error('Erro ao carregar dashboard qualidade:', erro);
+
+        console.error(
+            'Erro ao carregar dashboard qualidade:',
+            erro
+        );
     }
 }
-let graficoSolidosQualidade = null;
 
+let graficoSolidosQualidade = null;
 async function carregarGraficoSolidosQualidade() {
     try {
         const resposta = await fetch('/analises-qualidade');
@@ -1500,9 +1794,11 @@ async function carregarGraficoSolidosQualidade() {
         const ctx = document.getElementById('graficoSolidosQualidade');
 
         if (!ctx) return;
-
-        if (graficoSolidosQualidade) {
-            graficoSolidosQualidade.destroy();
+        if (
+        graficoSolidosQualidade &&
+        typeof graficoSolidosQualidade.destroy === 'function'  
+        ){
+        graficoSolidosQualidade.destroy();
         }
 
         graficoSolidosQualidade = new Chart(ctx, {
@@ -1539,3 +1835,231 @@ async function carregarGraficoSolidosQualidade() {
         console.error('Erro ao carregar gráfico de sólidos:', erro);
     }
 }
+let defeitosSelecionados = [];
+
+/* =========================
+   CARREGAR DEFEITOS
+========================= */
+
+function carregarDefeitosMcCain() {
+
+    const select = document.getElementById('q_defeito_select');
+
+    if (!select) return;
+
+    select.innerHTML = `
+        <option value="">Selecione o defeito</option>
+    `;
+
+    Object.keys(defeitosMcCain).forEach(nome => {
+
+        select.innerHTML += `
+            <option value="${nome}">
+                ${nome}
+            </option>
+        `;
+    });
+}
+
+/* =========================
+   OPÇÕES DO DEFEITO
+========================= */
+
+function carregarOpcoesDefeito() {
+
+    const defeito =
+        document.getElementById('q_defeito_select').value;
+
+    const selectOpcao =
+        document.getElementById('q_opcao_defeito');
+
+    selectOpcao.innerHTML = `
+        <option value="">Selecione a dimensão/pontuação</option>
+    `;
+
+    if (!defeito || !defeitosMcCain[defeito]) return;
+
+    defeitosMcCain[defeito].opcoes.forEach(opcao => {
+
+        selectOpcao.innerHTML += `
+            <option value="${opcao.pontos}">
+                ${opcao.texto} → ${opcao.pontos} ponto(s)
+            </option>
+        `;
+    });
+}
+
+/* =========================
+   ADICIONAR DEFEITO
+========================= */
+
+function adicionarDefeitoMcCain() {
+
+    const defeito =
+        document.getElementById('q_defeito_select').value;
+
+    const selectOpcao =
+        document.getElementById('q_opcao_defeito');
+
+    const textoOpcao =
+        selectOpcao.options[
+            selectOpcao.selectedIndex
+        ]?.text;
+
+    const pontos =
+        parseInt(selectOpcao.value || '0');
+
+    if (!defeito || !pontos) {
+
+        alert('Selecione o defeito e a pontuação.');
+
+        return;
+    }
+
+    defeitosSelecionados.push({
+        defeito,
+        descricao: textoOpcao,
+        pontos
+    });
+
+    atualizarListaDefeitos();
+}
+
+/* =========================
+   ATUALIZAR LISTA
+========================= */
+
+function atualizarListaDefeitos() {
+    const lista = document.getElementById('listaDefeitosSelecionados');
+    const textarea = document.getElementById('q_defeito');
+    const inputPontos = document.getElementById('q_pontos');
+
+    if (defeitosSelecionados.length === 0) {
+        lista.innerHTML = 'Nenhum defeito adicionado.';
+        lista.classList.add('relatorio-vazio');
+        textarea.value = '';
+        inputPontos.value = '0';
+        return;
+    }
+
+    lista.classList.remove('relatorio-vazio');
+
+    let totalPontos = 0;
+    const somaPorDefeito = {};
+
+    defeitosSelecionados.forEach(item => {
+        totalPontos += item.pontos;
+
+        if (!somaPorDefeito[item.defeito]) {
+            somaPorDefeito[item.defeito] = 0;
+        }
+
+        somaPorDefeito[item.defeito] += item.pontos;
+    });
+
+    const reprovados = [];
+
+    Object.keys(somaPorDefeito).forEach(defeito => {
+        const limite = defeitosMcCain[defeito]?.limite || 0;
+        const pontosDefeito = somaPorDefeito[defeito];
+
+        if (limite && pontosDefeito > limite) {
+            reprovados.push({
+                defeito,
+                pontos: pontosDefeito,
+                limite
+            });
+        }
+    });
+
+    lista.innerHTML = '';
+
+    defeitosSelecionados.forEach(item => {
+        lista.innerHTML += `
+            <div style="
+                padding:12px;
+                margin-bottom:10px;
+                border-radius:14px;
+                background:rgba(255,255,255,.04);
+                border-left:4px solid #21ff9d;
+            ">
+                <strong>${item.defeito}</strong><br>
+                ${item.descricao}
+
+                <div style="
+                    margin-top:8px;
+                    color:#21ff9d;
+                    font-weight:700;
+                ">
+                    ${item.pontos} ponto(s)
+                </div>
+            </div>
+        `;
+    });
+
+    Object.keys(somaPorDefeito).forEach(defeito => {
+        const limite = defeitosMcCain[defeito]?.limite || 0;
+        const pontosDefeito = somaPorDefeito[defeito];
+
+        lista.innerHTML += `
+            <div style="
+                margin-top:10px;
+                padding:12px;
+                border-radius:14px;
+                background:${pontosDefeito > limite ? 'rgba(239,68,68,.12)' : 'rgba(33,255,157,.08)'};
+                border:1px solid ${pontosDefeito > limite ? 'rgba(239,68,68,.45)' : 'rgba(33,255,157,.25)'};
+                color:${pontosDefeito > limite ? '#ef4444' : '#21ff9d'};
+                font-weight:800;
+            ">
+                ${defeito}: ${pontosDefeito}/${limite} pontos
+                ${pontosDefeito > limite ? ' — REPROVADO' : ''}
+            </div>
+        `;
+    });
+
+    lista.innerHTML += `
+        <div style="
+            margin-top:18px;
+            padding:14px;
+            border-radius:16px;
+            background:rgba(33,255,157,.08);
+            border:1px solid rgba(33,255,157,.25);
+            font-weight:700;
+            font-size:18px;
+            color:#21ff9d;
+        ">
+            Total geral: ${totalPontos} ponto(s)
+        </div>
+    `;
+
+    if (reprovados.length > 0) {
+        lista.innerHTML += `
+            <div style="
+                margin-top:14px;
+                padding:16px;
+                border-radius:18px;
+                background:rgba(239,68,68,.14);
+                border:1px solid rgba(239,68,68,.45);
+                color:#ef4444;
+                font-weight:900;
+            ">
+                ⛔ Reprovado por: ${reprovados.map(r => `${r.defeito} (${r.pontos}/${r.limite})`).join(', ')}
+            </div>
+        `;
+    }
+
+    textarea.value = defeitosSelecionados
+        .map(item => `${item.defeito} - ${item.pontos} pontos`)
+        .join(' / ');
+
+    inputPontos.value = totalPontos;
+}
+
+/* =========================
+   INICIAR
+========================= */
+
+document.addEventListener(
+    'DOMContentLoaded',
+    carregarDefeitosMcCain
+);

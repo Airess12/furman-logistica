@@ -614,31 +614,21 @@ app.put('/analises-qualidade/:id', protegerApi, upload.single('foto_analise'), a
 });
 
 app.get('/dashboard-qualidade', protegerApi, async (req, res) => {
-    const db = await conectar();
+    try {
+        const db = await conectar();
 
-    const resumo = await db.get(`
-        SELECT
-            COUNT(*) AS total_analises,
-            AVG(NULLIF(REPLACE(solidos, ',', '.'), '')::numeric) AS media_solidos,
-            AVG(NULLIF(REPLACE(peso_total, ',', '.'), '')::numeric) AS media_peso_total,
-            SUM(NULLIF(REPLACE(pontos, ',', '.'), '')::numeric) AS total_pontos
-        FROM analises_qualidade
-    `);
+        const analises = await db.all(`
+            SELECT *
+            FROM analises_qualidade
+            ORDER BY id DESC
+        `);
 
-    const ultimas = await db.all(`
-        SELECT placa, variedade, solidos, pontos, criado_em
-        FROM analises_qualidade
-        ORDER BY id DESC
-        LIMIT 5
-    `);
+        res.json(analises);
 
-    res.json({
-        totalAnalises: Number(resumo.total_analises || 0),
-        mediaSolidos: Number(resumo.media_solidos || 0).toFixed(2),
-        mediaPesoTotal: Number(resumo.media_peso_total || 0).toFixed(3),
-        totalPontos: Number(resumo.total_pontos || 0),
-        ultimas
-    });
+    } catch (erro) {
+        console.error('ERRO DASHBOARD QUALIDADE:', erro);
+        res.status(500).json({ erro: 'Erro ao carregar dashboard qualidade' });
+    }
 });
 
 
