@@ -824,11 +824,17 @@ body::after {
         <br>
 
         <h3>⚠️ Defeitos</h3>
-        <div class="form-grid">
-            <input type="text" id="q_defeito" placeholder="Identificado">
-            <input type="number" id="q_pontos" placeholder="Pontos">
-        </div>
 
+    <textarea 
+    id="q_defeito" 
+    placeholder="Digite os defeitos encontrados. Ex: VERDE - 2 pontos / BROCADO - 1 ponto / PODRIDÃO - 3 pontos"
+    rows="5"
+    style="width:100%; resize:vertical;"
+></textarea>
+
+<br><br>
+
+<input type="number" id="q_pontos" placeholder="Total de pontos">
         <br>
 
         <h3>📷 Foto da análise</h3>
