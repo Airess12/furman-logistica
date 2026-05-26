@@ -1,32 +1,45 @@
 const express = require('express');
 const session = require('express-session');
-const bcrypt = require('bcrypt');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const bcrypt = require('bcrypt');
 
-const {
-    conectar,
-    criarTabelas
-} = require('./database');
+const { conectar, criarTabelas } = require('./database');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-fs.mkdirSync('public/uploads', { recursive: true });
+criarTabelas();
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.use(session({
-    secret: 'furman_sistema_logistico',
+    secret: 'furman-logistica',
     resave: false,
     saveUninitialized: false
 }));
 
-criarTabelas();
+app.use('/style.css', express.static(path.join(__dirname, 'public', 'style.css')));
+app.use('/img', express.static(path.join(__dirname, 'public', 'img')));
+app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
 
-app.use('/img', express.static('public/img'));
-app.use('/style.css', express.static('public/style.css'));
+function proteger(req, res, next) {
+    if (!req.session.usuario) {
+        return res.redirect('/login');
+    }
+
+    next();
+}
+
+function protegerApi(req, res, next) {
+    if (!req.session.usuario) {
+        return res.status(401).json({ status: 'erro' });
+    }
+
+    next();
+}
 
 app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'login.html'));
@@ -35,27 +48,24 @@ app.get('/login', (req, res) => {
 app.post('/login', async (req, res) => {
     const db = await conectar();
 
-    const {
-        usuario,
-        senha
-    } = req.body;
+    const { usuario, senha } = req.body;
 
-    const user = await db.get(
+    const usuarioBanco = await db.get(
         `SELECT * FROM usuarios WHERE usuario = ?`,
         [usuario]
     );
 
-    if (!user) {
-        return res.json({ status: 'erro' });
+    if (!usuarioBanco) {
+        return res.status(401).json({ status: 'erro' });
     }
 
-    const senhaValida = await bcrypt.compare(senha, user.senha);
+    const senhaValida = await bcrypt.compare(senha, usuarioBanco.senha);
 
     if (!senhaValida) {
-        return res.json({ status: 'erro' });
+        return res.status(401).json({ status: 'erro' });
     }
 
-    req.session.usuario = user.usuario;
+    req.session.usuario = usuarioBanco.usuario;
 
     res.json({ status: 'ok' });
 });
@@ -66,14 +76,6 @@ app.post('/logout', (req, res) => {
     });
 });
 
-function proteger(req, res, next) {
-    if (req.session.usuario) {
-        return next();
-    }
-
-    return res.redirect('/login');
-}
-
 app.get('/', proteger, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
@@ -82,28 +84,54 @@ app.get('/script.js', proteger, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'script.js'));
 });
 
-app.use('/uploads', proteger, express.static('public/uploads'));
-
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, 'public/uploads');
+        const pasta = path.join(__dirname, 'public', 'uploads');
+
+        if (!fs.existsSync(pasta)) {
+            fs.mkdirSync(pasta, { recursive: true });
+        }
+
+        cb(null, pasta);
     },
+
     filename: (req, file, cb) => {
-        const extensao = path.extname(file.originalname);
-
-        const nomeArquivo =
-            Date.now() + '-' + Math.round(Math.random() * 1E9) + extensao;
-
-        cb(null, nomeArquivo);
+        cb(null, Date.now() + path.extname(file.originalname));
     }
 });
 
 const upload = multer({ storage });
 
-app.get('/motorista/:placa', proteger, async (req, res) => {
+app.post('/motoristas', protegerApi, upload.single('foto'), async (req, res) => {
     const db = await conectar();
 
-    const placa = req.params.placa.toUpperCase();
+    const placa = req.body.placa.toUpperCase().trim();
+    const motorista = req.body.motorista.trim();
+
+    const foto = req.file
+        ? '/uploads/' + req.file.filename
+        : '';
+
+    await db.run(`
+        INSERT INTO motoristas (placa, motorista, foto)
+        VALUES (?, ?, ?)
+        ON CONFLICT (placa)
+        DO UPDATE SET
+            motorista = EXCLUDED.motorista,
+            foto = CASE
+                WHEN EXCLUDED.foto = ''
+                THEN motoristas.foto
+                ELSE EXCLUDED.foto
+            END
+    `, [placa, motorista, foto]);
+
+    res.json({ status: 'ok' });
+});
+
+app.get('/motoristas/:placa', protegerApi, async (req, res) => {
+    const db = await conectar();
+
+    const placa = req.params.placa.toUpperCase().trim();
 
     const motorista = await db.get(
         `SELECT * FROM motoristas WHERE placa = ?`,
@@ -113,53 +141,61 @@ app.get('/motorista/:placa', proteger, async (req, res) => {
     res.json(motorista || {});
 });
 
-app.post('/motoristas', proteger, upload.single('foto'), async (req, res) => {
+app.post('/produtores', protegerApi, async (req, res) => {
     const db = await conectar();
 
-    const placa = req.body.placa.toUpperCase();
-    const motorista = req.body.motorista;
-    const foto = req.file ? `uploads/${req.file.filename}` : null;
+    const nome = req.body.nome.trim();
 
-    const existente = await db.get(
-        `SELECT * FROM motoristas WHERE placa = ?`,
-        [placa]
-    );
-
-    if (existente) {
-        await db.run(
-            `
-            UPDATE motoristas
-            SET motorista = ?,
-                foto = COALESCE(?, foto)
-            WHERE placa = ?
-            `,
-            [motorista, foto, placa]
-        );
-    } else {
-        await db.run(
-            `
-            INSERT INTO motoristas
-            (placa, motorista, foto)
-            VALUES (?, ?, ?)
-            `,
-            [placa, motorista, foto]
-        );
-    }
+    await db.run(`
+        INSERT INTO produtores (nome)
+        VALUES (?)
+        ON CONFLICT (nome)
+        DO NOTHING
+    `, [nome]);
 
     res.json({ status: 'ok' });
 });
 
-app.get('/motoristas', proteger, async (req, res) => {
+app.get('/produtores', protegerApi, async (req, res) => {
     const db = await conectar();
 
-    const motoristas = await db.all(
-        `SELECT * FROM motoristas ORDER BY motorista ASC`
-    );
+    const produtores = await db.all(`
+        SELECT *
+        FROM produtores
+        ORDER BY nome ASC
+    `);
 
-    res.json(motoristas);
+    res.json(produtores);
 });
 
-app.post('/expedicoes', proteger, async (req, res) => {
+app.post('/carretas', protegerApi, async (req, res) => {
+    const db = await conectar();
+
+    const placa = req.body.placa.toUpperCase().trim();
+
+    await db.run(`
+        INSERT INTO carretas (placa)
+        VALUES (?)
+        ON CONFLICT (placa)
+        DO NOTHING
+    `, [placa]);
+
+    res.json({ status: 'ok' });
+});
+
+app.get('/carretas', protegerApi, async (req, res) => {
+    const db = await conectar();
+
+    const carretas = await db.all(`
+        SELECT *
+        FROM carretas
+        ORDER BY placa ASC
+    `);
+
+    res.json(carretas);
+});
+
+app.post('/expedicoes', protegerApi, async (req, res) => {
     const db = await conectar();
 
     const {
@@ -177,91 +213,8 @@ app.post('/expedicoes', proteger, async (req, res) => {
         saida
     } = req.body;
 
-    await db.run(
-        `
-        INSERT INTO expedicoes
-        (
-            produtor,
-            placa_cavalo,
-            motorista,
-            origem,
-            destino,
-            veiculo,
-            placa_carreta1,
-            variedade1,
-            placa_carreta2,
-            variedade2,
-            peso,
-            saida
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `,
-        [
-            produtor,
-            placa_cavalo,
-            motorista,
-            origem,
-            destino,
-            veiculo,
-            placa_carreta1,
-            variedade1,
-            placa_carreta2,
-            variedade2,
-            peso,
-            saida
-        ]
-    );
-
-    res.json({ status: 'ok' });
-});
-
-app.get('/expedicoes', proteger, async (req, res) => {
-    const db = await conectar();
-
-    const expedicoes = await db.all(
-        `SELECT * FROM expedicoes ORDER BY id DESC`
-    );
-
-    res.json(expedicoes);
-});
-
-app.put('/expedicoes/:id', proteger, async (req, res) => {
-    const db = await conectar();
-    const id = req.params.id;
-
-    const {
-        produtor,
-        placa_cavalo,
-        motorista,
-        origem,
-        destino,
-        veiculo,
-        placa_carreta1,
-        variedade1,
-        placa_carreta2,
-        variedade2,
-        peso,
-        saida
-    } = req.body;
-
-    await db.run(
-        `
-        UPDATE expedicoes
-        SET produtor = ?,
-            placa_cavalo = ?,
-            motorista = ?,
-            origem = ?,
-            destino = ?,
-            veiculo = ?,
-            placa_carreta1 = ?,
-            variedade1 = ?,
-            placa_carreta2 = ?,
-            variedade2 = ?,
-            peso = ?,
-            saida = ?
-        WHERE id = ?
-        `,
-        [
+    await db.run(`
+        INSERT INTO expedicoes (
             produtor,
             placa_cavalo,
             motorista,
@@ -274,42 +227,348 @@ app.put('/expedicoes/:id', proteger, async (req, res) => {
             variedade2,
             peso,
             saida,
-            id
-        ]
-    );
+            status,
+            resultado,
+            motivo_reprovacao,
+            resultado_c1,
+            motivo_c1,
+            resultado_c2,
+            motivo_c2
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [
+        produtor,
+        placa_cavalo,
+        motorista,
+        origem,
+        destino,
+        veiculo,
+        placa_carreta1,
+        variedade1,
+        placa_carreta2,
+        variedade2,
+        peso,
+        saida,
+        'Em viagem',
+        'Pendente',
+        '',
+        'Pendente',
+        '',
+        placa_carreta2 ? 'Pendente' : '',
+        ''
+    ]);
 
     res.json({ status: 'ok' });
 });
 
-app.delete('/expedicoes/:id', proteger, async (req, res) => {
+app.put('/expedicoes/:id', protegerApi, async (req, res) => {
     const db = await conectar();
 
-    const id = req.params.id;
+    const {
+        produtor,
+        placa_cavalo,
+        motorista,
+        origem,
+        destino,
+        veiculo,
+        placa_carreta1,
+        variedade1,
+        placa_carreta2,
+        variedade2,
+        peso
+    } = req.body;
 
-    await db.run(
-        `DELETE FROM expedicoes WHERE id = ?`,
-        [id]
-    );
+    await db.run(`
+        UPDATE expedicoes
+        SET
+            produtor = ?,
+            placa_cavalo = ?,
+            motorista = ?,
+            origem = ?,
+            destino = ?,
+            veiculo = ?,
+            placa_carreta1 = ?,
+            variedade1 = ?,
+            placa_carreta2 = ?,
+            variedade2 = ?,
+            peso = ?
+        WHERE id = ?
+    `, [
+        produtor,
+        placa_cavalo,
+        motorista,
+        origem,
+        destino,
+        veiculo,
+        placa_carreta1,
+        variedade1,
+        placa_carreta2,
+        variedade2,
+        peso,
+        req.params.id
+    ]);
 
     res.json({ status: 'ok' });
 });
 
-app.get('/dashboard', proteger, async (req, res) => {
+app.get('/expedicoes', protegerApi, async (req, res) => {
     const db = await conectar();
 
-    const totalExpedicoes = await db.get(
-        `SELECT COUNT(*) AS total FROM expedicoes`
-    );
+    const expedicoes = await db.all(`
+        SELECT *
+        FROM expedicoes
+        ORDER BY id DESC
+    `);
 
-    const totalPeso = await db.get(
-        `SELECT COUNT(*) * 38000 AS total FROM expedicoes`
-    );
+    res.json(expedicoes);
+});
+
+app.put('/expedicoes/:id/qualidade-carretas', protegerApi, async (req, res) => {
+    const db = await conectar();
+
+    const {
+        status,
+        resultado_c1,
+        motivo_c1,
+        resultado_c2,
+        motivo_c2
+    } = req.body;
+
+    const resultadoGeral =
+        resultado_c1 === 'Reprovado' || resultado_c2 === 'Reprovado'
+            ? 'Reprovado'
+            : resultado_c1 === 'Aprovado' && (!resultado_c2 || resultado_c2 === 'Aprovado')
+                ? 'Aprovado'
+                : 'Pendente';
+
+    const motivoGeral = [
+        motivo_c1 ? `C1: ${motivo_c1}` : '',
+        motivo_c2 ? `C2: ${motivo_c2}` : ''
+    ].filter(Boolean).join(' | ');
+
+    await db.run(`
+        UPDATE expedicoes
+        SET
+            status = ?,
+            resultado_c1 = ?,
+            motivo_c1 = ?,
+            resultado_c2 = ?,
+            motivo_c2 = ?,
+            resultado = ?,
+            motivo_reprovacao = ?
+        WHERE id = ?
+    `, [
+        status,
+        resultado_c1 || 'Pendente',
+        motivo_c1 || '',
+        resultado_c2 || '',
+        motivo_c2 || '',
+        resultadoGeral,
+        motivoGeral,
+        req.params.id
+    ]);
+
+    res.json({ status: 'ok' });
+});
+
+app.put('/expedicoes/:id/qualidade', protegerApi, async (req, res) => {
+    const db = await conectar();
+
+    const { status, resultado, motivo_reprovacao } = req.body;
+
+    await db.run(`
+        UPDATE expedicoes
+        SET
+            status = ?,
+            resultado = ?,
+            motivo_reprovacao = ?
+        WHERE id = ?
+    `, [
+        status,
+        resultado,
+        motivo_reprovacao || '',
+        req.params.id
+    ]);
+
+    res.json({ status: 'ok' });
+});
+
+app.delete('/expedicoes/:id', protegerApi, async (req, res) => {
+    const db = await conectar();
+
+    await db.run(`
+        DELETE FROM expedicoes
+        WHERE id = ?
+    `, [req.params.id]);
+
+    res.json({ status: 'ok' });
+});
+
+app.get('/dashboard', protegerApi, async (req, res) => {
+    const db = await conectar();
+
+    const totalExpedicoes = await db.get(`
+        SELECT COUNT(*) AS total
+        FROM expedicoes
+    `);
+
+    const totalPeso = await db.get(`
+        SELECT COUNT(*) * 38000 AS total
+        FROM expedicoes
+    `);
+
+    const aprovadasC1 = await db.get(`
+        SELECT COUNT(*) AS total
+        FROM expedicoes
+        WHERE resultado_c1 = 'Aprovado'
+    `);
+
+    const reprovadasC1 = await db.get(`
+        SELECT COUNT(*) AS total
+        FROM expedicoes
+        WHERE resultado_c1 = 'Reprovado'
+    `);
+
+    const aprovadasC2 = await db.get(`
+        SELECT COUNT(*) AS total
+        FROM expedicoes
+        WHERE resultado_c2 = 'Aprovado'
+    `);
+
+    const reprovadasC2 = await db.get(`
+        SELECT COUNT(*) AS total
+        FROM expedicoes
+        WHERE resultado_c2 = 'Reprovado'
+    `);
+
+    const aprovadosTotal =
+        Number(aprovadasC1.total || 0) + Number(aprovadasC2.total || 0);
+
+    const reprovadosTotal =
+        Number(reprovadasC1.total || 0) + Number(reprovadasC2.total || 0);
+
+    const avaliados = aprovadosTotal + reprovadosTotal;
+
+    const taxaAprovacao = avaliados > 0
+        ? ((aprovadosTotal / avaliados) * 100).toFixed(1)
+        : '0';
+
+    const taxaReprovacao = avaliados > 0
+        ? ((reprovadosTotal / avaliados) * 100).toFixed(1)
+        : '0';
 
     res.json({
-        totalExpedicoes: totalExpedicoes.total,
-        pesoEstimadoTotal: totalPeso.total
+        totalExpedicoes: Number(totalExpedicoes.total || 0),
+        pesoEstimadoTotal: Number(totalPeso.total || 0),
+        aprovados: aprovadosTotal,
+        reprovados: reprovadosTotal,
+        taxaAprovacao,
+        taxaReprovacao
     });
 });
+app.post('/analises-qualidade', protegerApi, upload.single('foto_analise'), async (req, res) => {
+    const db = await conectar();
+
+    const foto_analise = req.file
+        ? '/uploads/' + req.file.filename
+        : '';
+
+    const {
+        variedade,
+        solidos,
+        peso_agua,
+        placa,
+        peso_total,
+        peso_lavado,
+        diametro_35,
+        diametro_35_45,
+        diametro_45,
+        menos75_qtd,
+        menos75_peso,
+        mais75_qtd,
+        mais75_peso,
+        mais100_qtd,
+        mais100_peso,
+        mais150_qtd,
+        mais150_peso,
+        defeito,
+        pontos
+    } = req.body;
+
+    await db.run(`
+        INSERT INTO analises_qualidade (
+            variedade,
+            solidos,
+            peso_agua,
+            placa,
+            peso_total,
+            peso_lavado,
+            diametro_35,
+            diametro_35_45,
+            diametro_45,
+            menos75_qtd,
+            menos75_peso,
+            mais75_qtd,
+            mais75_peso,
+            mais100_qtd,
+            mais100_peso,
+            mais150_qtd,
+            mais150_peso,
+            defeito,
+            pontos,
+            foto_analise
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [
+        variedade,
+        solidos,
+        peso_agua,
+        placa,
+        peso_total,
+        peso_lavado,
+        diametro_35,
+        diametro_35_45,
+        diametro_45,
+        menos75_qtd,
+        menos75_peso,
+        mais75_qtd,
+        mais75_peso,
+        mais100_qtd,
+        mais100_peso,
+        mais150_qtd,
+        mais150_peso,
+        defeito,
+        pontos,
+        foto_analise
+    ]);
+
+    res.json({ status: 'ok' });
+});
+
+app.get('/analises-qualidade', protegerApi, async (req, res) => {
+
+    const db = await conectar();
+
+    const analises = await db.all(`
+        SELECT *
+        FROM analises_qualidade
+        ORDER BY id DESC
+    `);
+
+    res.json(analises);
+});
+
+app.delete('/analises-qualidade/:id', protegerApi, async (req, res) => {
+    const db = await conectar();
+
+    await db.run(`
+        DELETE FROM analises_qualidade
+        WHERE id = ?
+    `, [req.params.id]);
+
+    res.json({ status: 'ok' });
+});
+
 
 app.listen(PORT, () => {
     console.log(`🚀 Rodando em http://localhost:${PORT}`);

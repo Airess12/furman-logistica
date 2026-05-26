@@ -79,6 +79,20 @@ async function criarTabelas() {
     `);
 
     await db.query(`
+        CREATE TABLE IF NOT EXISTS produtores (
+            id SERIAL PRIMARY KEY,
+            nome TEXT UNIQUE
+        )
+    `);
+
+    await db.query(`
+        CREATE TABLE IF NOT EXISTS carretas (
+            id SERIAL PRIMARY KEY,
+            placa TEXT UNIQUE
+        )
+    `);
+
+    await db.query(`
         CREATE TABLE IF NOT EXISTS expedicoes (
             id SERIAL PRIMARY KEY,
             produtor TEXT,
@@ -92,8 +106,73 @@ async function criarTabelas() {
             placa_carreta2 TEXT,
             variedade2 TEXT,
             peso TEXT,
-            saida TEXT
+            saida TEXT,
+            status TEXT DEFAULT 'Em viagem',
+            resultado TEXT DEFAULT 'Pendente',
+            motivo_reprovacao TEXT,
+            resultado_c1 TEXT DEFAULT 'Pendente',
+            motivo_c1 TEXT,
+            resultado_c2 TEXT DEFAULT 'Pendente',
+            motivo_c2 TEXT
         )
+    `);
+
+    await db.query(`
+        ALTER TABLE expedicoes
+        ADD COLUMN IF NOT EXISTS resultado_c1 TEXT DEFAULT 'Pendente'
+    `);
+
+    await db.query(`
+        ALTER TABLE expedicoes
+        ADD COLUMN IF NOT EXISTS motivo_c1 TEXT
+    `);
+
+    await db.query(`
+        ALTER TABLE expedicoes
+        ADD COLUMN IF NOT EXISTS resultado_c2 TEXT DEFAULT 'Pendente'
+    `);
+
+    await db.query(`
+        ALTER TABLE expedicoes
+        ADD COLUMN IF NOT EXISTS motivo_c2 TEXT
+    `);
+    await db.query(`
+        CREATE TABLE IF NOT EXISTS analises_qualidade (
+            id SERIAL PRIMARY KEY,
+
+            variedade TEXT,
+            solidos TEXT,
+            peso_agua TEXT,
+            placa TEXT,
+            peso_total TEXT,
+            peso_lavado TEXT,
+
+            diametro_35 TEXT,
+            diametro_35_45 TEXT,
+            diametro_45 TEXT,
+
+            menos75_qtd TEXT,
+            menos75_peso TEXT,
+
+            mais75_qtd TEXT,
+            mais75_peso TEXT,
+
+            mais100_qtd TEXT,
+            mais100_peso TEXT,
+
+            mais150_qtd TEXT,
+            mais150_peso TEXT,
+
+            defeito TEXT,
+            pontos TEXT,
+
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    `);
+
+    await db.query(`
+        ALTER TABLE analises_qualidade
+        ADD COLUMN IF NOT EXISTS foto_analise TEXT
     `);
 
     const senhaCriptografada = await bcrypt.hash('Furman2026', 10);
