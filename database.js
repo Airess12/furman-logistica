@@ -63,11 +63,17 @@ async function criarTabelas() {
 
     await db.query(`
         CREATE TABLE IF NOT EXISTS usuarios (
-            id SERIAL PRIMARY KEY,
-            usuario TEXT UNIQUE,
-            senha TEXT
+        id SERIAL PRIMARY KEY,
+        usuario TEXT UNIQUE,
+        senha TEXT,
+        tipo TEXT DEFAULT 'admin'
         )
     `);
+    
+    await db.query(`
+    ALTER TABLE usuarios
+    ADD COLUMN IF NOT EXISTS tipo TEXT DEFAULT 'admin'
+`);
 
     await db.query(`
         CREATE TABLE IF NOT EXISTS motoristas (
@@ -178,12 +184,12 @@ async function criarTabelas() {
     const senhaCriptografada = await bcrypt.hash('Furman2026', 10);
 
     await db.query(
-        `
-        INSERT INTO usuarios (usuario, senha)
-        VALUES ($1, $2)
-        ON CONFLICT (usuario) DO NOTHING
-        `,
-        ['Administração', senhaCriptografada]
+    `
+    INSERT INTO usuarios (usuario, senha, tipo)
+    VALUES ($1, $2, $3)
+    ON CONFLICT (usuario) DO NOTHING
+    `,
+    ['Administração', senhaCriptografada, 'admin']
     );
 
     console.log('✅ Banco PostgreSQL conectado');

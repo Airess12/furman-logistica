@@ -101,6 +101,7 @@ function obterStatusQualidade(pontos, defeitosTexto = '') {
 ========================= */
 
 async function logout() {
+    localStorage.removeItem('usuarioLogado');
     await fetch('/logout', { method: 'POST' });
     window.location.href = '/login';
 }
@@ -1780,6 +1781,7 @@ async function carregarDashboardQualidade() {
 let graficoSolidosQualidade = null;
 async function carregarGraficoSolidosQualidade() {
     try {
+
         const resposta = await fetch('/analises-qualidade');
         const analises = await resposta.json();
 
@@ -1788,43 +1790,107 @@ async function carregarGraficoSolidosQualidade() {
         const labels = ultimas.map(item => item.placa || '-');
 
         const dados = ultimas.map(item => {
-            return parseFloat(String(item.solidos || '0').replace(',', '.')) || 0;
+            return parseFloat(
+                String(item.solidos || '0').replace(',', '.')
+            ) || 0;
         });
 
         const ctx = document.getElementById('graficoSolidosQualidade');
 
         if (!ctx) return;
+
         if (
-        graficoSolidosQualidade &&
-        typeof graficoSolidosQualidade.destroy === 'function'  
-        ){
-        graficoSolidosQualidade.destroy();
+            graficoSolidosQualidade &&
+            typeof graficoSolidosQualidade.destroy === 'function'
+        ) {
+            graficoSolidosQualidade.destroy();
         }
 
         graficoSolidosQualidade = new Chart(ctx, {
+
             type: 'line',
+
             data: {
                 labels,
+
                 datasets: [{
                     label: 'Sólidos %',
                     data: dados,
+
+                    borderColor: '#38bdf8',
+                    backgroundColor: 'rgba(56,189,248,.15)',
+
                     borderWidth: 3,
                     tension: 0.35,
-                    fill: false
+                    fill: false,
+
+                    pointRadius: 5,
+                    pointHoverRadius: 8,
+                    pointHitRadius: 20,
+                    pointBackgroundColor: '#38bdf8',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2
                 }]
             },
+
             options: {
-            responsive: true,
-            maintainAspectRatio: false,
+
+                responsive: true,
+                maintainAspectRatio: false,
+
+                interaction: {
+                    mode: 'nearest',
+                    intersect: false
+                },
+
+                plugins: {
+
+                    tooltip: {
+                        enabled: true,
+
+                        backgroundColor: 'rgba(15,23,42,0.95)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#cbd5e1',
+
+                        borderColor: 'rgba(56,189,248,.35)',
+                        borderWidth: 1,
+
+                        padding: 14,
+                        displayColors: false,
+
+                        callbacks: {
+                            label: function(context) {
+                                return `Sólidos: ${context.raw}%`;
+                            }
+                        }
+                    },
+
+                    legend: {
+                        labels: {
+                            color: '#cbd5e1'
+                        }
+                    }
+                },
+
                 scales: {
+
                     x: {
                         ticks: {
                             color: '#cbd5e1'
+                        },
+
+                        grid: {
+                            color: 'rgba(255,255,255,0.04)'
                         }
                     },
+
                     y: {
                         ticks: {
                             color: '#cbd5e1'
+                        },
+
+                        grid: {
+                            color: 'rgba(255,255,255,0.05)'
                         }
                     }
                 }
@@ -1832,7 +1898,11 @@ async function carregarGraficoSolidosQualidade() {
         });
 
     } catch (erro) {
-        console.error('Erro ao carregar gráfico de sólidos:', erro);
+
+        console.error(
+            'Erro ao carregar gráfico de sólidos:',
+            erro
+        );
     }
 }
 let defeitosSelecionados = [];
@@ -2062,4 +2132,79 @@ function atualizarListaDefeitos() {
 document.addEventListener(
     'DOMContentLoaded',
     carregarDefeitosMcCain
+);
+function aplicarPermissoesUsuario() {
+
+    const usuario = JSON.parse(
+        localStorage.getItem('usuarioLogado')
+    );
+
+    if (!usuario) return;
+
+    const tipo = usuario.tipo;
+
+    /* =========================
+       LABORATÓRIO
+    ========================= */
+
+    if (tipo === 'laboratorio') {
+
+        esconderAbas([
+            'expedicao',
+            'financeiro',
+            'usuarios'
+        ]);
+    }
+
+    /* =========================
+       EXPEDIÇÃO
+    ========================= */
+
+    if (tipo === 'expedicao') {
+
+        esconderAbas([
+            'qualidade',
+            'dashboardQualidade',
+            'usuarios'
+        ]);
+    }
+
+    /* =========================
+       QUALIDADE
+    ========================= */
+
+    if (tipo === 'qualidade') {
+
+        esconderAbas([
+            'expedicao',
+            'financeiro',
+            'usuarios'
+        ]);
+    }
+}
+
+/* =========================
+   ESCONDER ABAS
+========================= */
+
+function esconderAbas(ids) {
+
+    ids.forEach(id => {
+
+        const elemento =
+            document.getElementById(id);
+
+        if (elemento) {
+            elemento.style.display = 'none';
+        }
+    });
+}
+
+/* =========================
+   INICIAR
+========================= */
+
+document.addEventListener(
+    'DOMContentLoaded',
+    aplicarPermissoesUsuario
 );

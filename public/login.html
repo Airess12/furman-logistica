@@ -34,6 +34,7 @@
             const senha = document.getElementById('senha').value;
 
             const resposta = await fetch('/login', {
+                
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -45,6 +46,10 @@
             });
 
             const dados = await resposta.json();
+            localStorage.setItem(
+            'usuarioLogado',
+        JSON.stringify(dados.usuario)
+            )
 
             if (dados.status === 'ok') {
                 window.location.href = '/';

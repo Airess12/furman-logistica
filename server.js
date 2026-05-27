@@ -27,7 +27,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
 
 function proteger(req, res, next) {
     if (!req.session.usuario) {
-        return res.redirect('/login');
+        return res.redirect('/login.html');
     }
 
     next();
@@ -40,6 +40,60 @@ function protegerApi(req, res, next) {
 
     next();
 }
+
+app.get('/login', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
+app.get('/login.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
+
+
+app.post('/login.html', async (req, res) => {
+
+    const db = await conectar();
+
+    const { usuario, senha } = req.body;
+
+    const usuarioBanco = await db.get(
+        `SELECT * FROM usuarios WHERE usuario = ?`,
+        [usuario]
+    );
+
+    if (!usuarioBanco) {
+        return res.status(401).json({
+            status: 'erro'
+        });
+    }
+
+    const senhaCorreta = await bcrypt.compare(
+        senha,
+        usuarioBanco.senha
+    );
+
+    if (!senhaCorreta) {
+        return res.status(401).json({
+            status: 'erro'
+        });
+    }
+
+    req.session.usuario = {
+        id: usuarioBanco.id,
+        nome: usuarioBanco.usuario,
+        tipo: usuarioBanco.tipo
+    };
+
+    res.json({
+        sucesso: true,
+        usuario: {
+            nome: usuarioBanco.usuario,
+            tipo: usuarioBanco.tipo
+        }
+    });
+
+});
 
 app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'login.html'));
@@ -59,15 +113,25 @@ app.post('/login', async (req, res) => {
         return res.status(401).json({ status: 'erro' });
     }
 
-    const senhaValida = await bcrypt.compare(senha, usuarioBanco.senha);
+    const senhaCorreta = await bcrypt.compare(senha, usuarioBanco.senha);
 
-    if (!senhaValida) {
+    if (!senhaCorreta) {
         return res.status(401).json({ status: 'erro' });
     }
 
-    req.session.usuario = usuarioBanco.usuario;
+    req.session.usuario = {
+        id: usuarioBanco.id,
+        nome: usuarioBanco.usuario,
+        tipo: usuarioBanco.tipo
+    };
 
-    res.json({ status: 'ok' });
+    res.json({
+        status: 'ok',
+        usuario: {
+            nome: usuarioBanco.usuario,
+            tipo: usuarioBanco.tipo
+        }
+    });
 });
 
 app.post('/logout', (req, res) => {
@@ -629,6 +693,45 @@ app.get('/dashboard-qualidade', protegerApi, async (req, res) => {
         console.error('ERRO DASHBOARD QUALIDADE:', erro);
         res.status(500).json({ erro: 'Erro ao carregar dashboard qualidade' });
     }
+});
+
+app.post('/usuarios', protegerApi, async (req, res) => {
+    const db = await conectar();
+
+    const { usuario, senha, tipo } = req.body;
+
+    if (!usuario || !senha || !tipo) {
+        return res.status(400).json({ status: 'erro' });
+    }
+
+    const senhaCriptografada = await bcrypt.hash(senha, 10);
+
+    await db.run(`
+        INSERT INTO usuarios (usuario, senha, tipo)
+        VALUES (?, ?, ?)
+        ON CONFLICT (usuario)
+        DO UPDATE SET
+            senha = EXCLUDED.senha,
+            tipo = EXCLUDED.tipo
+    `, [
+        usuario,
+        senhaCriptografada,
+        tipo
+    ]);
+
+    res.json({ status: 'ok' });
+});
+
+app.get('/usuarios', protegerApi, async (req, res) => {
+    const db = await conectar();
+
+    const usuarios = await db.all(`
+        SELECT id, usuario, tipo
+        FROM usuarios
+        ORDER BY usuario ASC
+    `);
+
+    res.json(usuarios);
 });
 
 
