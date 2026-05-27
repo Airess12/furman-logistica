@@ -759,7 +759,7 @@ app.post('/enviar-relatorio-qualidade', protegerApi, async (req, res) => {
                 },
                 to: [
                     {
-                        email: 'SEUEMAIL@gmail.com'
+                        email: 'luizguilhermeprado990@gmail.com'
                     }
                 ],
                 subject: `Relatório de Qualidade - ${placa || 'Carga'}`,
