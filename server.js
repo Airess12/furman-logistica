@@ -1,3 +1,4 @@
+const brevo = require('@getbrevo/brevo');
 const express = require('express');
 const session = require('express-session');
 const multer = require('multer');
@@ -6,19 +7,12 @@ const fs = require('fs');
 const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
 
-const transporter = nodemailer.createTransport({
+const apiInstance = new brevo.TransactionalEmailsApi();
 
-    host: 'smtp.gmail.com',
-
-    port: 587,
-
-    secure: false,
-
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
-});
+apiInstance.setApiKey(
+    brevo.TransactionalEmailsApiApiKeys.apiKey,
+    process.env.BREVO_API_KEY
+);
 
 const { conectar, criarTabelas } = require('./database');
 
@@ -765,22 +759,33 @@ app.post('/enviar-relatorio-qualidade', protegerApi, async (req, res) => {
             'base64'
         );
 
-        await transporter.sendMail({
-            from: 'Sistema Furman <luizguilhermeaires990@gmail.com>',
-            to: 'luizguilhermeprado990@gmail.com',
-            subject: `Relatório de Qualidade - ${placa || 'Carga'}`,
-            html: `
-                <h2>Relatório de Qualidade</h2>
-                <p>Segue em anexo o relatório de qualidade da carga.</p>
-                <p><strong>Laboratório:</strong> Palmas - PR</p>
-            `,
-            attachments: [
-                {
-                    filename: `relatorio-qualidade-${placa || 'carga'}.pdf`,
-                    content: pdfBuffer
-                }
-            ]
-        });
+    await apiInstance.sendTransacEmail({
+
+    sender: {
+        email: process.env.EMAIL_FROM,
+        name: 'Sistema Furman'
+    },
+
+    to: [
+        {
+            email: 'SEUEMAIL@gmail.com'
+        }
+    ],
+
+    subject: `Relatório de Qualidade - ${placa}`,
+
+    htmlContent: `
+        <h2>Relatório de Qualidade</h2>
+        <p>Segue em anexo o relatório da carga.</p>
+    `,
+
+    attachment: [
+        {
+            content: pdfBase64.split(',')[1],
+            name: `relatorio-${placa}.pdf`
+        }
+    ]
+});
 
         res.json({ status: 'ok' });
 
