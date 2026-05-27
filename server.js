@@ -1,4 +1,3 @@
-const brevo = require('@getbrevo/brevo');
 const express = require('express');
 const session = require('express-session');
 const multer = require('multer');
@@ -6,13 +5,6 @@ const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
-
-const apiInstance = new brevo.TransactionalEmailsApi();
-
-apiInstance.setApiKey(
-    brevo.TransactionalEmailsApiApiKeys.apiKey,
-    process.env.BREVO_API_KEY
-);
 
 const { conectar, criarTabelas } = require('./database');
 
@@ -750,51 +742,45 @@ app.delete('/usuarios/:id', protegerApi, async (req, res) => {
 
 
 
-app.post('/enviar-relatorio-qualidade', protegerApi, async (req, res) => {
-    try {
-        const { pdfBase64, placa } = req.body;
-
-        const pdfBuffer = Buffer.from(
-            pdfBase64.replace(/^data:application\/pdf;base64,/, ''),
-            'base64'
-        );
-
-    await apiInstance.sendTransacEmail({
-
-    sender: {
-        email: process.env.EMAIL_FROM,
-        name: 'Sistema Furman'
+const respostaBrevo = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: {
+        'accept': 'application/json',
+        'api-key': process.env.BREVO_API_KEY,
+        'content-type': 'application/json'
     },
-
-    to: [
-        {
-            email: 'SEUEMAIL@gmail.com'
-        }
-    ],
-
-    subject: `Relatório de Qualidade - ${placa}`,
-
-    htmlContent: `
-        <h2>Relatório de Qualidade</h2>
-        <p>Segue em anexo o relatório da carga.</p>
-    `,
-
-    attachment: [
-        {
-            content: pdfBase64.split(',')[1],
-            name: `relatorio-${placa}.pdf`
-        }
-    ]
+    body: JSON.stringify({
+        sender: {
+            name: 'Sistema Furman',
+            email: process.env.EMAIL_FROM
+        },
+        to: [
+            {
+                email: 'SEUEMAIL@gmail.com'
+            }
+        ],
+        subject: `Relatório de Qualidade - ${placa || 'Carga'}`,
+        htmlContent: `
+            <h2>Relatório de Qualidade</h2>
+            <p>Segue em anexo o relatório de qualidade da carga.</p>
+            <p><strong>Laboratório:</strong> Palmas - PR</p>
+        `,
+        attachment: [
+            {
+                name: `relatorio-qualidade-${placa || 'carga'}.pdf`,
+                content: pdfBase64.split(',')[1]
+            }
+        ]
+    })
 });
 
-        res.json({ status: 'ok' });
+if (!respostaBrevo.ok) {
+    const erroBrevo = await respostaBrevo.text();
+    console.error('Erro Brevo:', erroBrevo);
+    return res.status(500).json({ status: 'erro' });
+}
 
-    } catch (erro) {
-        console.error('Erro ao enviar relatório:', erro);
-        res.status(500).json({ status: 'erro' });
-    }
-});
-
+res.json({ status: 'ok' });
 
 app.listen(PORT, () => {
     console.log(`🚀 Rodando em http://localhost:${PORT}`);
