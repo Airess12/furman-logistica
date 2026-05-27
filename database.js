@@ -145,6 +145,11 @@ async function criarTabelas() {
     await db.query(`
         CREATE TABLE IF NOT EXISTS analises_qualidade (
             id SERIAL PRIMARY KEY,
+            
+            fazenda TEXT,
+            temperatura_agua TEXT,
+            temperatura_media TEXT,
+            fritura TEXT,
 
             variedade TEXT,
             solidos TEXT,
@@ -170,7 +175,8 @@ async function criarTabelas() {
             mais150_peso TEXT,
 
             defeito TEXT,
-            pontos TEXT,
+            pontos TEXT,           
+            foto_analise TEXT,
 
             criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -179,6 +185,26 @@ async function criarTabelas() {
     await db.query(`
         ALTER TABLE analises_qualidade
         ADD COLUMN IF NOT EXISTS foto_analise TEXT
+    `);
+    
+        await db.query(`
+        ALTER TABLE analises_qualidade
+        ADD COLUMN IF NOT EXISTS fazenda TEXT
+    `);
+
+    await db.query(`
+        ALTER TABLE analises_qualidade
+        ADD COLUMN IF NOT EXISTS temperatura_agua TEXT
+    `);
+
+    await db.query(`
+        ALTER TABLE analises_qualidade
+        ADD COLUMN IF NOT EXISTS temperatura_media TEXT
+    `);
+
+    await db.query(`
+        ALTER TABLE analises_qualidade
+        ADD COLUMN IF NOT EXISTS fritura TEXT
     `);
 
     const senhaCriptografada = await bcrypt.hash('Furman2026', 10);

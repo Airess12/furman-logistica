@@ -4,6 +4,15 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcrypt');
+const nodemailer = require('nodemailer');
+
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: 'luizguilhermeaires990@gmail.com',
+        pass: 'zppm vfke pnsb dmqp'
+    }
+});
 
 const { conectar, criarTabelas } = require('./database');
 
@@ -12,8 +21,12 @@ const PORT = process.env.PORT || 3000;
 
 criarTabelas();
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '200mb' }));
+
+app.use(express.urlencoded({
+    extended: true,
+    limit: '200mb'
+}));
 
 app.use(session({
     secret: 'furman-logistica',
@@ -533,77 +546,40 @@ app.get('/dashboard', protegerApi, async (req, res) => {
 app.post('/analises-qualidade', protegerApi, upload.single('foto_analise'), async (req, res) => {
     const db = await conectar();
 
-    const foto_analise = req.file
-        ? '/uploads/' + req.file.filename
-        : '';
+    const foto_analise = req.file ? '/uploads/' + req.file.filename : '';
 
     const {
-        variedade,
-        solidos,
-        peso_agua,
-        placa,
-        peso_total,
-        peso_lavado,
-        diametro_35,
-        diametro_35_45,
-        diametro_45,
-        menos75_qtd,
-        menos75_peso,
-        mais75_qtd,
-        mais75_peso,
-        mais100_qtd,
-        mais100_peso,
-        mais150_qtd,
-        mais150_peso,
-        defeito,
-        pontos
+        fazenda, variedade, solidos, temperatura_agua, temperatura_media,
+        peso_agua, placa, peso_total, peso_lavado, fritura,
+        diametro_35, diametro_35_45, diametro_45,
+        menos75_qtd, menos75_peso,
+        mais75_qtd, mais75_peso,
+        mais100_qtd, mais100_peso,
+        mais150_qtd, mais150_peso,
+        defeito, pontos
     } = req.body;
 
     await db.run(`
         INSERT INTO analises_qualidade (
-            variedade,
-            solidos,
-            peso_agua,
-            placa,
-            peso_total,
-            peso_lavado,
-            diametro_35,
-            diametro_35_45,
-            diametro_45,
-            menos75_qtd,
-            menos75_peso,
-            mais75_qtd,
-            mais75_peso,
-            mais100_qtd,
-            mais100_peso,
-            mais150_qtd,
-            mais150_peso,
-            defeito,
-            pontos,
-            foto_analise
+            fazenda, variedade, solidos, temperatura_agua, temperatura_media,
+            peso_agua, placa, peso_total, peso_lavado, fritura,
+            diametro_35, diametro_35_45, diametro_45,
+            menos75_qtd, menos75_peso,
+            mais75_qtd, mais75_peso,
+            mais100_qtd, mais100_peso,
+            mais150_qtd, mais150_peso,
+            defeito, pontos, foto_analise
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
-        variedade,
-        solidos,
-        peso_agua,
-        placa,
-        peso_total,
-        peso_lavado,
-        diametro_35,
-        diametro_35_45,
-        diametro_45,
-        menos75_qtd,
-        menos75_peso,
-        mais75_qtd,
-        mais75_peso,
-        mais100_qtd,
-        mais100_peso,
-        mais150_qtd,
-        mais150_peso,
-        defeito,
-        pontos,
-        foto_analise
+        fazenda || '', variedade || '', solidos || '', temperatura_agua || '', temperatura_media || '',
+        peso_agua || '', placa || '', peso_total || '', peso_lavado || '', fritura || '',
+        diametro_35 || '', diametro_35_45 || '', diametro_45 || '',
+        menos75_qtd || '', menos75_peso || '',
+        mais75_qtd || '', mais75_peso || '',
+        mais100_qtd || '', mais100_peso || '',
+        mais150_qtd || '', mais150_peso || '',
+        defeito || '', pontos || '', foto_analise
     ]);
 
     res.json({ status: 'ok' });
@@ -732,6 +708,80 @@ app.get('/usuarios', protegerApi, async (req, res) => {
     `);
 
     res.json(usuarios);
+});
+app.put('/usuarios/:id', protegerApi, async (req, res) => {
+    const db = await conectar();
+
+    const { usuario, senha, tipo } = req.body;
+
+    if (!usuario || !tipo) {
+        return res.status(400).json({ status: 'erro' });
+    }
+
+    if (senha) {
+        const senhaCriptografada = await bcrypt.hash(senha, 10);
+
+        await db.run(`
+            UPDATE usuarios
+            SET usuario = ?, senha = ?, tipo = ?
+            WHERE id = ?
+        `, [usuario, senhaCriptografada, tipo, req.params.id]);
+    } else {
+        await db.run(`
+            UPDATE usuarios
+            SET usuario = ?, tipo = ?
+            WHERE id = ?
+        `, [usuario, tipo, req.params.id]);
+    }
+
+    res.json({ status: 'ok' });
+});
+
+app.delete('/usuarios/:id', protegerApi, async (req, res) => {
+    const db = await conectar();
+
+    await db.run(`
+        DELETE FROM usuarios
+        WHERE id = ?
+    `, [req.params.id]);
+
+    res.json({ status: 'ok' });
+});
+
+
+
+app.post('/enviar-relatorio-qualidade', protegerApi, async (req, res) => {
+    try {
+        const { pdfBase64, placa } = req.body;
+
+        const pdfBuffer = Buffer.from(
+            pdfBase64.replace(/^data:application\/pdf;base64,/, ''),
+            'base64'
+        );
+
+        await transporter.sendMail({
+            from: 'Sistema Furman <luizguilhermeaires990@gmail.com>',
+            to: 'luizguilhermeprado990@gmail.com',
+            subject: `Relatório de Qualidade - ${placa || 'Carga'}`,
+            html: `
+                <h2>Relatório de Qualidade</h2>
+                <p>Segue em anexo o relatório de qualidade da carga.</p>
+                <p><strong>Laboratório:</strong> Palmas - PR</p>
+            `,
+            attachments: [
+                {
+                    filename: `relatorio-qualidade-${placa || 'carga'}.pdf`,
+                    content: pdfBuffer
+                }
+            ]
+        });
+
+        res.json({ status: 'ok' });
+
+    } catch (erro) {
+        console.error('Erro ao enviar relatório:', erro);
+        res.status(500).json({ status: 'erro' });
+    }
 });
 
 

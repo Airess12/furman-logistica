@@ -667,6 +667,12 @@ textarea#q_defeito:focus {
     <span class="menu-text">Qualidade</span>
 </button>
 
+<button class="menu-btn" onclick="mostrarAba('usuarios', this)">
+    <span class="menu-icon">👤</span>
+    <span class="menu-text">Usuários</span>
+</button>
+
+
 <button class="menu-btn logout-btn" onclick="logout()">
     <span class="menu-icon">🚪</span>
     <span class="menu-text">Sair</span>
@@ -1072,50 +1078,18 @@ textarea#q_defeito:focus {
 
         </div>
 
-
-    <div class="kpi premium-kpi">
-        <span>🔬</span>
-        <div>
-            <p>Total de Análises</p>
-            <h2 id="qtdAnalisesQualidade">0</h2>
-        </div>
-    </div>
-
-    <div class="kpi premium-kpi">
-        <span>🧪</span>
-        <div>
-            <p>Média de Sólidos</p>
-            <h2 id="mediaSolidosQualidade">0%</h2>
-        </div>
-    </div>
-
-    <div class="kpi premium-kpi">
-        <span>⚖️</span>
-        <div>
-            <p>Média Peso Total</p>
-            <h2 id="mediaPesoQualidade">0</h2>
-        </div>
-    </div>
-
-    <div class="kpi premium-kpi">
-        <span>⚠️</span>
-        <div>
-            <p>Total de Pontos</p>
-            <h2 id="totalPontosQualidade">0</h2>
-        </div>
-    </div>
-
-</div>
-
         <h3>🟩 Inserção de dados</h3>
 
         <div class="form-grid">
-            <input type="text" id="q_variedade" placeholder="Variedade">
-            <input type="text" id="q_solidos" placeholder="Sólidos %">
-            <input type="text" id="q_peso_agua" placeholder="Peso na água">
-            <input type="text" id="q_placa" placeholder="Placa">
-            <input type="text" id="q_peso_total" placeholder="Peso total">
-            <input type="text" id="q_peso_lavado" placeholder="Peso lavado">
+            <input id="q_fazenda" type="text" placeholder="Fazenda">
+            <input id="q_variedade" type="text" placeholder="Variedade">
+            <input id="q_solidos" type="text" placeholder="Sólidos %">
+            <input id="q_temperatura_agua" type="text" placeholder="Temperatura da água">
+            <input id="q_temperatura_media" type="text" placeholder="Temperatura média de três tubérculos">
+            <input id="q_peso_agua" type="text" placeholder="Peso na água">
+            <input id="q_placa" type="text" placeholder="Placa">
+            <input id="q_peso_total" type="text" placeholder="Peso total">
+            <input id="q_peso_lavado" type="text" placeholder="Peso lavado">
         </div>
 
         <br>
@@ -1143,7 +1117,35 @@ textarea#q_defeito:focus {
             <input type="number" id="q_mais150_qtd" placeholder=">150 quantidade">
             <input type="text" id="q_mais150_peso" placeholder=">150 peso">
         </div>
+        
+        <h3>🍟 Fritura</h3>
 
+<div class="grid-fritura">
+
+    <select id="q_fritura_tipo">
+
+        <option value="">
+            Selecione a classificação
+        </option>
+
+        <option value="C00">C00</option>
+        <option value="C0">C0</option>
+        <option value="C1">C1</option>
+        <option value="C2">C2</option>
+        <option value="C3">C3</option>
+        <option value="C4">C4</option>
+
+    </select>
+
+    <input
+        id="q_fritura_quantidade"
+        type="number"
+        placeholder="Quantidade de palitos"
+    >
+
+</div>
+
+<br>
         <br>
 
         <h3>⚠️ Defeitos McCain</h3>
@@ -1192,7 +1194,7 @@ textarea#q_defeito:focus {
         </button>
 
         <button type="button" class="primary-btn" onclick="gerarPDFQualidade()">
-            📄 Gerar PDF
+        📄 Gerar PDF e Enviar por E-mail
         </button>
 
         <div id="q_resultado" class="relatorio-card relatorio-vazio">   
@@ -1205,30 +1207,97 @@ textarea#q_defeito:focus {
 
 <div class="table-container">
     <table class="relatorios-table">
+
         <thead>
-           <thead>
-        <tr>
-            <th>Placa</th>
-            <th>Variedade</th>
-            <th>Sólidos</th>
-            <th>Peso Água</th>
-            <th>Peso Total</th>
-            <th>Data</th>
-            <th>Ações</th>
-    </tr>
-</thead>
+            <tr>
+                <th>Placa</th>
+                <th>Variedade</th>
+                <th>Sólidos</th>
+                <th>Peso Água</th>
+                <th>Peso Total</th>
+                <th>Data</th>
+                <th>Ações</th>
+            </tr>
         </thead>
 
         <tbody id="tabelaQualidade"></tbody>
+
     </table>
 </div>
 
-    </div>
+</div>
 </section>
 
-    </main>
+<!-- USUÁRIOS COMEÇA AQUI -->
+
+<section id="usuarios" class="aba">
+
+    <div class="card">
+
+        <h2>👤 Usuários</h2>
+
+        <div class="form-grid">
+
+            <input
+                type="text"
+                id="novoUsuario"
+                placeholder="Usuário"
+            >
+
+            <input
+                type="password"
+                id="novaSenha"
+                placeholder="Senha"
+            >
+
+            <select id="tipoUsuario">
+
+                <option value="">
+                    Tipo de usuário
+                </option>
+
+                <option value="admin">
+                    Administrador
+                </option>
+
+                <option value="qualidade">
+                    Qualidade
+                </option>
+
+                <option value="expedicao">
+                    Expedição
+                </option>
+
+                <option value="visualizacao">
+                    Visualização
+                </option>
+
+            </select>
+
+        </div>
+
+        <br>
+
+        <button
+            type="button"
+            class="primary-btn"
+            onclick="cadastrarUsuario()"
+        >
+            👤 Cadastrar Usuário
+        </button>
+
+        <br><br>
+
+        <div id="listaUsuarios"></div>
+
+    </div>
+
+</section>
+
+</main>
 
 </div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>

@@ -1255,6 +1255,7 @@ window.onload = async () => {
     await carregarCarretas();
     await carregarHistorico();
     await carregarDashboard();
+    await carregarUsuarios();
     //await carregarAlertasOperacionais();
 
     definirPeso();
@@ -1281,6 +1282,21 @@ async function salvarAnaliseQualidade() {
     formData.append('placa', document.getElementById('q_placa')?.value || '');
     formData.append('peso_total', document.getElementById('q_peso_total')?.value || '');
     formData.append('peso_lavado', document.getElementById('q_peso_lavado')?.value || '');
+    formData.append('fazenda', document.getElementById('q_fazenda')?.value || '');
+    formData.append('temperatura_agua', document.getElementById('q_temperatura_agua')?.value || '');
+    formData.append('temperatura_media', document.getElementById('q_temperatura_media')?.value || '');
+    
+    const frituraTipo =
+    document.getElementById('q_fritura_tipo')?.value || '';
+
+    const frituraQuantidade =
+    document.getElementById('q_fritura_quantidade')?.value || '';
+
+    formData.append(
+    'fritura',
+    `${frituraTipo} - ${frituraQuantidade} palitos`
+);
+
 
     formData.append('diametro_35', document.getElementById('q_diametro_35')?.value || '');
     formData.append('diametro_35_45', document.getElementById('q_diametro_35_45')?.value || '');
@@ -1300,6 +1316,8 @@ async function salvarAnaliseQualidade() {
 
     formData.append('defeito', document.getElementById('q_defeito')?.value || '');
     formData.append('pontos', document.getElementById('q_pontos')?.value || '');
+
+    
 
     const foto = document.getElementById('q_foto_analise')?.files[0];
 
@@ -1487,38 +1505,40 @@ function verDetalhesQualidade(item) {
     
     const status = obterStatusQualidade(item.pontos, item.defeito);    
     resultado.innerHTML = `
-        <div style="display:flex; gap:30px; align-items:flex-start; flex-wrap:wrap;">
+    <div style="display:flex; gap:30px; align-items:flex-start; flex-wrap:wrap;">
 
-            <div style="flex:1; min-width:320px;">
-                <h3>🔬 Detalhes da análise</h3>
+        <div style="flex:1; min-width:320px;">
+            <h3>🔬 Detalhes da análise</h3>
+        
+            <p><strong>Fazenda:</strong> ${item.fazenda || '-'}</p>
+            <p><strong>Placa:</strong> ${item.placa || '-'}</p>
+            <p><strong>Variedade:</strong> ${item.variedade || '-'}</p>
+            <p><strong>Sólidos:</strong> ${item.solidos || '-'}</p>
+            <p><strong>Temperatura da água:</strong> ${item.temperatura_agua || '-'}</p>
+            <p><strong>Temperatura média:</strong> ${item.temperatura_media || '-'}</p>
+            <p><strong>Fritura:</strong> ${item.fritura || '-'}</p>
+            <p><strong>Peso na água:</strong> ${item.peso_agua || '-'}</p>
 
-                <p><strong>Placa:</strong> ${item.placa || '-'}</p>
-                <p><strong>Variedade:</strong> ${item.variedade || '-'}</p>
-                <p><strong>Sólidos:</strong> ${item.solidos || '-'}</p>
-                <p><strong>Peso na água:</strong> ${item.peso_agua || '-'}</p>
-                <p><strong>Peso total:</strong> ${item.peso_total || '-'}</p>
-                <p><strong>Peso lavado:</strong> ${item.peso_lavado || '-'}</p>
+            <br>
 
-                <br>
+            <h4>📏 Classificação por diâmetro</h4>
+            <p><strong>&lt;35:</strong> NA | ${formatarNumero(diametro35)} kg | ${porcentagem(diametro35)}</p>
+            <p><strong>35-45mm:</strong> NA | ${formatarNumero(diametro3545)} kg | ${porcentagem(diametro3545)}</p>
+            <p><strong>&gt;45mm:</strong> NA | ${formatarNumero(diametro45)} kg | ${porcentagem(diametro45)}</p>
 
-                <h4>📏 Classificação por diâmetro</h4>
-                <p><strong>&lt;35:</strong> NA | ${formatarNumero(diametro35)} kg | ${porcentagem(diametro35)}</p>
-                <p><strong>35-45mm:</strong> NA | ${formatarNumero(diametro3545)} kg | ${porcentagem(diametro3545)}</p>
-                <p><strong>&gt;45mm:</strong> NA | ${formatarNumero(diametro45)} kg | ${porcentagem(diametro45)}</p>
+            <br>
 
-                <br>
+            <h4>📐 Classificação por comprimento</h4>
+            <p><strong>&lt;75mm:</strong> ${menos75Qtd} un | ${formatarNumero(menos75Peso)} kg | ${porcentagem(menos75Peso)}</p>
+            <p><strong>&gt;75mm:</strong> ${mais75Qtd} un | ${formatarNumero(mais75Peso)} kg | ${porcentagem(mais75Peso)}</p>
+            <p><strong>&gt;100mm:</strong> ${mais100Qtd} un | ${formatarNumero(mais100Peso)} kg | ${porcentagem(mais100Peso)}</p>
+            <p><strong>&gt;150mm:</strong> ${mais150Qtd} un | ${formatarNumero(mais150Peso)} kg | ${porcentagem(mais150Peso)}</p>
 
-                <h4>📐 Classificação por comprimento</h4>
-                <p><strong>&lt;75mm:</strong> ${menos75Qtd} un | ${formatarNumero(menos75Peso)} kg | ${porcentagem(menos75Peso)}</p>
-                <p><strong>&gt;75mm:</strong> ${mais75Qtd} un | ${formatarNumero(mais75Peso)} kg | ${porcentagem(mais75Peso)}</p>
-                <p><strong>&gt;100mm:</strong> ${mais100Qtd} un | ${formatarNumero(mais100Peso)} kg | ${porcentagem(mais100Peso)}</p>
-                <p><strong>&gt;150mm:</strong> ${mais150Qtd} un | ${formatarNumero(mais150Peso)} kg | ${porcentagem(mais150Peso)}</p>
+            <br>
 
-                <br>
-
-                <h4>⚠️ Defeitos</h4>
-                <p><strong>Identificado:</strong> ${item.defeito || '-'}</p>
-                <div style="
+            <h4>⚠️ Defeitos</h4>
+            <p><strong>Identificado:</strong> ${item.defeito || '-'}</p>
+            <div style="
                 margin: 18px 0;
                 padding: 14px 18px;
                 border-radius: 16px;
@@ -1527,10 +1547,9 @@ function verDetalhesQualidade(item) {
                 font-weight: 700;
                 color: ${status.cor};
                 font-size: 16px;
-                ">
+            ">
                 ${status.texto}
-                </div>
-
+            </div>
 <p><strong>Pontos:</strong> ${item.pontos || '0'}</p>
                 
                 
@@ -1665,13 +1684,44 @@ async function gerarPDFQualidade() {
     pdf.text('Furman Logística • Sistema de Qualidade', 42, 23);
 
     pdf.setFontSize(9);
+
     pdf.text('Laboratorista: Luiz Aires', 42, 29);
-    pdf.text(`Emitido em: ${agora}`, 42, 34);
+
+    pdf.text('Laboratório: Palmas - PR', 42, 34);
+
+    pdf.text(`Emitido em: ${agora}`, 42, 39);
 
     pdf.addImage(imgData, 'PNG', 10, 42, imgWidth, imgHeight);
 
-    pdf.save('analise-qualidade.pdf');
+    const pdfBase64 = pdf.output('datauristring');
+
+const placaRelatorio =
+    document.querySelector('#q_resultado')?.innerText
+        .match(/Placa:\s*(.*)/)?.[1]
+        ?.split('\n')[0] || 'carga';
+
+const respostaEmail = await fetch('/enviar-relatorio-qualidade', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+        pdfBase64,
+        placa: placaRelatorio
+    })
+});
+
+const retornoEmail = await respostaEmail.json();
+
+if (retornoEmail.status === 'ok') {
+    alert('PDF gerado e enviado por e-mail!');
+} else {
+    alert('PDF gerado, mas houve erro ao enviar por e-mail.');
 }
+
+pdf.save('analise-qualidade.pdf');
+}
+
 
 let analiseEditandoId = null;
 
@@ -2142,6 +2192,26 @@ function aplicarPermissoesUsuario() {
     if (!usuario) return;
 
     const tipo = usuario.tipo;
+    function esconderAbas(ids) {
+
+    ids.forEach(id => {
+
+        const aba = document.getElementById(id);
+
+        if (aba) {
+            aba.style.display = 'none';
+        }
+    });
+}
+
+if (tipo === 'visualizacao') {
+
+    esconderAbas([
+        'expedicao',
+        'qualidade',
+        'usuarios'
+    ]);
+}
 
     /* =========================
        LABORATÓRIO
@@ -2208,3 +2278,119 @@ document.addEventListener(
     'DOMContentLoaded',
     aplicarPermissoesUsuario
 );
+
+async function cadastrarUsuario() {
+    const usuario = document.getElementById('novoUsuario').value;
+    const senha = document.getElementById('novaSenha').value;
+    const tipo = document.getElementById('tipoUsuario').value;
+
+    if (!usuario || !tipo) {
+        alert('Preencha usuário e tipo.');
+        return;
+    }
+
+    if (!usuarioEditandoId && !senha) {
+        alert('Informe uma senha para novo usuário.');
+        return;
+    }
+
+    const url = usuarioEditandoId
+        ? `/usuarios/${usuarioEditandoId}`
+        : '/usuarios';
+
+    const metodo = usuarioEditandoId ? 'PUT' : 'POST';
+
+    const resposta = await fetch(url, {
+        method: metodo,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ usuario, senha, tipo })
+    });
+
+    const dados = await resposta.json();
+
+    if (dados.status === 'ok') {
+        alert(usuarioEditandoId ? 'Usuário atualizado!' : 'Usuário cadastrado!');
+
+        usuarioEditandoId = null;
+
+        document.getElementById('novoUsuario').value = '';
+        document.getElementById('novaSenha').value = '';
+        document.getElementById('tipoUsuario').value = '';
+
+        carregarUsuarios();
+    } else {
+        alert('Erro ao salvar usuário.');
+    }
+}
+
+async function carregarUsuarios() {
+    const resposta = await fetch('/usuarios');
+    const usuarios = await resposta.json();
+
+    const lista = document.getElementById('listaUsuarios');
+    if (!lista) return;
+
+    lista.innerHTML = '';
+
+    usuarios.forEach(usuario => {
+        lista.innerHTML += `
+            <div style="
+                background: rgba(255,255,255,.04);
+                padding: 14px;
+                border-radius: 14px;
+                margin-bottom: 12px;
+                border: 1px solid rgba(255,255,255,.08);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 12px;
+            ">
+                <div>
+                    <strong>${usuario.usuario}</strong><br>
+                    <span>Tipo: ${usuario.tipo}</span>
+                </div>
+
+                <div style="display:flex; gap:8px;">
+                    <button class="btn-ver-analise" onclick='editarUsuario(${JSON.stringify(usuario)})'>
+                        ✏️ Editar
+                    </button>
+
+                    <button class="btn-excluir-analise" onclick="excluirUsuario(${usuario.id})">
+                        🗑️ Excluir
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+}
+
+let usuarioEditandoId = null;
+
+function editarUsuario(usuario) {
+    usuarioEditandoId = usuario.id;
+
+    document.getElementById('novoUsuario').value = usuario.usuario;
+    document.getElementById('novaSenha').value = '';
+    document.getElementById('tipoUsuario').value = usuario.tipo;
+
+    alert('Altere os dados e clique em Cadastrar Usuário para salvar.');
+}
+
+async function excluirUsuario(id) {
+    const confirmar = confirm('Deseja excluir este usuário?');
+
+    if (!confirmar) return;
+
+    const resposta = await fetch(`/usuarios/${id}`, {
+        method: 'DELETE'
+    });
+
+    const dados = await resposta.json();
+
+    if (dados.status === 'ok') {
+        alert('Usuário excluído!');
+        carregarUsuarios();
+    } else {
+        alert('Erro ao excluir usuário.');
+    }
+}
