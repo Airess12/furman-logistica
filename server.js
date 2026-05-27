@@ -7,10 +7,16 @@ const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+
+    host: 'smtp.gmail.com',
+
+    port: 587,
+
+    secure: false,
+
     auth: {
-        user: 'luizguilhermeaires990@gmail.com',
-        pass: 'zppm vfke pnsb dmqp'
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
     }
 });
 
