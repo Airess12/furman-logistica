@@ -741,46 +741,55 @@ app.delete('/usuarios/:id', protegerApi, async (req, res) => {
 });
 
 
+app.post('/enviar-relatorio-qualidade', protegerApi, async (req, res) => {
+    try {
+        const { pdfBase64, placa } = req.body;
 
-const respostaBrevo = await fetch('https://api.brevo.com/v3/smtp/email', {
-    method: 'POST',
-    headers: {
-        'accept': 'application/json',
-        'api-key': process.env.BREVO_API_KEY,
-        'content-type': 'application/json'
-    },
-    body: JSON.stringify({
-        sender: {
-            name: 'Sistema Furman',
-            email: process.env.EMAIL_FROM
-        },
-        to: [
-            {
-                email: 'SEUEMAIL@gmail.com'
-            }
-        ],
-        subject: `Relatório de Qualidade - ${placa || 'Carga'}`,
-        htmlContent: `
-            <h2>Relatório de Qualidade</h2>
-            <p>Segue em anexo o relatório de qualidade da carga.</p>
-            <p><strong>Laboratório:</strong> Palmas - PR</p>
-        `,
-        attachment: [
-            {
-                name: `relatorio-qualidade-${placa || 'carga'}.pdf`,
-                content: pdfBase64.split(',')[1]
-            }
-        ]
-    })
+        const respostaBrevo = await fetch('https://api.brevo.com/v3/smtp/email', {
+            method: 'POST',
+            headers: {
+                accept: 'application/json',
+                'api-key': process.env.BREVO_API_KEY,
+                'content-type': 'application/json'
+            },
+            body: JSON.stringify({
+                sender: {
+                    name: 'Sistema Furman',
+                    email: process.env.EMAIL_FROM
+                },
+                to: [
+                    {
+                        email: 'SEUEMAIL@gmail.com'
+                    }
+                ],
+                subject: `Relatório de Qualidade - ${placa || 'Carga'}`,
+                htmlContent: `
+                    <h2>Relatório de Qualidade</h2>
+                    <p>Segue em anexo o relatório de qualidade da carga.</p>
+                    <p><strong>Laboratório:</strong> Palmas - PR</p>
+                `,
+                attachment: [
+                    {
+                        name: `relatorio-qualidade-${placa || 'carga'}.pdf`,
+                        content: pdfBase64.split(',')[1]
+                    }
+                ]
+            })
+        });
+
+        if (!respostaBrevo.ok) {
+            const erroBrevo = await respostaBrevo.text();
+            console.error('Erro Brevo:', erroBrevo);
+            return res.status(500).json({ status: 'erro' });
+        }
+
+        res.json({ status: 'ok' });
+
+    } catch (erro) {
+        console.error('Erro ao enviar relatório:', erro);
+        res.status(500).json({ status: 'erro' });
+    }
 });
-
-if (!respostaBrevo.ok) {
-    const erroBrevo = await respostaBrevo.text();
-    console.error('Erro Brevo:', erroBrevo);
-    return res.status(500).json({ status: 'erro' });
-}
-
-res.json({ status: 'ok' });
 
 app.listen(PORT, () => {
     console.log(`🚀 Rodando em http://localhost:${PORT}`);
