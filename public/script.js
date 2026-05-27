@@ -1635,13 +1635,13 @@ async function gerarPDFQualidade() {
     }));
 
     const canvas = await html2canvas(elemento, {
-        scale: 2,
-        backgroundColor: '#111827',
-        useCORS: true,
-        allowTaint: true
-    });
+    scale: 1,
+    backgroundColor: '#111827',
+    useCORS: true,
+    allowTaint: true
+});
 
-    const imgData = canvas.toDataURL('image/png');
+   const imgData = canvas.toDataURL('image/jpeg', 0.5);
 
     const { jsPDF } = window.jspdf;
 
