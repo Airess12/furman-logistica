@@ -757,23 +757,32 @@ async function carregarDashboard() {
         const taxaReprovacao = dados.taxaReprovacao || 0;
         const aprovados = dados.aprovados || 0;
         const reprovados = dados.reprovados || 0;
+        const restricao = dados.restricao || 0;
 
-animarNumero('totalCarretas', totalExpedicoes);
-animarNumero('totalBags', pesoTotal, ' kg');
-animarNumero('taxaAprovacao', taxaAprovacao, '%');
-animarNumero('taxaReprovacao', taxaReprovacao, '%');
-animarNumero('totalAprovados', aprovados);
-animarNumero('totalReprovados', reprovados);
+        animarNumero('totalCarretas', totalExpedicoes);
+        animarNumero('totalBags', pesoTotal, ' kg');
+        animarNumero('taxaAprovacao', taxaAprovacao, '%');
+        animarNumero('taxaReprovacao', taxaReprovacao, '%');
+        animarNumero('totalAprovados', aprovados);
+        animarNumero('totalRestricao', restricao);
+        animarNumero('totalReprovados', reprovados);
+
+        const totalAprovadosResumo = document.getElementById('totalAprovadosResumo');
+        const totalRestricaoResumo = document.getElementById('totalRestricaoResumo');
+        const totalReprovadosResumo = document.getElementById('totalReprovadosResumo');
+
+        if (totalAprovadosResumo) totalAprovadosResumo.innerText = aprovados;
+        if (totalRestricaoResumo) totalRestricaoResumo.innerText = restricao;
+        if (totalReprovadosResumo) totalReprovadosResumo.innerText = reprovados;
 
         await carregarGraficoDashboard(totalExpedicoes);
-        await carregarGraficoQualidade(aprovados, reprovados, taxaAprovacao);
+        await carregarGraficoQualidade(aprovados, reprovados, taxaAprovacao, restricao);
         await carregarGraficoStatus();
 
     } catch (erro) {
         console.error('Erro ao carregar dashboard:', erro);
     }
 }
-
   const glowLinePlugin = {
     id: 'glowLine',
 
@@ -1012,7 +1021,7 @@ async function carregarGraficoStatus() {
     });
 }
 
-async function carregarGraficoQualidade(aprovados, reprovados, percentual) {
+async function carregarGraficoQualidade(aprovados, reprovados, percentual, restricao = 0) {
     const canvas = document.getElementById('graficoQualidade');
     if (!canvas || typeof Chart === 'undefined') return;
 
@@ -1021,20 +1030,26 @@ async function carregarGraficoQualidade(aprovados, reprovados, percentual) {
     chartQualidade = new Chart(canvas, {
         type: 'doughnut',
         data: {
-            labels: ['Aprovados', 'Reprovados'],
+            labels: [
+                'Aprovados',
+                'Aprovado c/ Restrição',
+                'Reprovados'
+            ],
             datasets: [{
-                data: [aprovados || 0, reprovados || 0],
+                data: [
+                    aprovados || 0,
+                    restricao || 0,
+                    reprovados || 0
+                ],
                 backgroundColor: [
                     '#21ff9d',
+                    '#38bdf8',
                     '#ff3c64'
                 ],
-                borderColor: [
-                    'rgba(33,255,157,0.45)',
-                    'rgba(255,60,100,0.45)'
-                ],
-                borderWidth: 2,
-                hoverOffset: 12,
-                spacing: 4
+                borderColor: '#151827',
+                borderWidth: 6,
+                hoverOffset: 16,
+                spacing: 2
             }]
         },
         options: {
@@ -1053,10 +1068,10 @@ async function carregarGraficoQualidade(aprovados, reprovados, percentual) {
                     backgroundColor: 'rgba(15,23,42,0.95)',
                     titleColor: '#ffffff',
                     bodyColor: '#cbd5e1',
-                    borderColor: 'rgba(33,255,157,0.35)',
+                    borderColor: 'rgba(255,255,255,0.18)',
                     borderWidth: 1,
                     padding: 14,
-                    displayColors: false,
+                    displayColors: true,
                     callbacks: {
                         label: ctx => ` ${ctx.label}: ${ctx.raw}`
                     }
@@ -1068,7 +1083,6 @@ async function carregarGraficoQualidade(aprovados, reprovados, percentual) {
     const centro = document.getElementById('taxaAprovacaoCircle');
     if (centro) centro.innerText = `${percentual || 0}%`;
 }
-
 const defeitosMcCain = {
     "Danos Mecânicos": {
         dimensao: "Diâmetro",
@@ -1661,45 +1675,19 @@ async function gerarPDFQualidade() {
     logo.src = '/img/LOGO.jpeg';
 
     await new Promise(resolve => {
-        logo.onload = resolve;
-        logo.onerror = resolve;
-    });
-
-   let heightLeft = imgHeight;
-let position = 35;
+    logo.onload = resolve;
+    logo.onerror = resolve;
+});
 
 pdf.addImage(
-    imgData,
+    logo,
     'JPEG',
-    margin,
-    position,
-    imgWidth,
-    imgHeight
+    10,
+    8,
+    24,
+    24
 );
-
-heightLeft -= (pageHeight - 35);
-
-while (heightLeft > 0) {
-
-    position = heightLeft - imgHeight + 35;
-
-    pdf.addPage();
-
-    pdf.setFillColor(17, 24, 39);
-    pdf.rect(0, 0, pageWidth, pageHeight, 'F');
-
-    pdf.addImage(
-        imgData,
-        'JPEG',
-        margin,
-        position,
-        imgWidth,
-        imgHeight
-    );
-
-    heightLeft -= pageHeight;
-}
-
+   
     const agora = new Date().toLocaleString('pt-BR');
 
     pdf.setTextColor(255, 255, 255);
@@ -1745,7 +1733,7 @@ if (retornoEmail.status === 'ok') {
     alert('PDF gerado, mas houve erro ao enviar por e-mail.');
 }
 
-pdf.save('analise-qualidade.pdf');
+pdf.save(`relatorio-qualidade-${placaRelatorio}.pdf`);
 }
 
 

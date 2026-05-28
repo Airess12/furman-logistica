@@ -498,6 +498,12 @@ app.get('/dashboard', protegerApi, async (req, res) => {
         WHERE resultado_c1 = 'Reprovado'
     `);
 
+    const restricaoC1 = await db.get(`
+        SELECT COUNT(*) AS total
+        FROM expedicoes
+        WHERE resultado_c1 = 'Aprovado com Restrição'
+    `);
+
     const aprovadasC2 = await db.get(`
         SELECT COUNT(*) AS total
         FROM expedicoes
@@ -510,13 +516,22 @@ app.get('/dashboard', protegerApi, async (req, res) => {
         WHERE resultado_c2 = 'Reprovado'
     `);
 
+    const restricaoC2 = await db.get(`
+        SELECT COUNT(*) AS total
+        FROM expedicoes
+        WHERE resultado_c2 = 'Aprovado com Restrição'
+    `);
+
     const aprovadosTotal =
         Number(aprovadasC1.total || 0) + Number(aprovadasC2.total || 0);
 
     const reprovadosTotal =
         Number(reprovadasC1.total || 0) + Number(reprovadasC2.total || 0);
 
-    const avaliados = aprovadosTotal + reprovadosTotal;
+    const restricaoTotal =
+        Number(restricaoC1.total || 0) + Number(restricaoC2.total || 0);
+
+    const avaliados = aprovadosTotal + reprovadosTotal + restricaoTotal;
 
     const taxaAprovacao = avaliados > 0
         ? ((aprovadosTotal / avaliados) * 100).toFixed(1)
@@ -531,10 +546,12 @@ app.get('/dashboard', protegerApi, async (req, res) => {
         pesoEstimadoTotal: Number(totalPeso.total || 0),
         aprovados: aprovadosTotal,
         reprovados: reprovadosTotal,
+        restricao: restricaoTotal,
         taxaAprovacao,
         taxaReprovacao
     });
 });
+
 app.post('/analises-qualidade', protegerApi, upload.single('foto_analise'), async (req, res) => {
     const db = await conectar();
 
@@ -758,16 +775,69 @@ app.post('/enviar-relatorio-qualidade', protegerApi, async (req, res) => {
                     email: process.env.EMAIL_FROM
                 },
                 to: [
-                    {
-                        email: 'luizguilhermeprado990@gmail.com'
-                    }
-                ],
-                subject: `Relatório de Qualidade - ${placa || 'Carga'}`,
-                htmlContent: `
-                    <h2>Relatório de Qualidade</h2>
-                    <p>Segue em anexo o relatório de qualidade da carga.</p>
-                    <p><strong>Laboratório:</strong> Palmas - PR</p>
-                `,
+        {
+                name: 'Luiz Aires',
+                email: 'luizguilhermeprado990@gmail.com'
+        },
+        {
+            name: 'Patricia Lopes',
+            email: 'patricia.nunes@mccain.com.br'
+        },
+        {
+            name: 'Mariele Venancio',
+            email: 'mariele.venancio@mccain.com.br'
+        }
+],
+                subject: `Relatório de Qualidade - ${placa || 'Carga'} - Furman Logística`,
+
+htmlContent: `
+    <div style="
+        font-family: Arial, sans-serif;
+        background: #0f172a;
+        color: #ffffff;
+        padding: 30px;
+        border-radius: 18px;
+    ">
+
+        <h2 style="
+            color: #21ff9d;
+            margin-bottom: 18px;
+        ">
+            📄 Relatório de Qualidade
+        </h2>
+
+        <p style="font-size:15px; line-height:1.6;">
+            Segue em anexo o relatório de qualidade gerado automaticamente pelo sistema da <strong>Furman Logística</strong>.
+        </p>
+
+        <div style="
+            margin-top:20px;
+            padding:18px;
+            border-radius:14px;
+            background: rgba(255,255,255,.05);
+            border:1px solid rgba(255,255,255,.08);
+        ">
+
+            <p><strong>🚛 Placa:</strong> ${placa || 'Carga'}</p>
+
+            <p><strong>🧪 Laboratório:</strong> Palmas - PR</p>
+
+            <p><strong>🕒 Emitido em:</strong>
+                ${new Date().toLocaleString('pt-BR')}
+            </p>
+
+        </div>
+
+        <p style="
+            margin-top:24px;
+            color:#94a3b8;
+            font-size:13px;
+        ">
+            Este e-mail foi enviado automaticamente pelo sistema operacional da Furman Logística.
+        </p>
+
+    </div>
+`
                 attachment: [
                     {
                         name: `relatorio-qualidade-${placa || 'carga'}.pdf`,

@@ -626,6 +626,11 @@ textarea#q_defeito:focus {
 #q_resultado img:hover {
     transform: scale(1.02);
 }
+
+.status-line.blue span,
+.status-line.blue strong {
+    color: #38bdf8;
+}
 </style>
 </head>
 
@@ -784,6 +789,16 @@ textarea#q_defeito:focus {
                     </div>
 
                     <div class="kpi premium-kpi">
+                    <span>🔵</span>
+                    <div>
+                        <p>Aprovado c/ Restrição</p>
+                         <h2 id="totalRestricao">0</h2>
+                </div>
+</div>
+
+
+
+                    <div class="kpi premium-kpi">
                         <span>🔴</span>
                         <div>
                             <p>Reprovados</p>
@@ -820,6 +835,11 @@ textarea#q_defeito:focus {
                         <div class="status-line">
                             <span>Aprovados</span>
                             <strong id="totalAprovadosResumo">0</strong>
+                        </div>
+
+                        <div class="status-line blue">
+                        <span>Aprovado c/ Restrição</span>
+                        <strong id="totalRestricaoResumo">0</strong>
                         </div>
 
                         <div class="status-line red">
