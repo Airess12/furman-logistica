@@ -35,6 +35,7 @@ function mostrarAba(id, elemento) {
     if (id === 'expedicao') {
         carregarProdutores();
         carregarCarretas();
+        carregarOrigens();
         definirPeso();
     }
 }
@@ -1303,12 +1304,24 @@ async function salvarAnaliseQualidade() {
     const frituraTipo =
     document.getElementById('q_fritura_tipo')?.value || '';
 
-    const frituraQuantidade =
+const frituraQuantidade =
     document.getElementById('q_fritura_quantidade')?.value || '';
 
-    formData.append(
+formData.append(
     'fritura',
-    `${frituraTipo} - ${frituraQuantidade} palitos`
+    frituras
+        .map(item => `${item.tipo} - ${item.quantidade} palitos`)
+        .join(' | ')
+);
+
+formData.append(
+    'classificacao_fritura',
+    frituraTipo
+);
+
+formData.append(
+    'quantidade_palitos',
+    frituraQuantidade
 );
 
 
@@ -1530,7 +1543,8 @@ function verDetalhesQualidade(item) {
             <p><strong>Sólidos:</strong> ${item.solidos || '-'}</p>
             <p><strong>Temperatura da água:</strong> ${item.temperatura_agua || '-'}</p>
             <p><strong>Temperatura média:</strong> ${item.temperatura_media || '-'}</p>
-            <p><strong>Fritura:</strong> ${item.fritura || '-'}</p>
+            <p><strong>Temperatura média:</strong> ${item.temperatura_media || '-'}</p>
+            ${montarBlocoFrituraPDF(item.fritura)}
             <p><strong>Peso na água:</strong> ${item.peso_agua || '-'}</p>
 
             <br>
@@ -2407,4 +2421,342 @@ async function excluirUsuario(id) {
     } else {
         alert('Erro ao excluir usuário.');
     }
+}
+
+let frituras = [];
+
+function adicionarFritura() {
+    const tipo = document.getElementById('q_fritura_tipo')?.value || '';
+    const quantidade = document.getElementById('q_fritura_quantidade')?.value || '';
+
+    if (!tipo || !quantidade) {
+        alert('Selecione a classificação e informe a quantidade.');
+        return;
+    }
+
+    frituras.push({
+        tipo,
+        quantidade
+    });
+
+    atualizarListaFritura();
+
+    document.getElementById('q_fritura_tipo').value = '';
+    document.getElementById('q_fritura_quantidade').value = '';
+}
+
+function atualizarListaFritura() {
+    const lista = document.getElementById('lista-fritura');
+
+    const total = frituras.reduce((soma, item) => {
+        return soma + Number(item.quantidade || 0);
+    }, 0);
+
+    const statusFritura = calcularStatusFritura();
+
+    lista.innerHTML = `
+        <div class="fritura-total">
+            Total de palitos: <strong>${total}</strong>
+        </div>
+
+        <div class="fritura-status ${statusFritura.classe}">
+            ${statusFritura.texto}
+        </div>
+
+        ${frituras.map((item, index) => `
+            <div class="fritura-item fritura-${item.tipo.toLowerCase()}">
+                <span>
+                    ${iconeFritura(item.tipo)}
+                    <strong>${item.tipo}</strong>
+                    — ${item.quantidade} palitos
+                </span>
+
+                <button type="button" onclick="removerFritura(${index})">
+                    Remover
+                </button>
+            </div>
+        `).join('')}
+    `;
+}
+
+function iconeFritura(tipo) {
+    const icones = {
+        C00: '🟢',
+        C0: '🟢',
+        C1: '🟡',
+        C2: '🟠',
+        C3: '🔴',
+        C4: '🟣'
+    };
+
+    return icones[tipo] || '🍟';
+}
+
+function removerFritura(index) {
+    frituras.splice(index, 1);
+    atualizarListaFritura();
+}
+
+function calcularStatusFritura() {
+
+    const total = frituras.reduce((soma, item) => {
+        return soma + Number(item.quantidade || 0);
+    }, 0);
+
+    const ruins = frituras
+        .filter(item => item.tipo === 'C3' || item.tipo === 'C4')
+        .reduce((soma, item) => {
+            return soma + Number(item.quantidade || 0);
+        }, 0);
+
+    if (total === 0) {
+        return {
+            texto: '',
+            classe: ''
+        };
+    }
+
+    const percentualRuim =
+        ((ruins / total) * 100).toFixed(1);
+
+    if (percentualRuim >= 30) {
+        return {
+            texto: `🔴 Alta reversão de açúcar (${percentualRuim}%)`,
+            classe: 'status-ruim'
+        };
+    }
+
+    if (percentualRuim >= 10) {
+        return {
+            texto: `🟡 Atenção na fritura (${percentualRuim}%)`,
+            classe: 'status-alerta'
+        };
+    }
+
+    return {
+        texto: `🟢 Excelente fritura (${percentualRuim}%)`,
+        classe: 'status-bom'
+    };
+}
+
+function montarBlocoFrituraPDF(frituraTexto) {
+    if (!frituraTexto) {
+        return `<p><strong>🍟 Fritura:</strong> -</p>`;
+    }
+
+    const itens = frituraTexto
+        .split('|')
+        .map(item => item.trim());
+
+    let total = 0;
+    let ruins = 0;
+
+    const resumo = itens
+        .map(item => {
+            const partes = item.match(/(C00|C0|C1|C2|C3|C4)\s*-\s*(\d+)/i);
+
+            if (!partes) return '';
+
+            const tipo = partes[1].toUpperCase();
+            const qtd = Number(partes[2] || 0);
+
+            total += qtd;
+
+            if (tipo === 'C3' || tipo === 'C4') {
+                ruins += qtd;
+            }
+
+            return `${iconeFritura(tipo)} ${tipo}: ${qtd}`;
+        })
+        .filter(Boolean)
+        .join(' | ');
+
+    const percentualRuim = total > 0
+        ? ((ruins / total) * 100).toFixed(1)
+        : '0.0';
+
+    let status = '🟢 Excelente';
+    let cor = '#22c55e';
+
+    if (percentualRuim >= 30) {
+        status = '🔴 Alta reversão';
+        cor = '#ef4444';
+    } else if (percentualRuim >= 10) {
+        status = '🟡 Atenção';
+        cor = '#facc15';
+    }
+
+    return `
+        <p><strong>🍟 Fritura:</strong> ${resumo}</p>
+
+        <p style="
+            margin:4px 0 8px 0;
+            padding:6px 10px;
+            border-radius:10px;
+            background:rgba(255,255,255,.04);
+            border-left:4px solid ${cor};
+            color:${cor};
+            font-weight:700;
+        ">
+            ${status} — ${percentualRuim}% | Total: ${total} palitos
+        </p>
+    `;
+}
+async function carregarOrigens() {
+    const resposta = await fetch('/origens');
+    const origens = await resposta.json();
+
+    const select = document.getElementById('origem');
+
+    select.innerHTML = '<option value="">Origem</option>';
+
+    origens.forEach(origem => {
+        select.innerHTML += `
+            <option value="${origem.nome}">
+                ${origem.nome}
+            </option>
+        `;
+    });
+}
+async function cadastrarOrigem() {
+    const campo = document.getElementById('novaOrigem');
+    const nome = campo.value.trim();
+
+    if (!nome) {
+        alert('Digite a origem.');
+        return;
+    }
+
+    await fetch('/origens', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nome })
+    });
+
+    campo.value = '';
+    await carregarOrigens();
+}
+function limparAnaliseQualidade() {
+    const ids = [
+        'q_variedade',
+        'q_solidos',
+        'q_peso_agua',
+        'q_placa',
+        'q_peso_total',
+        'q_peso_lavado',
+        'q_fazenda',
+        'q_temperatura_agua',
+        'q_temperatura_media',
+        'q_fritura_tipo',
+        'q_fritura_quantidade',
+        'q_diametro_35',
+        'q_diametro_35_45',
+        'q_diametro_45',
+        'q_menos75_qtd',
+        'q_menos75_peso',
+        'q_mais75_qtd',
+        'q_mais75_peso',
+        'q_mais100_qtd',
+        'q_mais100_peso',
+        'q_mais150_qtd',
+        'q_mais150_peso',
+        'q_defeito_select',
+        'q_opcao_defeito',
+        'q_defeito',
+        'q_pontos',
+        'q_foto_analise'
+    ];
+
+    ids.forEach(id => {
+        const campo = document.getElementById(id);
+        if (campo) campo.value = '';
+    });
+
+    frituras = [];
+    defeitosSelecionados = [];
+    analiseEditandoId = null;
+
+    if (document.getElementById('lista-fritura')) {
+        document.getElementById('lista-fritura').innerHTML = '';
+    }
+
+    if (document.getElementById('listaDefeitosSelecionados')) {
+        document.getElementById('listaDefeitosSelecionados').innerHTML = 'Nenhum defeito adicionado.';
+    }
+
+    const resultado = document.getElementById('q_resultado');
+
+    if (resultado) {
+        resultado.classList.add('relatorio-vazio');
+        resultado.innerHTML = 'Nenhuma análise selecionada.';
+    }
+
+    alert('Análise limpa!');
+}
+const tabelaSolidos = {
+    153: 13.00, 154: 13.08, 155: 13.14, 156: 13.21, 157: 13.27,
+    158: 13.33, 159: 13.39, 160: 13.45, 161: 13.52, 162: 13.58,
+    163: 13.66, 164: 13.72, 165: 13.79, 166: 13.85, 167: 13.91,
+    168: 13.97, 169: 14.03, 170: 14.10, 171: 14.18, 172: 14.24,
+    173: 14.30, 174: 14.37, 175: 14.43, 176: 14.49, 177: 14.55,
+    178: 14.64, 179: 14.70, 180: 14.76, 181: 14.82, 182: 14.88,
+    183: 14.95, 184: 15.03, 185: 15.09, 186: 15.15, 187: 15.22,
+    188: 15.28, 189: 15.34, 190: 15.42, 191: 15.49, 192: 15.55,
+    193: 15.61, 194: 15.67, 195: 15.73, 196: 15.82, 197: 15.88,
+    198: 15.94, 199: 16.00, 200: 16.07, 201: 16.15, 202: 16.21,
+    203: 16.27, 204: 16.33, 205: 16.40, 206: 16.48, 207: 16.54,
+    208: 16.60, 209: 16.67, 210: 16.73, 211: 16.81, 212: 16.87,
+    213: 16.94, 214: 17.00, 215: 17.08, 216: 17.14, 217: 17.21,
+    218: 17.27, 219: 17.33, 220: 17.41, 221: 17.47, 222: 17.54,
+    223: 17.60, 224: 17.68, 225: 17.74, 226: 17.81, 227: 17.87,
+    228: 17.95, 229: 18.01, 230: 18.08, 231: 18.14, 232: 18.22,
+    233: 18.28, 234: 18.34, 235: 18.41, 236: 18.49, 237: 18.55,
+    238: 18.61, 239: 18.68, 240: 18.76, 241: 18.82, 242: 18.88,
+    243: 18.97, 244: 19.03, 245: 19.09, 246: 19.15, 247: 19.24,
+    248: 19.30, 249: 19.36, 250: 19.44, 251: 19.51, 252: 19.57,
+    253: 19.63, 254: 19.71, 255: 19.77, 256: 19.84, 257: 19.92,
+    258: 19.98, 259: 20.04, 260: 20.13, 261: 20.19, 262: 20.25,
+    263: 20.31, 264: 20.40, 265: 20.46, 266: 20.52, 267: 20.60,
+    268: 20.67, 269: 20.73, 270: 20.81, 271: 20.87, 272: 20.94,
+    273: 21.02, 274: 21.08, 275: 21.14, 276: 21.23, 277: 21.29,
+    278: 21.35, 279: 21.43, 280: 21.49, 281: 21.58, 282: 21.64,
+    283: 21.70, 284: 21.78, 285: 21.85, 286: 21.91, 287: 21.99,
+    288: 22.05, 289: 22.12, 290: 22.20, 291: 22.26, 292: 22.34,
+    293: 22.41, 294: 22.47, 295: 22.55, 296: 22.61, 297: 22.70,
+    298: 22.76, 299: 22.82, 300: 22.90, 301: 22.97, 302: 23.03,
+    303: 23.11, 304: 23.17, 305: 23.26, 306: 23.32, 307: 23.38,
+    308: 23.46, 309: 23.53, 310: 23.61, 311: 23.67, 312: 23.75
+};
+
+function calcularSolidosAutomatico() {
+    const campos = ['q_solido_1', 'q_solido_2', 'q_solido_3'];
+
+    const pesos = campos
+        .map(id => Number(document.getElementById(id)?.value || 0))
+        .filter(valor => valor > 0);
+
+    if (pesos.length === 0) {
+        document.getElementById('q_peso_agua').value = '';
+        document.getElementById('q_solidos').value = '';
+        return;
+    }
+
+    const solidos = pesos.map(peso => tabelaSolidos[peso]);
+
+    if (solidos.some(valor => valor === undefined)) {
+        document.getElementById('q_solidos').value = 'Peso fora da tabela';
+        return;
+    }
+
+    const mediaPeso =
+        pesos.reduce((soma, valor) => soma + valor, 0) / pesos.length;
+
+    const mediaSolidos =
+        solidos.reduce((soma, valor) => soma + valor, 0) / solidos.length;
+
+    document.getElementById('q_peso_agua').value =
+        mediaPeso.toFixed(0);
+
+    document.getElementById('q_solidos').value =
+        mediaSolidos.toFixed(2).replace('.', ',') + '%';
 }

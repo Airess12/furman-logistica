@@ -631,6 +631,137 @@ textarea#q_defeito:focus {
 .status-line.blue strong {
     color: #38bdf8;
 }
+.btn-add-fritura {
+    margin-top: 10px;
+    padding: 12px 18px;
+    border: none;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #7c3aed, #21ff9d);
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 0 18px rgba(124, 58, 237, .35);
+}
+
+.fritura-item {
+    margin-top: 12px;
+    padding: 12px 16px;
+    border-radius: 14px;
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.10);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #fff;
+}
+
+.fritura-item button {
+    padding: 7px 12px;
+    border: none;
+    border-radius: 10px;
+    background: rgba(239, 68, 68, .18);
+    color: #ff8a8a;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.fritura-item button:hover {
+    background: rgba(239, 68, 68, .30);
+}
+.fritura-total {
+    margin-top: 14px;
+    padding: 12px 16px;
+    border-radius: 14px;
+    background: rgba(33, 255, 157, .08);
+    border: 1px solid rgba(33, 255, 157, .25);
+    color: #21ff9d;
+    font-weight: 700;
+}
+
+.fritura-c00,
+.fritura-c0 {
+    border-color: rgba(34, 197, 94, .35);
+}
+
+.fritura-c1 {
+    border-color: rgba(234, 179, 8, .35);
+}
+
+.fritura-c2 {
+    border-color: rgba(249, 115, 22, .35);
+}
+
+.fritura-c3 {
+    border-color: rgba(239, 68, 68, .35);
+}
+
+.fritura-c4 {
+    border-color: rgba(168, 85, 247, .35);
+}
+.status-bom {
+    background: rgba(34, 197, 94, .10);
+    border: 1px solid rgba(34, 197, 94, .35);
+    color: #4ade80;
+}
+
+.status-alerta {
+    background: rgba(234, 179, 8, .10);
+    border: 1px solid rgba(234, 179, 8, .35);
+    color: #facc15;
+}
+
+.status-ruim {
+    background: rgba(239, 68, 68, .10);
+    border: 1px solid rgba(239, 68, 68, .35);
+    color: #f87171;
+}
+.btn-origem {
+    height: 58px !important;
+    border: none !important;
+    border-radius: 18px !important;
+
+    background: linear-gradient(
+        135deg,
+        #7c3aed,
+        #21ff9d
+    ) !important;
+
+    color: white !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+
+    box-shadow: 0 0 20px rgba(124,58,237,.25) !important;
+    transition: .25s !important;
+}
+
+.btn-origem:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 25px rgba(33,255,157,.35);
+}
+.btn-origem {
+    width: 170px !important;
+    height: 58px !important;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    white-space: nowrap;
+}
+.cadastro-rapido {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    max-width: 540px;
+}
+
+.cadastro-rapido input {
+    flex: 1;
+}
+
+.btn-origem {
+    width: 150px !important;
+}
 </style>
 </head>
 
@@ -925,13 +1056,21 @@ textarea#q_defeito:focus {
                         <input type="text" id="placa_cavalo" placeholder="Placa do cavalo" oninput="buscarMotorista()">
                         <input type="text" id="motorista" placeholder="Motorista" readonly>
 
-                        <select id="origem">
-                            <option value="">Origem</option>
-                            <option>Fazenda BOY - Palmas/PR</option>
-                            <option>Fazenda Rita - Água Doce/SC</option>
-                            <option>Fazenda Cabanha - Água Doce/SC</option>
-                            <option>Fazenda Odilon - Palmas/PR</option>
-                        </select>
+                     <select id="origem">
+                    <option value="">Origem</option>
+                    </select>
+                   <div class="cadastro-rapido">
+    
+                    <input id="novaOrigem" placeholder="Cadastrar nova origem">
+
+                    <button
+                        type="button"
+                        class="btn-origem"
+                        onclick="cadastrarOrigem()"
+                    >
+                        ➕ Adicionar
+                    </button>
+                </div>
 
                         <select id="veiculo" onchange="definirPeso()">
                             <option value="">Tipo de veículo</option>
@@ -1103,10 +1242,13 @@ textarea#q_defeito:focus {
         <div class="form-grid">
             <input id="q_fazenda" type="text" placeholder="Fazenda">
             <input id="q_variedade" type="text" placeholder="Variedade">
-            <input id="q_solidos" type="text" placeholder="Sólidos %">
+            <input id="q_solido_1" placeholder="Sólido 1 - peso balança" oninput="calcularSolidosAutomatico()">
+            <input id="q_solido_2" placeholder="Sólido 2 - peso balança" oninput="calcularSolidosAutomatico()">
+            <input id="q_solido_3" placeholder="Sólido 3 - peso balança" oninput="calcularSolidosAutomatico()">
             <input id="q_temperatura_agua" type="text" placeholder="Temperatura da água">
             <input id="q_temperatura_media" type="text" placeholder="Temperatura média de três tubérculos">
-            <input id="q_peso_agua" type="text" placeholder="Peso na água">
+            <input id="q_peso_agua" placeholder="Peso água médio" readonly>
+            <input id="q_solidos" placeholder="% sólidos médio" readonly>
             <input id="q_placa" type="text" placeholder="Placa">
             <input id="q_peso_total" type="text" placeholder="Peso total">
             <input id="q_peso_lavado" type="text" placeholder="Peso lavado">
@@ -1138,33 +1280,30 @@ textarea#q_defeito:focus {
             <input type="text" id="q_mais150_peso" placeholder=">150 peso">
         </div>
         
-        <h3>🍟 Fritura</h3>
-
-<div class="grid-fritura">
+       <div class="campo">
+    <label>🍟 Classificação da Fritura</label>
 
     <select id="q_fritura_tipo">
-
-        <option value="">
-            Selecione a classificação
-        </option>
-
+        <option value="">Selecione a classificação</option>
         <option value="C00">C00</option>
         <option value="C0">C0</option>
         <option value="C1">C1</option>
         <option value="C2">C2</option>
         <option value="C3">C3</option>
         <option value="C4">C4</option>
-
     </select>
-
-    <input
-        id="q_fritura_quantidade"
-        type="number"
-        placeholder="Quantidade de palitos"
-    >
-
 </div>
 
+<div class="campo">
+    <label>Quantidade de Palitos</label>
+    <input type="number" id="q_fritura_quantidade" placeholder="Quantidade de palitos">
+</div>
+
+<button type="button" class="btn-add-fritura" onclick="adicionarFritura()">
+    + Adicionar fritura
+</button>
+
+<div id="lista-fritura"></div>
 <br>
         <br>
 

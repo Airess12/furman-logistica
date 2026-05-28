@@ -237,6 +237,33 @@ app.get('/produtores', protegerApi, async (req, res) => {
     res.json(produtores);
 });
 
+app.post('/origens', protegerApi, async (req, res) => {
+    const db = await conectar();
+
+    const nome = req.body.nome.trim();
+
+    await db.run(`
+        INSERT INTO origens (nome)
+        VALUES (?)
+        ON CONFLICT (nome)
+        DO NOTHING
+    `, [nome]);
+
+    res.json({ status: 'ok' });
+});
+
+app.get('/origens', protegerApi, async (req, res) => {
+    const db = await conectar();
+
+    const origens = await db.all(`
+        SELECT *
+        FROM origens
+        ORDER BY nome ASC
+    `);
+
+    res.json(origens);
+});
+
 app.post('/carretas', protegerApi, async (req, res) => {
     const db = await conectar();
 
@@ -560,6 +587,7 @@ app.post('/analises-qualidade', protegerApi, upload.single('foto_analise'), asyn
     const {
         fazenda, variedade, solidos, temperatura_agua, temperatura_media,
         peso_agua, placa, peso_total, peso_lavado, fritura,
+        classificacao_fritura, quantidade_palitos,
         diametro_35, diametro_35_45, diametro_45,
         menos75_qtd, menos75_peso,
         mais75_qtd, mais75_peso,
@@ -572,6 +600,7 @@ app.post('/analises-qualidade', protegerApi, upload.single('foto_analise'), asyn
         INSERT INTO analises_qualidade (
             fazenda, variedade, solidos, temperatura_agua, temperatura_media,
             peso_agua, placa, peso_total, peso_lavado, fritura,
+            classificacao_fritura, quantidade_palitos,
             diametro_35, diametro_35_45, diametro_45,
             menos75_qtd, menos75_peso,
             mais75_qtd, mais75_peso,
@@ -579,10 +608,11 @@ app.post('/analises-qualidade', protegerApi, upload.single('foto_analise'), asyn
             mais150_qtd, mais150_peso,
             defeito, pontos, foto_analise
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
         fazenda || '', variedade || '', solidos || '', temperatura_agua || '', temperatura_media || '',
         peso_agua || '', placa || '', peso_total || '', peso_lavado || '', fritura || '',
+        classificacao_fritura || '', quantidade_palitos || '',
         diametro_35 || '', diametro_35_45 || '', diametro_45 || '',
         menos75_qtd || '', menos75_peso || '',
         mais75_qtd || '', mais75_peso || '',
@@ -625,6 +655,7 @@ app.put('/analises-qualidade/:id', protegerApi, upload.single('foto_analise'), a
 
     const {
         variedade, solidos, peso_agua, placa, peso_total, peso_lavado,
+        classificacao_fritura, quantidade_palitos,
         diametro_35, diametro_35_45, diametro_45,
         menos75_qtd, menos75_peso,
         mais75_qtd, mais75_peso,
@@ -638,6 +669,7 @@ app.put('/analises-qualidade/:id', protegerApi, upload.single('foto_analise'), a
         SET
             variedade = ?, solidos = ?, peso_agua = ?, placa = ?,
             peso_total = ?, peso_lavado = ?,
+            classificacao_fritura = ?, quantidade_palitos = ?,
             diametro_35 = ?, diametro_35_45 = ?, diametro_45 = ?,
             menos75_qtd = ?, menos75_peso = ?,
             mais75_qtd = ?, mais75_peso = ?,
@@ -649,6 +681,7 @@ app.put('/analises-qualidade/:id', protegerApi, upload.single('foto_analise'), a
     `, [
         variedade, solidos, peso_agua, placa,
         peso_total, peso_lavado,
+        classificacao_fritura || '', quantidade_palitos || '',
         diametro_35, diametro_35_45, diametro_45,
         menos75_qtd, menos75_peso,
         mais75_qtd, mais75_peso,
@@ -661,7 +694,6 @@ app.put('/analises-qualidade/:id', protegerApi, upload.single('foto_analise'), a
 
     res.json({ status: 'ok' });
 });
-
 app.get('/dashboard-qualidade', protegerApi, async (req, res) => {
     try {
         const db = await conectar();

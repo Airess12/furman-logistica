@@ -92,6 +92,13 @@ async function criarTabelas() {
     `);
 
     await db.query(`
+    CREATE TABLE IF NOT EXISTS origens (
+        id SERIAL PRIMARY KEY,
+        nome TEXT UNIQUE
+    )
+`);
+
+    await db.query(`
         CREATE TABLE IF NOT EXISTS carretas (
             id SERIAL PRIMARY KEY,
             placa TEXT UNIQUE
@@ -151,6 +158,9 @@ async function criarTabelas() {
             temperatura_media TEXT,
             fritura TEXT,
 
+            classificacao_fritura TEXT,
+            quantidade_palitos TEXT,
+
             variedade TEXT,
             solidos TEXT,
             peso_agua TEXT,
@@ -205,6 +215,14 @@ async function criarTabelas() {
     await db.query(`
         ALTER TABLE analises_qualidade
         ADD COLUMN IF NOT EXISTS fritura TEXT
+    `);
+    await db.query(`
+    ALTER TABLE analises_qualidade
+    ADD COLUMN IF NOT EXISTS classificacao_fritura TEXT
+    `);
+    await db.query(`
+    ALTER TABLE analises_qualidade
+    ADD COLUMN IF NOT EXISTS quantidade_palitos TEXT
     `);
 
     const senhaCriptografada = await bcrypt.hash('Furman2026', 10);
