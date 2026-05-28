@@ -788,7 +788,7 @@ app.post('/enviar-relatorio-qualidade', protegerApi, async (req, res) => {
             email: 'mariele.venancio@mccain.com.br'
         }
 ],
-                subject: `Relatório de Qualidade - ${placa || 'Carga'} - Furman Logística`,
+                subject: `Relatório de Qualidade - ${placa || 'Carga'} - Furman Agronegócios`,
 
 htmlContent: `
     <div style="
@@ -807,7 +807,7 @@ htmlContent: `
         </h2>
 
         <p style="font-size:15px; line-height:1.6;">
-            Segue em anexo o relatório de qualidade gerado automaticamente pelo sistema da <strong>Furman Logística</strong>.
+            Segue em anexo o relatório de qualidade gerado automaticamente pelo sistema da <strong>Furman Agronegócios</strong>.
         </p>
 
         <div style="
@@ -833,11 +833,11 @@ htmlContent: `
             color:#94a3b8;
             font-size:13px;
         ">
-            Este e-mail foi enviado automaticamente pelo sistema operacional da Furman Logística.
+            Este e-mail foi enviado automaticamente pelo sistema operacional da Furman Agronegócios!.
         </p>
 
     </div>
-`
+`,
                 attachment: [
                     {
                         name: `relatorio-qualidade-${placa || 'carga'}.pdf`,

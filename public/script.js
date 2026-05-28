@@ -1695,7 +1695,7 @@ pdf.addImage(
     pdf.text('RELATÓRIO DE QUALIDADE', 42, 16);
 
     pdf.setFontSize(10);
-    pdf.text('Furman Logística • Sistema de Qualidade', 42, 23);
+    pdf.text('Furman Agronegócios • Sistema de Qualidade', 42, 23);
 
     pdf.setFontSize(9);
 
