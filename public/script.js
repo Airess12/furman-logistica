@@ -1665,14 +1665,40 @@ async function gerarPDFQualidade() {
         logo.onerror = resolve;
     });
 
+   let heightLeft = imgHeight;
+let position = 35;
+
+pdf.addImage(
+    imgData,
+    'JPEG',
+    margin,
+    position,
+    imgWidth,
+    imgHeight
+);
+
+heightLeft -= (pageHeight - 35);
+
+while (heightLeft > 0) {
+
+    position = heightLeft - imgHeight + 35;
+
+    pdf.addPage();
+
+    pdf.setFillColor(17, 24, 39);
+    pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+
     pdf.addImage(
-        logo,
+        imgData,
         'JPEG',
-        10,
-        8,
-        24,
-        24
+        margin,
+        position,
+        imgWidth,
+        imgHeight
     );
+
+    heightLeft -= pageHeight;
+}
 
     const agora = new Date().toLocaleString('pt-BR');
 
