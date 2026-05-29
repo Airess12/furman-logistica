@@ -83,25 +83,27 @@
 }
 
 .sidebar-logo {
-    padding: 10px 0 28px !important;
+    padding: 8px 0 18px !important;
     border-bottom: 1px solid rgba(255,255,255,.08) !important;
 }
 
-.sidebar-logo img {
-    width: 122px !important;
-    height: 122px !important;
-    border-radius: 26px !important;
-    padding: 8px !important;
+.sidebar-logo img{
+    width: 80px !important;
+    height: 80px !important;
+
+    border-radius: 22px !important;
+    padding: 6px !important;
+
     background: rgba(255,255,255,.96) !important;
+
     box-shadow:
-        0 18px 45px rgba(0,0,0,.42),
-        0 0 35px rgba(33,255,157,.18) !important;
+        0 12px 30px rgba(0,0,0,.35),
+        0 0 25px rgba(33,255,157,.12) !important;
 }
 
 .sidebar-logo h2 {
-    font-size: 21px !important;
+    font-size: 18px !important;
     font-weight: 900 !important;
-    letter-spacing: -.3px !important;
 }
 
 .sidebar-logo span {
@@ -762,6 +764,124 @@ textarea#q_defeito:focus {
 .btn-origem {
     width: 150px !important;
 }
+.perfil-usuario {
+    width: 100%;
+    text-align: center;
+    margin: 14px 0 22px;
+    padding: 0;
+    transition: .25s ease;
+}
+
+.foto-perfil {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #21ff9d;
+    box-shadow: 0 0 18px rgba(33,255,157,.25);
+    transition: .25s ease;
+}
+
+#nomePerfil {
+    margin: 8px 0 3px;
+    font-size: 14px;
+    color: #fff;
+    font-weight: 800;
+}
+
+#cargoPerfil {
+    display: block;
+    font-size: 11px;
+    color: #21ff9d;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* quando sidebar estiver fechada */
+.sidebar:not(:hover) .perfil-usuario {
+    margin: 10px 0 18px;
+}
+
+.sidebar:not(:hover) .foto-perfil {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+}
+
+.sidebar:not(:hover) #nomePerfil,
+.sidebar:not(:hover) #cargoPerfil {
+    display: none;
+}
+.perfil-mini{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+}
+
+.perfil-mini strong{
+    display: block;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.perfil-mini small{
+    display: block;
+    margin-top: 4px;
+    color: #21ff9d;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.sidebar:not(:hover) .perfil-mini{
+    display: none;
+}
+.status-online{
+    margin-top:8px;
+    color:#94a3b8;
+    font-size:12px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+}
+
+.status-online span{
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:#22c55e;
+
+    box-shadow:
+        0 0 10px #22c55e;
+}
+.btn-foto{
+    margin-top:10px;
+
+    width:140px;
+    height:36px;
+
+    border:none;
+    border-radius:12px;
+
+    background:linear-gradient(
+        135deg,
+        #7c3aed,
+        #21ff9d
+    );
+
+    background:linear-gradient(
+        135deg,
+        #7c3aed,
+        #21ff9d
+    );
+
+   color:white;
+    font-weight:700;
+    cursor:pointer;
+}
 </style>
 </head>
 
@@ -771,14 +891,46 @@ textarea#q_defeito:focus {
 
     <aside class="sidebar">
 
-        <div class="sidebar-logo">
-            <img src="img/LOGO.jpeg" alt="Furman">
-            <h2>Furman Agronegócios</h2>
-            <span>PAINEL OPERACIONAL</span>
+    <div class="sidebar-logo">
+        <img src="img/LOGO.jpeg" alt="Furman">
+        <h2>Furman Agronegócios</h2>
+        <span>PAINEL OPERACIONAL</span>
+    </div>
+
+    <div class="perfil-mini">
+
+                <img
+                id="fotoPerfil"
+                src="/img/LOGO.jpeg"
+                class="foto-perfil"
+            >
+
+            <input
+                type="file"
+                id="inputFotoPerfil"
+                accept="image/*"
+                style="display:none"
+            >
+
+            <button
+                class="btn-foto"
+                onclick="document.getElementById('inputFotoPerfil').click()">
+                📷 Alterar Foto
+            </button>
+
+        <strong id="nomePerfil">Usuário</strong>
+
+        <small id="cargoPerfil">USUARIO</small>
+        <div class="status-online">
+        <span></span>
+        Online
         </div>
 
-        <nav>
-            <button class="menu-btn ativo" onclick="mostrarAba('dashboard', this)">
+    </div>
+
+    <nav>
+
+    <button class="menu-btn ativo" onclick="mostrarAba('dashboard', this)">
     <span class="menu-icon">📊</span>
     <span class="menu-text">Dashboard</span>
 </button>
@@ -803,10 +955,9 @@ textarea#q_defeito:focus {
     <span class="menu-text">Qualidade</span>
 </button>
 
-<button class="menu-btn" onclick="mostrarAba('usuarios', this)">
-    <span class="menu-icon">👤</span>
-    <span class="menu-text">Usuários</span>
-</button>
+<button id="menu-usuarios" class="menu-btn" onclick="mostrarAba('usuarios', this)">
+    👤 Usuários
+    </button>
 
 
 <button class="menu-btn logout-btn" onclick="logout()">

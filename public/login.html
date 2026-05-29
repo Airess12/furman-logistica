@@ -45,14 +45,14 @@
                 })
             });
 
-            const dados = await resposta.json();
+        const dados = await resposta.json();
+        if (dados.status === 'ok') {
             localStorage.setItem(
-            'usuarioLogado',
-        JSON.stringify(dados.usuario)
-            )
+                'usuario',
+                JSON.stringify(dados.usuario)
+                );
 
-            if (dados.status === 'ok') {
-                window.location.href = '/';
+            window.location.href = '/';
             } else {
                 document.getElementById('erroLogin').innerText =
                     'Usuário ou senha incorretos';

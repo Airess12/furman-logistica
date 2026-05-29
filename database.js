@@ -75,6 +75,16 @@ async function criarTabelas() {
     ADD COLUMN IF NOT EXISTS tipo TEXT DEFAULT 'admin'
 `);
 
+await db.query(`
+    ALTER TABLE usuarios
+    ADD COLUMN IF NOT EXISTS nome TEXT
+`);
+
+await db.query(`
+    ALTER TABLE usuarios
+    ADD COLUMN IF NOT EXISTS foto TEXT
+`);
+
     await db.query(`
         CREATE TABLE IF NOT EXISTS motoristas (
             id SERIAL PRIMARY KEY,
@@ -225,17 +235,33 @@ async function criarTabelas() {
     ADD COLUMN IF NOT EXISTS quantidade_palitos TEXT
     `);
 
-    const senhaCriptografada = await bcrypt.hash('Furman2026', 10);
+    const senhaAdmin = await bcrypt.hash('Furman2026', 10);
 
-    await db.query(
-    `
-    INSERT INTO usuarios (usuario, senha, tipo)
-    VALUES ($1, $2, $3)
-    ON CONFLICT (usuario) DO NOTHING
-    `,
-    ['Administração', senhaCriptografada, 'admin']
-    );
+await db.query(
+`
+INSERT INTO usuarios (usuario, senha, tipo, nome, foto)
+VALUES ($1, $2, $3, $4, $5)
+ON CONFLICT (usuario) DO NOTHING
+`,
+['Administração', senhaAdmin, 'gerente', 'Administração', '/img/avatar.png']
+);
 
+await db.query(`
+    UPDATE usuarios
+    SET tipo = 'gerente'
+    WHERE usuario = 'Administração'
+`);
+
+const senhaMaster = await bcrypt.hash('Master@2026', 10);
+
+await db.query(
+`
+INSERT INTO usuarios (usuario, senha, tipo, nome, foto)
+VALUES ($1, $2, $3, $4, $5)
+ON CONFLICT (usuario) DO NOTHING
+`,
+['luiz.master', senhaMaster, 'master', 'Luiz Aires', '/img/avatar.png']
+);
     console.log('✅ Banco PostgreSQL conectado');
 }
 

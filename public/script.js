@@ -1,3 +1,60 @@
+const usuarioLogado = JSON.parse(localStorage.getItem('usuario') || '{}');
+document.addEventListener('DOMContentLoaded', () => {
+
+    const nome = document.getElementById('nomePerfil');
+    const cargo = document.getElementById('cargoPerfil');
+
+    const nomesCargos = {
+        master: 'Administrador Master',
+        admin: 'Administrador',
+        gerente: 'Gerente Operacional',
+        qualidade: 'Qualidade',
+        expedicao: 'Expedição'
+    };
+
+    if (nome) {
+        nome.textContent =
+            usuarioLogado.nome || 'Usuário';
+    }
+
+    if (cargo) {
+            nomesCargos[usuarioLogado.tipo] || 'Usuário';
+
+    }
+
+});
+
+window.addEventListener('DOMContentLoaded', () => {
+
+    const menuUsuarios = document.getElementById('menu-usuarios');
+
+    if (menuUsuarios && usuarioLogado.tipo !== 'master') {
+        menuUsuarios.remove();
+    }
+
+const nomePerfil = document.getElementById('nomePerfil');
+const cargoPerfil = document.getElementById('cargoPerfil');
+const fotoPerfil = document.getElementById('fotoPerfil');
+
+const nomesCargos = {
+    master: 'Administrador Master',
+    admin: 'Administrador',
+    gerente: 'Gerente Operacional',
+    qualidade: 'Qualidade',
+    expedicao: 'Expedição'
+};
+
+if (cargoPerfil) {
+    cargoPerfil.innerText =
+        nomesCargos[usuarioLogado.tipo] || 'Usuário';
+}
+
+if (fotoPerfil) {
+    fotoPerfil.src =
+        usuarioLogado.foto || '/img/LOGO.jpeg';
+}
+});
+
 function el(...ids) {
     for (const id of ids) {
         const item = document.getElementById(id);
@@ -1264,7 +1321,18 @@ function abrirWhatsapp() {
    START
 ========================= */
 
-window.onload = async () => {
+window.onload = async () => {window.onload = async () => {
+
+    await carregarProdutores();
+    await carregarCarretas();
+    await carregarHistorico();
+    await carregarDashboard();
+
+    if (usuarioLogado.tipo === 'master') {
+        await carregarUsuarios();
+    }
+
+}
 
     await carregarProdutores();
     await carregarCarretas();
@@ -2352,44 +2420,81 @@ async function cadastrarUsuario() {
 }
 
 async function carregarUsuarios() {
-    const resposta = await fetch('/usuarios');
-    const usuarios = await resposta.json();
+
+    if (usuarioLogado.tipo !== 'master') {
+        return;
+    }
 
     const lista = document.getElementById('listaUsuarios');
     if (!lista) return;
 
-    lista.innerHTML = '';
+    lista.innerHTML = `
+        <div style="padding:14px; color:#94a3b8;">
+            Carregando usuários...
+        </div>
+    `;
 
-    usuarios.forEach(usuario => {
-        lista.innerHTML += `
-            <div style="
-                background: rgba(255,255,255,.04);
-                padding: 14px;
-                border-radius: 14px;
-                margin-bottom: 12px;
-                border: 1px solid rgba(255,255,255,.08);
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                gap: 12px;
-            ">
-                <div>
-                    <strong>${usuario.usuario}</strong><br>
-                    <span>Tipo: ${usuario.tipo}</span>
+    try {
+        const resposta = await fetch('/usuarios');
+
+        if (!resposta.ok) {
+            lista.innerHTML = `
+                <div style="padding:14px; color:#ef4444;">
+                    Acesso negado ou erro ao carregar usuários.
                 </div>
+            `;
+            return;
+        }
 
-                <div style="display:flex; gap:8px;">
-                    <button class="btn-ver-analise" onclick='editarUsuario(${JSON.stringify(usuario)})'>
-                        ✏️ Editar
-                    </button>
+        const usuarios = await resposta.json();
 
-                    <button class="btn-excluir-analise" onclick="excluirUsuario(${usuario.id})">
-                        🗑️ Excluir
-                    </button>
+        if (!Array.isArray(usuarios)) {
+            lista.innerHTML = '';
+            return;
+        }
+
+        lista.innerHTML = '';
+
+        usuarios.forEach(usuario => {
+            lista.innerHTML += `
+                <div style="
+                    background: rgba(255,255,255,.04);
+                    padding: 14px;
+                    border-radius: 14px;
+                    margin-bottom: 12px;
+                    border: 1px solid rgba(255,255,255,.08);
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    gap: 12px;
+                ">
+                    <div>
+                        <strong>${usuario.usuario}</strong><br>
+                        <span>Tipo: ${usuario.tipo}</span>
+                    </div>
+
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn-ver-analise" onclick='editarUsuario(${JSON.stringify(usuario)})'>
+                            ✏️ Editar
+                        </button>
+
+                        <button class="btn-excluir-analise" onclick="excluirUsuario(${usuario.id})">
+                            🗑️ Excluir
+                        </button>
+                    </div>
                 </div>
+            `;
+        });
+
+    } catch (erro) {
+        console.error('Erro ao carregar usuários:', erro);
+
+        lista.innerHTML = `
+            <div style="padding:14px; color:#ef4444;">
+                Erro ao carregar usuários.
             </div>
         `;
-    });
+    }
 }
 
 let usuarioEditandoId = null;
@@ -2760,3 +2865,35 @@ function calcularSolidosAutomatico() {
     document.getElementById('q_solidos').value =
         mediaSolidos.toFixed(2).replace('.', ',') + '%';
 }
+
+document
+    .getElementById('inputFotoPerfil')
+    ?.addEventListener('change', async function () {
+
+        const arquivo = this.files[0];
+
+        if (!arquivo) return;
+
+        const formData = new FormData();
+        formData.append('foto', arquivo);
+
+        const resposta = await fetch('/perfil/foto', {
+            method: 'POST',
+            body: formData
+        });
+
+        const dados = await resposta.json();
+
+        if (dados.status === 'ok') {
+            document.getElementById('fotoPerfil').src = dados.foto;
+
+            usuarioLogado.foto = dados.foto;
+
+            localStorage.setItem(
+                'usuario',
+                JSON.stringify(usuarioLogado)
+            );
+
+            alert('Foto atualizada com sucesso!');
+        }
+    });
