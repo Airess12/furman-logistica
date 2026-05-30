@@ -1,58 +1,44 @@
-const usuarioLogado = JSON.parse(localStorage.getItem('usuario') || '{}');
-document.addEventListener('DOMContentLoaded', () => {
-
-    const nome = document.getElementById('nomePerfil');
-    const cargo = document.getElementById('cargoPerfil');
-
-    const nomesCargos = {
-        master: 'Administrador Master',
-        admin: 'Administrador',
-        gerente: 'Gerente Operacional',
-        qualidade: 'Qualidade',
-        expedicao: 'Expedição'
-    };
-
-    if (nome) {
-        nome.textContent =
-            usuarioLogado.nome || 'Usuário';
-    }
-
-    if (cargo) {
-            nomesCargos[usuarioLogado.tipo] || 'Usuário';
-
-    }
-
-});
-
-window.addEventListener('DOMContentLoaded', () => {
-
-    const menuUsuarios = document.getElementById('menu-usuarios');
-
-    if (menuUsuarios && usuarioLogado.tipo !== 'master') {
-        menuUsuarios.remove();
-    }
-
-const nomePerfil = document.getElementById('nomePerfil');
-const cargoPerfil = document.getElementById('cargoPerfil');
-const fotoPerfil = document.getElementById('fotoPerfil');
+const usuarioLogado = JSON.parse(
+    localStorage.getItem('usuarioLogado') ||
+    localStorage.getItem('usuario') ||
+    '{}'
+);
 
 const nomesCargos = {
     master: 'Administrador Master',
     admin: 'Administrador',
     gerente: 'Gerente Operacional',
     qualidade: 'Qualidade',
-    expedicao: 'Expedição'
+    expedicao: 'Expedição',
+    laboratorio: 'Laboratório',
+    visualizacao: 'Visualização'
 };
 
-if (cargoPerfil) {
-    cargoPerfil.innerText =
-        nomesCargos[usuarioLogado.tipo] || 'Usuário';
-}
+document.addEventListener('DOMContentLoaded', () => {
+    const menuUsuarios = document.getElementById('menu-usuarios');
+    const nomePerfil = document.getElementById('nomePerfil');
+    const cargoPerfil = document.getElementById('cargoPerfil');
+    const fotoPerfil = document.getElementById('fotoPerfil');
 
-if (fotoPerfil) {
-    fotoPerfil.src =
-        usuarioLogado.foto || '/img/LOGO.jpeg';
-}
+    if (menuUsuarios && usuarioLogado.tipo !== 'master') {
+        menuUsuarios.remove();
+    }
+
+    if (nomePerfil) {
+        nomePerfil.textContent =
+            usuarioLogado.nome ||
+            usuarioLogado.usuario ||
+            'Usuário';
+    }
+
+    if (cargoPerfil) {
+        cargoPerfil.innerText =
+            nomesCargos[usuarioLogado.tipo] || 'Usuário';
+    }
+
+    if (fotoPerfil) {
+        fotoPerfil.src = usuarioLogado.foto || '/img/LOGO.jpeg';
+    }
 });
 
 function el(...ids) {
@@ -567,10 +553,11 @@ async function carregarHistorico() {
                     <strong>C1</strong>
 
                     <select
-                        class="resultado-select"
-                        id="resultado-c1-${e.id}"
-                        onchange="atualizarQualidadeCarretas(${e.id})"
-                    >
+                            class="resultado-select"
+                            data-resultado="${e.resultado_c1 || 'Pendente'}"
+                            id="resultado-c1-${e.id}"
+                            onchange="atualizarQualidadeCarretas(${e.id}); this.setAttribute('data-resultado', this.value)"
+                        >
 
                         <option ${e.resultado_c1 === 'Pendente' ? 'selected' : ''}>
                             Pendente
@@ -616,12 +603,13 @@ async function carregarHistorico() {
 
                         <strong>C2</strong>
 
-                        <select
-                            class="resultado-select"
-                            id="resultado-c2-${e.id}"
-                            onchange="atualizarQualidadeCarretas(${e.id})"
-                        >
-
+                       <select
+                            <select
+                        class="resultado-select"
+                        data-resultado="${e.resultado_c2 || 'Pendente'}"
+                        id="resultado-c2-${e.id}"
+                        onchange="atualizarQualidadeCarretas(${e.id}); this.setAttribute('data-resultado', this.value)"
+>
                             <option ${e.resultado_c2 === 'Pendente' ? 'selected' : ''}>
                                 Pendente
                             </option>
@@ -662,22 +650,26 @@ async function carregarHistorico() {
 
                 </td>
 
-                <td style="display:flex; gap:8px; justify-content:center;">
+                <td>
+                    <div class="acoes-botoes">
 
-                    <button
-                        class="small-btn edit"
-                        onclick="editarLinhaExpedicao(${e.id})"
-                    >
-                        Editar
-                    </button>
+                        <button
+                            type="button"
+                            class="btn-editar"
+                            onclick="editarLinhaExpedicao(${e.id})"
+                        >
+                            ✏️ Editar
+                        </button>
 
-                    <button
-                        class="small-btn delete"
-                        onclick="excluirExpedicao(${e.id})"
-                    >
-                        Excluir
-                    </button>
+                        <button
+                            type="button"
+                            class="btn-excluir"
+                            onclick="excluirExpedicao(${e.id})"
+                        >
+                            🗑️ Excluir
+                        </button>
 
+                    </div>
                 </td>
 
             </tr>
@@ -912,10 +904,6 @@ async function carregarGraficoDashboard() {
         data: {
             labels,
            datasets: [{
-        glowLine: {
-        glowColor: '#21ff9d',
-        blur: 24
-},
     label: 'Expedições',
     data: dadosGrafico,
     borderColor: '#21ff9d',
@@ -1321,38 +1309,39 @@ function abrirWhatsapp() {
    START
 ========================= */
 
-window.onload = async () => {window.onload = async () => {
+window.onload = async () => {
+    try {
+        await carregarProdutores();
+        await carregarCarretas();
 
-    await carregarProdutores();
-    await carregarCarretas();
-    await carregarHistorico();
-    await carregarDashboard();
+        if (typeof carregarOrigens === 'function') {
+            await carregarOrigens();
+        }
 
-    if (usuarioLogado.tipo === 'master') {
-        await carregarUsuarios();
+        await carregarHistorico();
+        await carregarDashboard();
+
+        if (usuarioLogado.tipo === 'master' && typeof carregarUsuarios === 'function') {
+            await carregarUsuarios();
+        }
+
+        if (typeof definirPeso === 'function') {
+            definirPeso();
+        }
+
+        document.getElementById('filtroBusca')
+            ?.addEventListener('input', carregarHistorico);
+
+        document.getElementById('filtroStatus')
+            ?.addEventListener('change', carregarHistorico);
+
+        document.getElementById('filtroVariedade')
+            ?.addEventListener('change', carregarHistorico);
+
+    } catch (erro) {
+        console.error('Erro ao iniciar sistema:', erro);
     }
-
-}
-
-    await carregarProdutores();
-    await carregarCarretas();
-    await carregarHistorico();
-    await carregarDashboard();
-    await carregarUsuarios();
-    //await carregarAlertasOperacionais();
-
-    definirPeso();
-
-    document.getElementById('filtroBusca')
-        ?.addEventListener('input', carregarHistorico);
-
-    document.getElementById('filtroStatus')
-        ?.addEventListener('change', carregarHistorico);
-
-    document.getElementById('filtroVariedade')
-        ?.addEventListener('change', carregarHistorico);
-
-};;
+};
 
 async function salvarAnaliseQualidade() {
     const resultado = document.getElementById('q_resultado');
@@ -1516,9 +1505,9 @@ formData.append(
             <td>${new Date(item.criado_em).toLocaleString('pt-BR')}</td>
 
            <td>
-    <div style="display:flex; gap:8px; justify-content:center; align-items:center;">
+                <div class="acoes-botoes">
 
-        <button
+            <button
             type="button"
             class="btn-ver-analise"
             onclick='verDetalhesQualidade(${JSON.stringify(item)})'
@@ -1528,7 +1517,7 @@ formData.append(
 
         <button
             type="button"
-            class="btn-ver-analise"
+            class="btn-editar"
             onclick='editarAnaliseQualidade(${JSON.stringify(item)})'
         >
             ✏️ Editar
@@ -1536,10 +1525,10 @@ formData.append(
 
         <button
             type="button"
-            class="btn-excluir-analise"
+            class="btn-excluir"
             onclick="excluirAnaliseQualidade(${item.id})"
         >
-            🗑️
+            🗑️ Excluir
         </button>
 
     </div>
@@ -1610,7 +1599,6 @@ function verDetalhesQualidade(item) {
             <p><strong>Variedade:</strong> ${item.variedade || '-'}</p>
             <p><strong>Sólidos:</strong> ${item.solidos || '-'}</p>
             <p><strong>Temperatura da água:</strong> ${item.temperatura_agua || '-'}</p>
-            <p><strong>Temperatura média:</strong> ${item.temperatura_media || '-'}</p>
             <p><strong>Temperatura média:</strong> ${item.temperatura_media || '-'}</p>
             ${montarBlocoFrituraPDF(item.fritura)}
             <p><strong>Peso na água:</strong> ${item.peso_agua || '-'}</p>
@@ -2897,3 +2885,16 @@ document
             alert('Foto atualizada com sucesso!');
         }
     });
+
+    const fotoCadastro = document.getElementById('fotoCadastro');
+
+if (fotoCadastro) {
+    fotoCadastro.addEventListener('change', function () {
+
+        const nome = this.files.length
+            ? this.files[0].name
+            : 'Nenhuma foto selecionada';
+
+        document.getElementById('nomeArquivoFoto').textContent = nome;
+    });
+}

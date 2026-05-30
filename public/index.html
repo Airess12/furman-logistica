@@ -4,887 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Furman Agronegócios </title>
-    <link rel="stylesheet" href="./style.css">
-    <style>
-    
-    
-    body {
-    position: relative;
-    overflow-x: hidden;
-}
-.quick-actions {
-    display: grid !important;
-    grid-template-columns: repeat(4, 1fr) !important;
-    gap: 18px !important;
-    margin: 24px 0 !important;
-}
 
-.quick-actions .atalho-btn {
-    all: unset !important;
-    box-sizing: border-box !important;
-    width: 100% !important;
-    min-height: 95px !important;
-    padding: 18px 20px !important;
+    <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-    display: flex !important;
-    align-items: center !important;
-    gap: 16px !important;
-
-    border-radius: 24px !important;
-    border: 1px solid rgba(255,255,255,.12) !important;
-
-    background: linear-gradient(135deg, rgba(124,58,237,.45), rgba(33,255,157,.18)) !important;
-    color: white !important;
-
-    box-shadow: 0 15px 35px rgba(0,0,0,.35) !important;
-    cursor: pointer !important;
-}
-
-.quick-actions .atalho-btn span {
-    width: 56px !important;
-    height: 56px !important;
-    min-width: 56px !important;
-
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-
-    border-radius: 18px !important;
-    font-size: 25px !important;
-
-    background: linear-gradient(135deg, #7c3aed, #21ff9d) !important;
-}
-
-.quick-actions .atalho-btn div {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: flex-start !important;
-}
-
-.quick-actions .atalho-btn strong {
-    color: white !important;
-    font-size: 16px !important;
-    font-weight: 800 !important;
-}
-
-.quick-actions .atalho-btn small {
-    color: #cbd5e1 !important;
-    font-size: 12px !important;
-    margin-top: 4px !important;
-}
-.sidebar {
-    width: 280px !important;
-    background:
-        radial-gradient(circle at top left, rgba(124,58,237,.18), transparent 35%),
-        linear-gradient(180deg, #020617 0%, #030712 100%) !important;
-    border-right: 1px solid rgba(255,255,255,.08) !important;
-    box-shadow: 18px 0 60px rgba(0,0,0,.35) !important;
-}
-
-.sidebar-logo {
-    padding: 8px 0 18px !important;
-    border-bottom: 1px solid rgba(255,255,255,.08) !important;
-}
-
-.sidebar-logo img{
-    width: 80px !important;
-    height: 80px !important;
-
-    border-radius: 22px !important;
-    padding: 6px !important;
-
-    background: rgba(255,255,255,.96) !important;
-
-    box-shadow:
-        0 12px 30px rgba(0,0,0,.35),
-        0 0 25px rgba(33,255,157,.12) !important;
-}
-
-.sidebar-logo h2 {
-    font-size: 18px !important;
-    font-weight: 900 !important;
-}
-
-.sidebar-logo span {
-    color: #21ff9d !important;
-    font-size: 13px !important;
-    letter-spacing: 1.5px !important;
-}
-
-.sidebar nav {
-    gap: 14px !important;
-}
-
-.menu-btn {
-    position: relative !important;
-    height: 58px !important;
-    padding: 0 18px !important;
-    border-radius: 18px !important;
-
-    display: flex !important;
-    align-items: center !important;
-    gap: 12px !important;
-
-    background: transparent !important;
-    border: 1px solid transparent !important;
-
-    color: #cbd5e1 !important;
-    font-size: 15px !important;
-    font-weight: 800 !important;
-
-    overflow: hidden !important;
-}
-
-.menu-btn::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(124,58,237,.20), rgba(33,255,157,.10));
-    opacity: 0;
-    transition: .25s ease;
-}
-
-.menu-btn::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 12px;
-    width: 4px;
-    height: 34px;
-    border-radius: 999px;
-    background: #21ff9d;
-    opacity: 0;
-    box-shadow: 0 0 18px rgba(33,255,157,.8);
-    transition: .25s ease;
-}
-
-.menu-btn:hover {
-    transform: translateX(5px) !important;
-    border-color: rgba(255,255,255,.08) !important;
-    box-shadow: 0 12px 30px rgba(0,0,0,.25) !important;
-}
-
-.menu-btn:hover::before,
-.menu-btn.ativo::before {
-    opacity: 1;
-}
-
-.menu-btn.ativo {
-    background: linear-gradient(135deg, #6d28d9, #16a34a) !important;
-    color: white !important;
-    box-shadow:
-        0 16px 35px rgba(0,0,0,.35),
-        0 0 28px rgba(33,255,157,.20) !important;
-}
-
-.menu-btn.ativo::after {
-    opacity: 1;
-}
-
-.logout-btn {
-    margin-top: 12px !important;
-}
-/* SIDEBAR COLAPSÁVEL PREMIUM */
-
-.sidebar {
-    width: 280px !important;
-    transition: width .35s ease, padding .35s ease !important;
-}
-
-.sidebar:hover {
-    width: 280px !important;
-}
-
-.sidebar:not(:hover) {
-    width: 92px !important;
-    padding-left: 14px !important;
-    padding-right: 14px !important;
-}
-
-.sidebar:not(:hover) .sidebar-logo h2,
-.sidebar:not(:hover) .sidebar-logo span,
-.sidebar:not(:hover) .menu-btn {
-    white-space: nowrap !important;
-}
-
-.sidebar:not(:hover) .sidebar-logo h2,
-.sidebar:not(:hover) .sidebar-logo span {
-    opacity: 0 !important;
-    height: 0 !important;
-    overflow: hidden !important;
-}
-
-.sidebar:not(:hover) .sidebar-logo img {
-    width: 54px !important;
-    height: 54px !important;
-    border-radius: 16px !important;
-    padding: 4px !important;
-}
-
-.sidebar:not(:hover) .menu-btn {
-    justify-content: center !important;
-    padding: 0 !important;
-    width: 62px !important;
-}
-
-.sidebar:not(:hover) .menu-btn {
-    font-size: 0 !important;
-}
-
-.sidebar:not(:hover) .menu-btn::first-letter {
-    font-size: 18px !important;
-}
-
-.sidebar:not(:hover) .menu-btn::after {
-    display: none !important;
-}
-
-.sidebar .menu-btn {
-    transition:
-        width .35s ease,
-        padding .35s ease,
-        font-size .25s ease,
-        transform .25s ease,
-        background .25s ease !important;
-}
-        .menu-icon {
-    min-width: 22px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-}
-
-.menu-text {
-    transition: opacity .25s ease;
-}
-
-.sidebar:not(:hover) .menu-text {
-    opacity: 0;
-    width: 0;
-    overflow: hidden;
-}
-
-.sidebar:not(:hover) .menu-btn {
-    justify-content: center !important;
-}
-body::before,
-body::after {
-    content: "";
-
-    position: fixed;
-
-    width: 650px;
-    height: 650px;
-
-    border-radius: 50%;
-
-    filter: blur(120px);
-
-    opacity: .18;
-
-    z-index: -1;
-
-    animation: floatingGlow 18s ease-in-out infinite;
-}
-
-body::before {
-    background: #7c3aed;
-
-    top: -180px;
-    left: -120px;
-}
-
-body::after {
-    background: #21ff9d;
-
-    bottom: -220px;
-    right: -120px;
-
-    animation-delay: -8s;
-}
-
-@keyframes floatingGlow {
-
-    0% {
-        transform:
-            translate(0px, 0px)
-            scale(1);
-    }
-
-    25% {
-        transform:
-            translate(40px, -20px)
-            scale(1.08);
-    }
-
-    50% {
-        transform:
-            translate(-20px, 30px)
-            scale(.95);
-    }
-
-    75% {
-        transform:
-            translate(30px, 20px)
-            scale(1.04);
-    }
-
-    100% {
-        transform:
-            translate(0px, 0px)
-            scale(1);
-    }
-    
-}
-.btn-ver-analise,
-.btn-excluir-analise {
-    border: none;
-    border-radius: 12px;
-    padding: 9px 13px;
-    font-weight: 800;
-    cursor: pointer;
-    color: #fff;
-}
-
-.btn-ver-analise {
-    background: linear-gradient(135deg, #7c3aed, #21ff9d);
-}
-
-.btn-excluir-analise {
-    background: linear-gradient(135deg, #dc2626, #991b1b);
-}
-.btn-ver-analise,
-.btn-excluir-analise {
-    border: none;
-    border-radius: 12px;
-
-    padding: 9px 14px;
-
-    font-weight: 800;
-
-    cursor: pointer;
-
-    color: #fff;
-
-    transition: .25s ease;
-}
-
-.btn-ver-analise {
-    background: linear-gradient(135deg, #7c3aed, #21ff9d);
-
-    box-shadow: 0 8px 18px rgba(124,58,237,.28);
-}
-
-.btn-ver-analise:hover {
-    transform: translateY(-2px) scale(1.03);
-}
-
-.btn-excluir-analise {
-    background: linear-gradient(135deg, #dc2626, #991b1b);
-
-    box-shadow: 0 8px 18px rgba(220,38,38,.28);
-}
-
-.btn-excluir-analise:hover {
-    transform: translateY(-2px) scale(1.03);
-}
-textarea#q_defeito {
-    width: 100% !important;
-    min-height: 140px !important;
-    padding: 18px !important;
-
-    border-radius: 18px !important;
-    border: 1px solid rgba(255,255,255,.12) !important;
-
-    background: rgba(15,23,42,.95) !important;
-    color: white !important;
-
-    font-size: 15px !important;
-    font-family: 'Segoe UI', sans-serif !important;
-
-    resize: vertical !important;
-    outline: none !important;
-}
-
-textarea#q_defeito::placeholder {
-    color: #94a3b8 !important;
-}
-
-textarea#q_defeito:focus {
-    border-color: #21ff9d !important;
-    box-shadow: 0 0 0 4px rgba(33,255,157,.12) !important;
-}
-.qualidade-chart-card {
-    margin-top: 24px;
-
-    background: rgba(15,23,42,.92);
-
-    border-radius: 24px;
-
-    padding: 24px;
-
-    min-height: 420px;
-
-    border: 1px solid rgba(255,255,255,.06);
-
-    box-shadow:
-        0 15px 35px rgba(0,0,0,.25);
-}
-
-.qualidade-chart-card canvas {
-    width: 100% !important;
-    height: 320px !important;
-}
-
-.qualidade-chart-card .card-title {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    margin-bottom: 24px;
-}
-
-.qualidade-chart-card h3 {
-    color: white;
-    font-size: 24px;
-}
-
-.qualidade-chart-card span {
-    color: #21ff9d;
-    font-size: 14px;
-}
-@media (max-width: 768px) {
-
-    .layout {
-        flex-direction: column;
-    }
-
-    .sidebar {
-        width: 100% !important;
-        height: auto;
-        position: relative;
-        padding: 14px !important;
-    }
-
-    .sidebar:not(:hover) {
-        width: 100% !important;
-        padding: 14px !important;
-    }
-
-    .sidebar-logo {
-        display: none;
-    }
-
-    .sidebar nav {
-        display: flex;
-        flex-direction: row;
-        gap: 10px;
-        overflow-x: auto;
-        padding-bottom: 8px;
-    }
-
-    .menu-btn,
-    .sidebar:not(:hover) .menu-btn {
-        width: auto !important;
-        min-width: 120px !important;
-        height: 46px !important;
-        padding: 0 14px !important;
-        font-size: 13px !important;
-        justify-content: center !important;
-    }
-
-    .sidebar:not(:hover) .menu-text {
-        opacity: 1;
-        width: auto;
-    }
-
-    .main {
-        padding: 14px !important;
-    }
-
-    .card,
-    .dashboard-premium,
-    .chart-card {
-        border-radius: 18px !important;
-        padding: 16px !important;
-    }
-
-    .dashboard-grid,
-    .premium-grid,
-    .quick-actions,
-    .form-grid {
-        grid-template-columns: 1fr !important;
-    }
-
-    .kpi,
-    .premium-kpi {
-        min-height: 120px !important;
-    }
-
-    .qualidade-chart-card {
-        min-height: 340px !important;
-    }
-
-    .qualidade-chart-card canvas {
-        height: 260px !important;
-    }
-
-    .table-container {
-        overflow-x: auto;
-    }
-
-    .relatorios-table {
-        min-width: 900px;
-    }
-
-    #q_resultado > div {
-        flex-direction: column !important;
-    }
-
-    #q_resultado img {
-        max-height: 420px !important;
-    }
-
-    .primary-btn,
-    .btn-ver-analise,
-    .btn-excluir-analise {
-        width: 100%;
-        margin-top: 8px;
-    }
-}
-/* ===== REFINAMENTO VISUAL - QUALIDADE ===== */
-
-#qualidade .card {
-    background:
-        radial-gradient(circle at top right, rgba(33,255,157,.08), transparent 30%),
-        rgba(15,23,42,.94);
-    border: 1px solid rgba(255,255,255,.08);
-    box-shadow: 0 18px 45px rgba(0,0,0,.32);
-}
-
-#qualidade h2 {
-    font-size: 30px;
-    letter-spacing: -.5px;
-}
-
-#qualidade h3 {
-    margin-top: 28px;
-    color: #e5e7eb;
-}
-
-#qualidade .form-grid input,
-#qualidade textarea {
-    border-radius: 16px !important;
-    border: 1px solid rgba(255,255,255,.10) !important;
-    background: rgba(2,6,23,.72) !important;
-    color: white !important;
-    transition: .25s ease !important;
-}
-
-#qualidade .form-grid input:focus,
-#qualidade textarea:focus {
-    border-color: #21ff9d !important;
-    box-shadow: 0 0 0 4px rgba(33,255,157,.10) !important;
-}
-
-#qualidade .premium-kpi {
-    transition: .25s ease;
-}
-
-#qualidade .premium-kpi:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 20px 42px rgba(0,0,0,.35);
-}
-
-#q_resultado {
-    margin-top: 24px;
-    border-radius: 24px;
-    background:
-        linear-gradient(135deg, rgba(124,58,237,.12), rgba(33,255,157,.06)),
-        rgba(2,6,23,.82);
-    border: 1px solid rgba(255,255,255,.10);
-}
-
-#q_resultado h3,
-#q_resultado h4 {
-    color: #ffffff;
-}
-
-#q_resultado p {
-    color: #cbd5e1;
-    line-height: 1.6;
-}
-
-#q_resultado strong {
-    color: #ffffff;
-}
-
-#q_resultado img {
-    transition: .25s ease;
-}
-
-#q_resultado img:hover {
-    transform: scale(1.02);
-}
-
-.status-line.blue span,
-.status-line.blue strong {
-    color: #38bdf8;
-}
-.btn-add-fritura {
-    margin-top: 10px;
-    padding: 12px 18px;
-    border: none;
-    border-radius: 14px;
-    background: linear-gradient(135deg, #7c3aed, #21ff9d);
-    color: #fff;
-    font-weight: 700;
-    cursor: pointer;
-    box-shadow: 0 0 18px rgba(124, 58, 237, .35);
-}
-
-.fritura-item {
-    margin-top: 12px;
-    padding: 12px 16px;
-    border-radius: 14px;
-    background: rgba(255,255,255,.06);
-    border: 1px solid rgba(255,255,255,.10);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    color: #fff;
-}
-
-.fritura-item button {
-    padding: 7px 12px;
-    border: none;
-    border-radius: 10px;
-    background: rgba(239, 68, 68, .18);
-    color: #ff8a8a;
-    font-weight: 700;
-    cursor: pointer;
-}
-
-.fritura-item button:hover {
-    background: rgba(239, 68, 68, .30);
-}
-.fritura-total {
-    margin-top: 14px;
-    padding: 12px 16px;
-    border-radius: 14px;
-    background: rgba(33, 255, 157, .08);
-    border: 1px solid rgba(33, 255, 157, .25);
-    color: #21ff9d;
-    font-weight: 700;
-}
-
-.fritura-c00,
-.fritura-c0 {
-    border-color: rgba(34, 197, 94, .35);
-}
-
-.fritura-c1 {
-    border-color: rgba(234, 179, 8, .35);
-}
-
-.fritura-c2 {
-    border-color: rgba(249, 115, 22, .35);
-}
-
-.fritura-c3 {
-    border-color: rgba(239, 68, 68, .35);
-}
-
-.fritura-c4 {
-    border-color: rgba(168, 85, 247, .35);
-}
-.status-bom {
-    background: rgba(34, 197, 94, .10);
-    border: 1px solid rgba(34, 197, 94, .35);
-    color: #4ade80;
-}
-
-.status-alerta {
-    background: rgba(234, 179, 8, .10);
-    border: 1px solid rgba(234, 179, 8, .35);
-    color: #facc15;
-}
-
-.status-ruim {
-    background: rgba(239, 68, 68, .10);
-    border: 1px solid rgba(239, 68, 68, .35);
-    color: #f87171;
-}
-.btn-origem {
-    height: 58px !important;
-    border: none !important;
-    border-radius: 18px !important;
-
-    background: linear-gradient(
-        135deg,
-        #7c3aed,
-        #21ff9d
-    ) !important;
-
-    color: white !important;
-    font-weight: 700 !important;
-    cursor: pointer !important;
-
-    box-shadow: 0 0 20px rgba(124,58,237,.25) !important;
-    transition: .25s !important;
-}
-
-.btn-origem:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 0 25px rgba(33,255,157,.35);
-}
-.btn-origem {
-    width: 170px !important;
-    height: 58px !important;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    white-space: nowrap;
-}
-.cadastro-rapido {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    max-width: 540px;
-}
-
-.cadastro-rapido input {
-    flex: 1;
-}
-
-.btn-origem {
-    width: 150px !important;
-}
-.perfil-usuario {
-    width: 100%;
-    text-align: center;
-    margin: 14px 0 22px;
-    padding: 0;
-    transition: .25s ease;
-}
-
-.foto-perfil {
-    width: 68px;
-    height: 68px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid #21ff9d;
-    box-shadow: 0 0 18px rgba(33,255,157,.25);
-    transition: .25s ease;
-}
-
-#nomePerfil {
-    margin: 8px 0 3px;
-    font-size: 14px;
-    color: #fff;
-    font-weight: 800;
-}
-
-#cargoPerfil {
-    display: block;
-    font-size: 11px;
-    color: #21ff9d;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-/* quando sidebar estiver fechada */
-.sidebar:not(:hover) .perfil-usuario {
-    margin: 10px 0 18px;
-}
-
-.sidebar:not(:hover) .foto-perfil {
-    width: 44px;
-    height: 44px;
-    border-radius: 14px;
-}
-
-.sidebar:not(:hover) #nomePerfil,
-.sidebar:not(:hover) #cargoPerfil {
-    display: none;
-}
-.perfil-mini{
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-}
-
-.perfil-mini strong{
-    display: block;
-    color: #fff;
-    font-size: 14px;
-    font-weight: 800;
-}
-
-.perfil-mini small{
-    display: block;
-    margin-top: 4px;
-    color: #21ff9d;
-    font-size: 10px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-}
-
-.sidebar:not(:hover) .perfil-mini{
-    display: none;
-}
-.status-online{
-    margin-top:8px;
-    color:#94a3b8;
-    font-size:12px;
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:6px;
-}
-
-.status-online span{
-    width:8px;
-    height:8px;
-    border-radius:50%;
-    background:#22c55e;
-
-    box-shadow:
-        0 0 10px #22c55e;
-}
-.btn-foto{
-    margin-top:10px;
-
-    width:140px;
-    height:36px;
-
-    border:none;
-    border-radius:12px;
-
-    background:linear-gradient(
-        135deg,
-        #7c3aed,
-        #21ff9d
-    );
-
-    background:linear-gradient(
-        135deg,
-        #7c3aed,
-        #21ff9d
-    );
-
-   color:white;
-    font-weight:700;
-    cursor:pointer;
-}
-</style>
+    <title>Furman Agronegócios</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
 <div class="layout">
@@ -931,34 +57,46 @@ textarea#q_defeito:focus {
     <nav>
 
     <button class="menu-btn ativo" onclick="mostrarAba('dashboard', this)">
-    <span class="menu-icon">📊</span>
+    <span class="menu-icon">
+        <i class="fas fa-chart-pie"></i>
+    </span>
     <span class="menu-text">Dashboard</span>
-</button>
+    </button>
 
-<button class="menu-btn" onclick="mostrarAba('cadastros', this)">
-    <span class="menu-icon">📁</span>
+    <button class="menu-btn" onclick="mostrarAba('cadastros', this)">
+    <span class="menu-icon">
+        <i class="fas fa-users-cog"></i>
+    </span>
     <span class="menu-text">Cadastros</span>
-</button>
+    </button>
 
-<button class="menu-btn" onclick="mostrarAba('expedicao', this)">
-    <span class="menu-icon">📦</span>
+    <button class="menu-btn" onclick="mostrarAba('expedicao', this)">
+    <span class="menu-icon">
+        <i class="fas fa-truck"></i>
+    </span>
     <span class="menu-text">Expedição</span>
-</button>
+    </button>
 
-<button class="menu-btn" onclick="mostrarAba('relatorios', this)">
-    <span class="menu-icon">📄</span>
+    <button class="menu-btn" onclick="mostrarAba('relatorios', this)">
+    <span class="menu-icon">
+        <i class="fas fa-file-alt"></i>
+    </span>
     <span class="menu-text">Relatórios</span>
-</button>
+    </button>
 
-<button class="menu-btn" onclick="mostrarAba('qualidade', this)">
-    <span class="menu-icon">🔬</span>
+    <button class="menu-btn" onclick="mostrarAba('qualidade', this)">
+    <span class="menu-icon">
+        <i class="fas fa-flask"></i>
+    </span>
     <span class="menu-text">Qualidade</span>
 </button>
 
 <button id="menu-usuarios" class="menu-btn" onclick="mostrarAba('usuarios', this)">
-    👤 Usuários
-    </button>
-
+    <span class="menu-icon">
+        <i class="fas fa-user"></i>
+    </span>
+    <span class="menu-text">Usuários</span>
+</button>
 
 <button class="menu-btn logout-btn" onclick="logout()">
     <span class="menu-icon">🚪</span>
@@ -1078,8 +216,6 @@ textarea#q_defeito:focus {
                 </div>
 </div>
 
-
-
                     <div class="kpi premium-kpi">
                         <span>🔴</span>
                         <div>
@@ -1154,106 +290,190 @@ textarea#q_defeito:focus {
             </div>
         </section>
 
-        <section id="cadastros" class="aba">
-            <div class="card">
-                <h2>📁 Cadastros</h2>
+      <section id="cadastros" class="aba">
+
+    <div class="card">
+
+        <h2>📁 Cadastros</h2>
+
+        <div class="cadastros-grid">
+
+            <!-- MOTORISTA -->
+
+            <div class="cadastro-card">
 
                 <h3>🚛 Cavalo / Motorista</h3>
-                <div class="form-grid">
-                    <input type="text" id="placaCadastro" placeholder="Placa do cavalo">
-                    <input type="text" id="motoristaCadastro" placeholder="Nome do motorista">
-                    <input type="file" id="fotoCadastro">
-                </div>
 
-                <button type="button" class="primary-btn" onclick="cadastrarMotorista(event)">
+                <input type="text"
+                    id="placaCadastro"
+                    placeholder="Placa do cavalo">
+
+                <input type="text"
+                    id="motoristaCadastro"
+                    placeholder="Nome do motorista">
+
+                <input
+                type="file"
+                id="fotoCadastro"
+                hidden
+>
+                <label for="fotoCadastro" class="upload-foto-btn">
+                📷 Selecionar Foto
+                </label>
+                <span id="nomeArquivoFoto">
+                Nenhuma foto selecionada
+                </span>
+                
+                <button
+                    type="button"
+                    class="primary-btn"
+                    onclick="cadastrarMotorista(event)">
+
                     Cadastrar Motorista
+
                 </button>
 
-                <br><br>
+            </div>
+
+            <!-- PRODUTOR -->
+
+            <div class="cadastro-card">
 
                 <h3>🌱 Produtor</h3>
-                <div class="form-grid">
-                    <input type="text" id="novoProdutor" placeholder="Nome do produtor">
-                </div>
 
-                <button type="button" class="primary-btn" onclick="cadastrarProdutor()">
+                <input type="text"
+                    id="novoProdutor"
+                    placeholder="Nome do produtor">
+
+                <button
+                    type="button"
+                    class="primary-btn"
+                    onclick="cadastrarProdutor()">
+
                     Cadastrar Produtor
+
                 </button>
 
-                <br><br>
+            </div>
+
+            <!-- CARRETA -->
+
+            <div class="cadastro-card">
 
                 <h3>🚛 Carreta</h3>
-                <div class="form-grid">
-                    <input type="text" id="novaCarreta" placeholder="Placa da carreta">
-                </div>
 
-                <button type="button" class="primary-btn" onclick="cadastrarCarreta()">
+                <input type="text"
+                    id="novaCarreta"
+                    placeholder="Placa da carreta">
+
+                <button
+                    type="button"
+                    class="primary-btn"
+                    onclick="cadastrarCarreta()">
+
                     Cadastrar Carreta
+
                 </button>
+
             </div>
-        </section>
+
+        </div>
+
+    </div>
+
+</section>
 
         <section id="expedicao" class="aba">
             <div class="card">
-                <h2>📦 Nova Expedição</h2>
-
+               <h2>
+                📦 Nova Expedição
+            <span class="subtitulo-expedicao">
+                Cadastro e envio de cargas para McCain
+            </span>
+                </h2>
                 <form id="formExpedicao" onsubmit="gerarRelatorio(event)">
                     <div class="form-grid">
 
-                        <select id="produtor">
-                            <option value="">Selecione o produtor</option>
-                        </select>
+    <!-- LINHA 1 -->
 
-                        <input type="text" id="placa_cavalo" placeholder="Placa do cavalo" oninput="buscarMotorista()">
-                        <input type="text" id="motorista" placeholder="Motorista" readonly>
+                <select id="produtor">
+                    <option value="">Selecione o produtor</option>
+                </select>
 
-                     <select id="origem">
+                <input
+                    type="text"
+                    id="placa_cavalo"
+                    placeholder="Placa do cavalo"
+                    oninput="buscarMotorista()"
+                >
+
+                <input
+                    type="text"
+                    id="motorista"
+                    placeholder="Motorista"
+                    readonly
+                >
+
+                <select id="origem">
                     <option value="">Origem</option>
-                    </select>
-                   <div class="cadastro-rapido">
-    
-                    <input id="novaOrigem" placeholder="Cadastrar nova origem">
+                </select>
 
-                    <button
-                        type="button"
-                        class="btn-origem"
-                        onclick="cadastrarOrigem()"
-                    >
-                        ➕ Adicionar
+            <!-- LINHA 2 -->
+
+                <div class="origem-box">
+
+                <input
+                    id="novaOrigem"
+                    placeholder="Cadastrar nova origem"
+                >
+
+                <button
+                    type="button"
+                    class="btn-origem"
+                    onclick="cadastrarOrigem()"
+>
+                        ➕ Adicionar Origem
                     </button>
-                </div>
 
-                        <select id="veiculo" onchange="definirPeso()">
-                            <option value="">Tipo de veículo</option>
-                            <option>4º Eixo</option>
-                            <option>Rodo Caçamba</option>
-                        </select>
+    </div>
 
-                        <select id="placa_carreta1">
-                            <option value="">Carreta 1</option>
-                        </select>
+    <select id="veiculo" onchange="definirPeso()">
+        <option value="">Tipo de veículo</option>
+        <option>4º Eixo</option>
+        <option>Rodo Caçamba</option>
+    </select>
 
-                        <select id="variedade1">
-                            <option value="">Variedade 1</option>
-                            <option>ROYAL</option>
-                            <option>MARKIES</option>
-                            <option>ASTERIX</option>
-                        </select>
+    <input
+        type="text"
+        id="peso"
+        placeholder="Peso em kg conforme NF"
+    >
 
-                        <select id="placa_carreta2" class="campo-extra">
-                            <option value="">Carreta 2</option>
-                        </select>
+    <!-- LINHA 3 -->
 
-                        <select id="variedade2" class="campo-extra">
-                            <option value="">Variedade 2</option>
-                            <option>ROYAL</option>
-                            <option>MARKIES</option>
-                            <option>ASTERIX</option>
-                        </select>
+    <select id="placa_carreta1">
+        <option value="">Carreta 1</option>
+    </select>
 
-                        <input type="text" id="peso" placeholder="Peso em kg conforme NF">
+    <select id="variedade1">
+        <option value="">Variedade 1</option>
+        <option>ROYAL</option>
+        <option>MARKIES</option>
+        <option>ASTERIX</option>
+    </select>
 
-                    </div>
+    <select id="placa_carreta2" class="campo-extra">
+        <option value="">Carreta 2</option>
+    </select>
+
+    <select id="variedade2" class="campo-extra">
+        <option value="">Variedade 2</option>
+        <option>ROYAL</option>
+        <option>MARKIES</option>
+        <option>ASTERIX</option>
+    </select>
+
+</div>
 
                     <div id="fotoBox" class="foto-box escondido">
                         <p>Foto do caminhão</p>
@@ -1266,8 +486,8 @@ textarea#q_defeito:focus {
                         <button type="button" class="primary-btn" onclick="abrirWhatsapp()">📲 Abrir WhatsApp</button>
                     </div>
 
-                    <div id="relatorioGerado" class="relatorio-card relatorio-vazio">
-                        Nenhum relatório gerado ainda.
+                   <div id="relatorioGerado" class="relatorio-card relatorio-vazio">
+                        📄 Gere uma expedição para visualizar o relatório
                     </div>
 
                 </form>
@@ -1275,7 +495,6 @@ textarea#q_defeito:focus {
         </section>
 
         <section id="relatorios" class="aba">
-
 
             <div class="card relatorios-card">
                 <h2>📄 Relatórios</h2>
@@ -1483,8 +702,6 @@ textarea#q_defeito:focus {
     style="display:none;">
 </textarea>
 
-<input type="hidden" id="q_pontos" value="0">
-
 <br><br>
 
 <input type="number" id="q_pontos" placeholder="Total de pontos">
@@ -1607,7 +824,6 @@ textarea#q_defeito:focus {
 </main>
 
 </div>
-
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
