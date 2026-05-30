@@ -10,23 +10,43 @@
 
 <body class="login-body">
 
-    <div class="login-card">
+    <main class="login-wrapper">
 
-        <img src="img/LOGO.jpeg" class="login-logo">
+        <section class="login-card">
 
-        <h2>Acesso ao Sistema</h2>
+            <div class="login-logo-box">
+                <img src="img/LOGO.jpeg" class="login-logo" alt="Furman Agronegócios">
+            </div>
 
-        <input type="text" id="usuario" placeholder="Usuário">
+            <div class="login-header">
+                <span>Painel Operacional</span>
+                <h2>Acesso ao Sistema</h2>
+                <p>Entre com seu usuário e senha para continuar.</p>
+            </div>
 
-        <input type="password" id="senha" placeholder="Senha">
+            <div class="login-form">
 
-        <button class="primary-btn" onclick="login()">
-            Entrar
-        </button>
+                <div class="login-field">
+                    <label>Usuário</label>
+                    <input type="text" id="usuario" placeholder="Digite seu usuário">
+                </div>
 
-        <p id="erroLogin"></p>
+                <div class="login-field">
+                    <label>Senha</label>
+                    <input type="password" id="senha" placeholder="Digite sua senha">
+                </div>
 
-    </div>
+                <button class="login-btn" onclick="login()">
+                    Entrar no sistema
+                </button>
+
+                <p id="erroLogin"></p>
+
+            </div>
+
+        </section>
+
+    </main>
 
     <script>
         async function login() {
@@ -34,7 +54,6 @@
             const senha = document.getElementById('senha').value;
 
             const resposta = await fetch('/login', {
-                
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -45,14 +64,15 @@
                 })
             });
 
-        const dados = await resposta.json();
-        if (dados.status === 'ok') {
-            localStorage.setItem(
-                'usuario',
-                JSON.stringify(dados.usuario)
+            const dados = await resposta.json();
+
+            if (dados.status === 'ok') {
+                localStorage.setItem(
+                    'usuario',
+                    JSON.stringify(dados.usuario)
                 );
 
-            window.location.href = '/';
+                window.location.href = '/';
             } else {
                 document.getElementById('erroLogin').innerText =
                     'Usuário ou senha incorretos';
