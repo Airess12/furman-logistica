@@ -92,6 +92,13 @@
     <span class="menu-text">Qualidade</span>
 </button>
 
+<button class="menu-btn" onclick="mostrarAba('auditoria', this)">
+    <span class="menu-icon">
+        <i class="fas fa-shield-halved"></i>
+    </span>
+    <span class="menu-text">Auditoria</span>
+</button>
+
 <button id="menu-usuarios" class="menu-btn" onclick="mostrarAba('usuarios', this)">
     <span class="menu-icon">
         <i class="fas fa-user"></i>
@@ -556,6 +563,31 @@
         
         
         </section>
+
+                    <section id="auditoria" class="aba">
+                    <h2>Auditoria do Sistema</h2>
+
+                    <div class="tabela-container">
+                    <table>
+                    <thead>
+                        <tr>
+                            <th>Data/Hora</th>
+                            <th>Usuário</th>
+                            <th>Ação</th>
+                            <th>Registro</th>
+                            <th>Campo</th>
+                            <th>Antes</th>
+                            <th>Depois</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-auditoria"></tbody>
+                    </table>
+                    </div>
+    </section>
+
+
+
+
         <section id="qualidade" class="aba">
     <div class="card">
 

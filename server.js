@@ -46,6 +46,53 @@ function protegerApi(req, res, next) {
     next();
 }
 
+async function auditarAlteracoes(req, tabela, id, antes, depois) {
+    for (const campo in depois) {
+        const valorAntigo = antes?.[campo] ?? '';
+        const valorNovo = depois?.[campo] ?? '';
+
+        if (String(valorAntigo) !== String(valorNovo)) {
+            await registrarAuditoria(req, {
+                acao: 'ALTERAÇÃO',
+                tabela,
+                registro_id: id,
+                campo,
+                valor_antigo: valorAntigo,
+                valor_novo: valorNovo
+            });
+        }
+    }
+}
+
+
+async function registrarAuditoria(req, dados) {
+    try {
+        const db = await conectar();
+
+        const usuario =
+            req.session?.usuario?.nome ||
+            req.session?.usuario?.usuario ||
+            'Sistema';
+
+        await db.run(`
+            INSERT INTO auditoria_alteracoes
+            (usuario, acao, tabela, registro_id, campo, valor_antigo, valor_novo)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        `, [
+            usuario,
+            dados.acao,
+            dados.tabela,
+            String(dados.registro_id || ''),
+            dados.campo || '',
+            dados.valor_antigo !== undefined ? String(dados.valor_antigo || '') : '',
+            dados.valor_novo !== undefined ? String(dados.valor_novo || '') : ''
+        ]);
+
+    } catch (erro) {
+        console.error('Erro ao registrar auditoria:', erro);
+    }
+}
+
 app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
@@ -381,24 +428,31 @@ app.post('/login', async (req, res) => {
         res.json({ status: 'ok' });
     });
 
-    app.put('/expedicoes/:id', protegerApi, async (req, res) => {
-        const db = await conectar();
+app.put('/expedicoes/:id', protegerApi, async (req, res) => {
+    const db = await conectar();
+    const id = req.params.id;
 
-        const {
-            produtor,
-            placa_cavalo,
-            motorista,
-            origem,
-            destino,
-            veiculo,
-            placa_carreta1,
-            variedade1,
-            placa_carreta2,
-            variedade2,
-            peso
-        } = req.body;
+    const antes = await db.get(`SELECT * FROM expedicoes WHERE id = ?`, [id]);
 
-        await db.run(`
+    if (!antes) {
+        return res.status(404).json({ status: 'erro', mensagem: 'Expedição não encontrada' });
+    }
+
+    const {
+        produtor,
+        placa_cavalo,
+        motorista,
+        origem,
+        destino,
+        veiculo,
+        placa_carreta1,
+        variedade1,
+        placa_carreta2,
+        variedade2,
+        peso
+    } = req.body;
+
+    await db.run(`
         UPDATE expedicoes
         SET
             produtor = ?,
@@ -414,22 +468,49 @@ app.post('/login', async (req, res) => {
             peso = ?
         WHERE id = ?
     `, [
-            produtor,
-            placa_cavalo,
-            motorista,
-            origem,
-            destino,
-            veiculo,
-            placa_carreta1,
-            variedade1,
-            placa_carreta2,
-            variedade2,
-            peso,
-            req.params.id
-        ]);
+        produtor,
+        placa_cavalo,
+        motorista,
+        origem,
+        destino,
+        veiculo,
+        placa_carreta1,
+        variedade1,
+        placa_carreta2,
+        variedade2,
+        peso,
+        id
+    ]);
 
-        res.json({ status: 'ok' });
-    });
+    const campos = {
+        produtor,
+        placa_cavalo,
+        motorista,
+        origem,
+        destino,
+        veiculo,
+        placa_carreta1,
+        variedade1,
+        placa_carreta2,
+        variedade2,
+        peso
+    };
+
+    for (const campo in campos) {
+        if (String(antes[campo] || '') !== String(campos[campo] || '')) {
+            await registrarAuditoria(req, {
+                acao: 'ALTERAÇÃO',
+                tabela: 'expedicoes',
+                registro_id: id,
+                campo,
+                valor_antigo: antes[campo],
+                valor_novo: campos[campo]
+            });
+        }
+    }
+
+    res.json({ status: 'ok' });
+});
 
     app.get('/expedicoes', protegerApi, async (req, res) => {
         const db = await conectar();
@@ -443,30 +524,43 @@ app.post('/login', async (req, res) => {
         res.json(expedicoes);
     });
 
-    app.put('/expedicoes/:id/qualidade-carretas', protegerApi, async (req, res) => {
-        const db = await conectar();
+app.put('/expedicoes/:id/qualidade-carretas', protegerApi, async (req, res) => {
+    const db = await conectar();
+    const id = req.params.id;
 
-        const {
-            status,
-            resultado_c1,
-            motivo_c1,
-            resultado_c2,
-            motivo_c2
-        } = req.body;
+    const antes = await db.get(`SELECT * FROM expedicoes WHERE id = ?`, [id]);
 
-        const resultadoGeral =
-            resultado_c1 === 'Reprovado' || resultado_c2 === 'Reprovado'
-                ? 'Reprovado'
-                : resultado_c1 === 'Aprovado' && (!resultado_c2 || resultado_c2 === 'Aprovado')
-                    ? 'Aprovado'
-                    : 'Pendente';
+    const {
+        status,
+        resultado_c1,
+        motivo_c1,
+        resultado_c2,
+        motivo_c2
+    } = req.body;
 
-        const motivoGeral = [
-            motivo_c1 ? `C1: ${motivo_c1}` : '',
-            motivo_c2 ? `C2: ${motivo_c2}` : ''
-        ].filter(Boolean).join(' | ');
+    const resultadoGeral =
+        resultado_c1 === 'Reprovado' || resultado_c2 === 'Reprovado'
+            ? 'Reprovado'
+            : resultado_c1 === 'Aprovado' && (!resultado_c2 || resultado_c2 === 'Aprovado')
+                ? 'Aprovado'
+                : 'Pendente';
 
-        await db.run(`
+    const motivoGeral = [
+        motivo_c1 ? `C1: ${motivo_c1}` : '',
+        motivo_c2 ? `C2: ${motivo_c2}` : ''
+    ].filter(Boolean).join(' | ');
+
+    const depois = {
+        status,
+        resultado_c1: resultado_c1 || 'Pendente',
+        motivo_c1: motivo_c1 || '',
+        resultado_c2: resultado_c2 || '',
+        motivo_c2: motivo_c2 || '',
+        resultado: resultadoGeral,
+        motivo_reprovacao: motivoGeral
+    };
+
+    await db.run(`
         UPDATE expedicoes
         SET
             status = ?,
@@ -478,25 +572,38 @@ app.post('/login', async (req, res) => {
             motivo_reprovacao = ?
         WHERE id = ?
     `, [
-            status,
-            resultado_c1 || 'Pendente',
-            motivo_c1 || '',
-            resultado_c2 || '',
-            motivo_c2 || '',
-            resultadoGeral,
-            motivoGeral,
-            req.params.id
-        ]);
+        depois.status,
+        depois.resultado_c1,
+        depois.motivo_c1,
+        depois.resultado_c2,
+        depois.motivo_c2,
+        depois.resultado,
+        depois.motivo_reprovacao,
+        id
+    ]);
 
-        res.json({ status: 'ok' });
-    });
+    if (antes) {
+        await auditarAlteracoes(req, 'expedicoes', id, antes, depois);
+    }
 
-    app.put('/expedicoes/:id/qualidade', protegerApi, async (req, res) => {
-        const db = await conectar();
+    res.json({ status: 'ok' });
+});
 
-        const { status, resultado, motivo_reprovacao } = req.body;
+app.put('/expedicoes/:id/qualidade', protegerApi, async (req, res) => {
+    const db = await conectar();
+    const id = req.params.id;
 
-        await db.run(`
+    const antes = await db.get(`SELECT * FROM expedicoes WHERE id = ?`, [id]);
+
+    const { status, resultado, motivo_reprovacao } = req.body;
+
+    const depois = {
+        status,
+        resultado,
+        motivo_reprovacao: motivo_reprovacao || ''
+    };
+
+    await db.run(`
         UPDATE expedicoes
         SET
             status = ?,
@@ -504,25 +611,51 @@ app.post('/login', async (req, res) => {
             motivo_reprovacao = ?
         WHERE id = ?
     `, [
-            status,
-            resultado,
-            motivo_reprovacao || '',
-            req.params.id
-        ]);
+        depois.status,
+        depois.resultado,
+        depois.motivo_reprovacao,
+        id
+    ]);
 
-        res.json({ status: 'ok' });
+    if (antes) {
+        await auditarAlteracoes(req, 'expedicoes', id, antes, depois);
+    }
+
+    res.json({ status: 'ok' });
+});
+
+app.delete('/expedicoes/:id', protegerApi, async (req, res) => {
+    const db = await conectar();
+    const id = req.params.id;
+
+    const antes = await db.get(
+        `SELECT * FROM expedicoes WHERE id = ?`,
+        [id]
+    );
+
+    if (!antes) {
+        return res.status(404).json({
+            status: 'erro',
+            mensagem: 'Expedição não encontrada'
+        });
+    }
+
+    await registrarAuditoria(req, {
+        acao: 'EXCLUSÃO',
+        tabela: 'expedicoes',
+        registro_id: id,
+        campo: 'registro',
+        valor_antigo: JSON.stringify(antes),
+        valor_novo: ''
     });
 
-    app.delete('/expedicoes/:id', protegerApi, async (req, res) => {
-        const db = await conectar();
-
-        await db.run(`
+    await db.run(`
         DELETE FROM expedicoes
         WHERE id = ?
-    `, [req.params.id]);
+    `, [id]);
 
-        res.json({ status: 'ok' });
-    });
+    res.json({ status: 'ok' });
+});
 
     app.get('/dashboard', protegerApi, async (req, res) => {
         const db = await conectar();
@@ -961,6 +1094,24 @@ app.post(
         });
     }
 );
+app.get('/auditoria', protegerApi, async (req, res) => {
+    try {
+        const db = await conectar();
+
+        const auditoria = await db.all(`
+            SELECT *
+            FROM auditoria_alteracoes
+            ORDER BY id DESC
+            LIMIT 300
+        `);
+
+        res.json(auditoria);
+
+    } catch (erro) {
+        console.error(erro);
+        res.status(500).json({ status: 'erro' });
+    }
+});
 
     app.listen(PORT, () => {
         console.log(`🚀 Rodando em http://localhost:${PORT}`);

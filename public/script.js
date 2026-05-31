@@ -69,7 +69,8 @@ function mostrarAba(id, elemento) {
 
     if (id === 'relatorios') carregarHistorico();
     if (id === 'dashboard') carregarDashboard();
-  if (id === 'qualidade') {
+    if (id === 'auditoria') carregarAuditoria();
+    if (id === 'qualidade') {
     carregarAnalisesQualidade();
     carregarDashboardQualidade();
     carregarGraficoSolidosQualidade();
@@ -2897,4 +2898,71 @@ if (fotoCadastro) {
 
         document.getElementById('nomeArquivoFoto').textContent = nome;
     });
+}
+async function carregarAuditoria() {
+    const corpo = document.getElementById('tabela-auditoria');
+
+    if (!corpo) {
+        console.error('Elemento tabela-auditoria não encontrado');
+        return;
+    }
+
+    corpo.innerHTML = `
+        <tr>
+            <td colspan="7">Carregando auditoria...</td>
+        </tr>
+    `;
+
+    try {
+        const resposta = await fetch('/auditoria');
+
+        if (!resposta.ok) {
+            throw new Error('Erro HTTP: ' + resposta.status);
+        }
+
+        const dados = await resposta.json();
+
+        if (!Array.isArray(dados)) {
+            console.error('Resposta não é uma lista:', dados);
+            throw new Error('Resposta inválida da auditoria');
+        }
+
+        corpo.innerHTML = '';
+
+        if (dados.length === 0) {
+            corpo.innerHTML = `
+                <tr>
+                    <td colspan="7">Nenhum registro de auditoria encontrado.</td>
+                </tr>
+            `;
+            return;
+        }
+
+        dados.forEach(item => {
+            const data = item.data_hora
+                ? new Date(item.data_hora).toLocaleString('pt-BR')
+                : '-';
+
+            corpo.innerHTML += `
+                <tr>
+                    <td>${data}</td>
+                    <td>${item.usuario || '-'}</td>
+                    <td>${item.acao || '-'}</td>
+                    <td>${item.registro_id || '-'}</td>
+                    <td>${item.campo || '-'}</td>
+                    <td>${item.valor_antigo || '-'}</td>
+                    <td>${item.valor_novo || '-'}</td>
+                </tr>
+            `;
+        });
+
+    } catch (erro) {
+        console.error('Erro auditoria:', erro);
+
+        corpo.innerHTML = `
+            <tr>
+                <td colspan="7">Erro ao carregar auditoria.</td>
+            </tr>
+        `;
+    }
 }

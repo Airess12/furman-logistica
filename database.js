@@ -262,6 +262,21 @@ ON CONFLICT (usuario) DO NOTHING
 `,
 ['luiz.master', senhaMaster, 'master', 'Luiz Aires', '/img/avatar.png']
 );
+
+await db.query(`
+    CREATE TABLE IF NOT EXISTS auditoria_alteracoes (
+        id BIGSERIAL PRIMARY KEY,
+        usuario TEXT,
+        acao TEXT NOT NULL,
+        tabela TEXT NOT NULL,
+        registro_id TEXT,
+        campo TEXT,
+        valor_antigo TEXT,
+        valor_novo TEXT,
+        data_hora TIMESTAMP DEFAULT NOW()
+    )
+`);
+
     console.log('✅ Banco PostgreSQL conectado');
 }
 

@@ -1277,3 +1277,52 @@
 
     margin: 4px 0 0;
 }
+#auditoria.ativa {
+    display: block !important;
+    padding: 28px;
+    color: #ffffff;
+    width: 100%;
+}
+
+#auditoria h2 {
+    color: #ffffff;
+    margin-bottom: 22px;
+}
+
+#auditoria .tabela-container {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    background: rgba(15, 23, 42, 0.95);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 18px;
+    padding: 16px;
+}
+
+#auditoria table {
+    width: 100%;
+    min-width: 1100px;
+    border-collapse: collapse;
+}
+
+#auditoria th,
+#auditoria td {
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    color: #e5e7eb;
+    text-align: left;
+    font-size: 14px;
+    vertical-align: top;
+}
+
+#auditoria th {
+    color: #21ff9d;
+}
+
+#auditoria td:nth-child(6),
+#auditoria td:nth-child(7) {
+    max-width: 280px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
