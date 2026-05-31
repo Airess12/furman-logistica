@@ -64,6 +64,14 @@
     <span class="menu-text">Dashboard</span>
     </button>
 
+    <button class="menu-btn" onclick="mostrarAba('indicadores', this)">
+        <span class="menu-icon">
+            <i class="fas fa-chart-line"></i>
+        </span>
+        <span class="menu-text">Indicadores</span>
+        </button>
+
+
     <button class="menu-btn" onclick="mostrarAba('cadastros', this)">
     <span class="menu-icon">
         <i class="fas fa-users-cog"></i>
@@ -299,6 +307,111 @@
 
             </div>
         </section>
+
+        <section id="indicadores" class="aba">
+    <div class="dashboard-premium">
+
+        <div class="dash-header">
+            <div>
+                <p class="dash-subtitle">Visão Gerencial</p>
+                <h1>Dashboard Executivo</h1>
+            </div>
+        </div>
+
+        <div class="dashboard-grid premium-grid">
+            <div class="kpi premium-kpi destaque">
+                <span>🚚</span>
+                <div>
+                    <p>Total de Expedições</p>
+                    <h2 id="exec-total-expedicoes">0</h2>
+                </div>
+            </div>
+
+            <div class="kpi premium-kpi">
+                <span>✅</span>
+                <div>
+                    <p>Aprovadas</p>
+                    <h2 id="exec-aprovadas">0</h2>
+                </div>
+            </div>
+
+            <div class="kpi premium-kpi">
+                <span>❌</span>
+                <div>
+                    <p>Reprovadas</p>
+                    <h2 id="exec-reprovadas">0</h2>
+                </div>
+            </div>
+
+            <div class="kpi premium-kpi">
+            <span>🧼</span>
+            <div>
+            <p>Lavagens</p>
+            <h2 id="exec-lavagens">0</h2>
+        </div>
+    </div>
+
+            <div class="kpi premium-kpi">
+                <span>📊</span>
+                <div>
+                    <p>Taxa Aprovação</p>
+                    <h2 id="exec-taxa-aprovacao">0%</h2>
+                </div>
+            </div>
+
+             <div class="kpi premium-kpi">
+                <span>🏁</span>
+                <div>
+                <p>Finalizadas</p>
+                    <h2 id="exec-finalizadas">0</h2>
+                    </div>
+                </div>
+                <div class="kpi premium-kpi">
+    <span>📅</span>
+    <div>
+        <p>Expedições Hoje</p>
+        <h2 id="exec-expedicoes-hoje">0</h2>
+    </div>
+</div>
+
+<div class="kpi premium-kpi">
+    <span>📆</span>
+    <div>
+        <p>Expedições no Mês</p>
+        <h2 id="exec-expedicoes-mes">0</h2>
+    </div>
+</div>
+        </div>
+
+        <div class="dash-bottom">
+            <div class="chart-card">
+                <div class="card-title">
+                    <h3>🚛 Status das Expedições</h3>
+                    <span>Resumo executivo</span>
+                </div>
+                <canvas id="graficoExecStatus"></canvas>
+            </div>
+
+            <div class="chart-card">
+                <div class="card-title">
+                    <h3>🥔 Variedades</h3>
+                    <span>Distribuição por variedade</span>
+                </div>
+                <canvas id="graficoExecVariedades"></canvas>
+                </div>
+                </div>
+                <div class="chart-card">
+            
+            <div class="card-title">
+        <h3>🏆 Top Produtores</h3>
+        <span>Maior volume de expedições</span>
+    </div>
+
+    <div id="rankingProdutoresExecutivo"></div>
+</div>
+
+    </div>
+</section>
 
       <section id="cadastros" class="aba">
 
@@ -566,6 +679,23 @@
 
                     <section id="auditoria" class="aba">
                     <h2>Auditoria do Sistema</h2>
+                    <div class="filtros-relatorios">
+                 <input type="text" id="filtroAuditoriaBusca" placeholder="Buscar usuário, campo, valor...">
+
+            <select id="filtroAuditoriaAcao">
+                <option value="">Todas as ações</option>
+                <option value="ALTERAÇÃO">ALTERAÇÃO</option>
+                <option value="EXCLUSÃO">EXCLUSÃO</option>
+                </select>
+
+                <button type="button" class="primary-btn" onclick="limparFiltrosAuditoria()">
+                Limpar Filtros
+                </button>
+                
+                <button type="button" class="primary-btn" onclick="exportarAuditoriaExcel()">
+                 Exportar Excel
+                </button>
+            </div>
 
                     <div class="tabela-container">
                     <table>

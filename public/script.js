@@ -69,6 +69,7 @@ function mostrarAba(id, elemento) {
 
     if (id === 'relatorios') carregarHistorico();
     if (id === 'dashboard') carregarDashboard();
+    if (id === 'indicadores') carregarIndicadoresExecutivos();
     if (id === 'auditoria') carregarAuditoria();
     if (id === 'qualidade') {
     carregarAnalisesQualidade();
@@ -605,7 +606,6 @@ async function carregarHistorico() {
                         <strong>C2</strong>
 
                        <select
-                            <select
                         class="resultado-select"
                         data-resultado="${e.resultado_c2 || 'Pendente'}"
                         id="resultado-c2-${e.id}"
@@ -2899,13 +2899,11 @@ if (fotoCadastro) {
         document.getElementById('nomeArquivoFoto').textContent = nome;
     });
 }
+let auditoriaDados = [];
+
 async function carregarAuditoria() {
     const corpo = document.getElementById('tabela-auditoria');
-
-    if (!corpo) {
-        console.error('Elemento tabela-auditoria não encontrado');
-        return;
-    }
+    if (!corpo) return;
 
     corpo.innerHTML = `
         <tr>
@@ -2915,54 +2913,423 @@ async function carregarAuditoria() {
 
     try {
         const resposta = await fetch('/auditoria');
-
-        if (!resposta.ok) {
-            throw new Error('Erro HTTP: ' + resposta.status);
-        }
-
         const dados = await resposta.json();
 
-        if (!Array.isArray(dados)) {
-            console.error('Resposta não é uma lista:', dados);
-            throw new Error('Resposta inválida da auditoria');
-        }
+        auditoriaDados = Array.isArray(dados) ? dados : [];
 
-        corpo.innerHTML = '';
-
-        if (dados.length === 0) {
-            corpo.innerHTML = `
-                <tr>
-                    <td colspan="7">Nenhum registro de auditoria encontrado.</td>
-                </tr>
-            `;
-            return;
-        }
-
-        dados.forEach(item => {
-            const data = item.data_hora
-                ? new Date(item.data_hora).toLocaleString('pt-BR')
-                : '-';
-
-            corpo.innerHTML += `
-                <tr>
-                    <td>${data}</td>
-                    <td>${item.usuario || '-'}</td>
-                    <td>${item.acao || '-'}</td>
-                    <td>${item.registro_id || '-'}</td>
-                    <td>${item.campo || '-'}</td>
-                    <td>${item.valor_antigo || '-'}</td>
-                    <td>${item.valor_novo || '-'}</td>
-                </tr>
-            `;
-        });
+        renderizarAuditoria();
 
     } catch (erro) {
         console.error('Erro auditoria:', erro);
-
         corpo.innerHTML = `
             <tr>
                 <td colspan="7">Erro ao carregar auditoria.</td>
             </tr>
         `;
     }
+}
+
+function renderizarAuditoria() {
+    const corpo = document.getElementById('tabela-auditoria');
+    if (!corpo) return;
+
+    const busca = document.getElementById('filtroAuditoriaBusca')?.value.toLowerCase() || '';
+    const acao = document.getElementById('filtroAuditoriaAcao')?.value || '';
+
+    let dadosFiltrados = auditoriaDados.filter(item => {
+        const texto = `
+            ${item.usuario || ''}
+            ${item.acao || ''}
+            ${item.tabela || ''}
+            ${item.registro_id || ''}
+            ${item.campo || ''}
+            ${item.valor_antigo || ''}
+            ${item.valor_novo || ''}
+        `.toLowerCase();
+
+        const passaBusca = texto.includes(busca);
+        const passaAcao = !acao || item.acao === acao;
+
+        return passaBusca && passaAcao;
+    });
+
+    corpo.innerHTML = '';
+
+    if (dadosFiltrados.length === 0) {
+        corpo.innerHTML = `
+            <tr>
+                <td colspan="7">Nenhum registro encontrado.</td>
+            </tr>
+        `;
+        return;
+    }
+
+    dadosFiltrados.forEach(item => {
+        const data = item.data_hora
+            ? new Date(item.data_hora).toLocaleString('pt-BR')
+            : '-';
+
+        corpo.innerHTML += `
+            <tr>
+                <td>${data}</td>
+                <td>${item.usuario || '-'}</td>
+                <td>${item.acao || '-'}</td>
+                <td>${item.registro_id || '-'}</td>
+                <td>${item.campo || '-'}</td>
+                <td>${item.valor_antigo || '-'}</td>
+                <td>${item.valor_novo || '-'}</td>
+            </tr>
+        `;
+    });
+}
+
+function limparFiltrosAuditoria() {
+    const busca = document.getElementById('filtroAuditoriaBusca');
+    const acao = document.getElementById('filtroAuditoriaAcao');
+
+    if (busca) busca.value = '';
+    if (acao) acao.value = '';
+
+    renderizarAuditoria();
+}
+
+document.addEventListener('input', e => {
+    if (e.target.id === 'filtroAuditoriaBusca') {
+        renderizarAuditoria();
+    }
+});
+
+document.addEventListener('change', e => {
+    if (e.target.id === 'filtroAuditoriaAcao') {
+        renderizarAuditoria();
+    }
+});
+
+function exportarAuditoriaExcel() {
+    if (!auditoriaDados || auditoriaDados.length === 0) {
+        alert('Nenhum dado de auditoria para exportar.');
+        return;
+    }
+
+    const busca = document.getElementById('filtroAuditoriaBusca')?.value.toLowerCase() || '';
+    const acao = document.getElementById('filtroAuditoriaAcao')?.value || '';
+
+    const dadosFiltrados = auditoriaDados.filter(item => {
+        const texto = `
+            ${item.usuario || ''}
+            ${item.acao || ''}
+            ${item.tabela || ''}
+            ${item.registro_id || ''}
+            ${item.campo || ''}
+            ${item.valor_antigo || ''}
+            ${item.valor_novo || ''}
+        `.toLowerCase();
+
+        return texto.includes(busca) && (!acao || item.acao === acao);
+    });
+
+    let tabela = `
+        <table border="1">
+            <tr>
+                <th>Data/Hora</th>
+                <th>Usuário</th>
+                <th>Ação</th>
+                <th>Tabela</th>
+                <th>Registro</th>
+                <th>Campo</th>
+                <th>Valor Antigo</th>
+                <th>Valor Novo</th>
+            </tr>
+    `;
+
+    dadosFiltrados.forEach(item => {
+        const data = item.data_hora
+            ? new Date(item.data_hora).toLocaleString('pt-BR')
+            : '';
+
+        tabela += `
+            <tr>
+                <td>${data}</td>
+                <td>${item.usuario || ''}</td>
+                <td>${item.acao || ''}</td>
+                <td>${item.tabela || ''}</td>
+                <td>${item.registro_id || ''}</td>
+                <td>${item.campo || ''}</td>
+                <td>${String(item.valor_antigo || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>
+                <td>${String(item.valor_novo || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>
+            </tr>
+        `;
+    });
+
+    tabela += `</table>`;
+
+    const blob = new Blob([`
+        <html>
+            <head>
+                <meta charset="UTF-8">
+            </head>
+            <body>
+                ${tabela}
+            </body>
+        </html>
+    `], {
+        type: 'application/vnd.ms-excel;charset=utf-8;'
+    });
+
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+
+    const dataArquivo = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
+
+    link.href = url;
+    link.download = `auditoria-furman-${dataArquivo}.xls`;
+    link.click();
+
+    URL.revokeObjectURL(url);
+}
+
+
+let graficoExecStatus;
+let graficoExecVariedades;
+
+async function carregarIndicadoresExecutivos() {
+    try {
+        const resposta = await fetch('/expedicoes');
+        const expedicoes = await resposta.json();
+
+        const total = expedicoes.length;
+
+        const aprovadas = expedicoes.filter(e =>
+            e.resultado === 'Aprovado'
+        ).length;
+
+        const reprovadas = expedicoes.filter(e =>
+            e.resultado === 'Reprovado'
+        ).length;
+
+        const lavagens = expedicoes.filter(e =>
+            e.status === 'Lavando' ||
+            e.status === 'Reapresentado' ||
+            e.resultado_c1 === 'Lavagem' ||
+            e.resultado_c2 === 'Lavagem' ||
+            e.motivo_c1?.toLowerCase().includes('lavagem') ||
+            e.motivo_c2?.toLowerCase().includes('lavagem')
+        ).length;
+
+        const finalizadas = expedicoes.filter(e =>
+            e.status === 'Finalizado'
+        ).length;
+
+        const taxaAprovacao = total > 0
+            ? ((aprovadas / total) * 100).toFixed(1)
+            : 0;
+
+            const hoje = new Date();
+const diaHoje = hoje.toLocaleDateString('pt-BR');
+
+const mesAtual = hoje.getMonth();
+const anoAtual = hoje.getFullYear();
+
+const expedicoesHoje = expedicoes.filter(e => {
+    if (!e.saida) return false;
+
+    const dataSaida = e.saida.split(',')[0]?.trim();
+
+    return dataSaida === diaHoje;
+}).length;
+
+const expedicoesMes = expedicoes.filter(e => {
+    if (!e.saida) return false;
+
+    const dataSaida = e.saida.split(',')[0]?.trim();
+
+    const partes = dataSaida.split('/');
+
+    if (partes.length !== 3) return false;
+
+    const data = new Date(
+        Number(partes[2]),
+        Number(partes[1]) - 1,
+        Number(partes[0])
+    );
+
+    return (
+        data.getMonth() === mesAtual &&
+        data.getFullYear() === anoAtual
+    );
+}).length;
+
+        document.getElementById('exec-total-expedicoes').textContent = total;
+        document.getElementById('exec-aprovadas').textContent = aprovadas;
+        document.getElementById('exec-reprovadas').textContent = reprovadas;
+        document.getElementById('exec-lavagens').textContent = lavagens;
+        document.getElementById('exec-taxa-aprovacao').textContent = taxaAprovacao + '%';
+        document.getElementById('exec-finalizadas').textContent = finalizadas;
+        document.getElementById('exec-expedicoes-hoje').textContent = expedicoesHoje;
+        document.getElementById('exec-expedicoes-mes').textContent = expedicoesMes;
+
+        const statusContagem = {};
+
+        expedicoes.forEach(e => {
+            const status = e.status || 'Sem status';
+            statusContagem[status] = (statusContagem[status] || 0) + 1;
+        });
+
+        if (graficoExecStatus) graficoExecStatus.destroy();
+
+        graficoExecStatus = new Chart(
+            document.getElementById('graficoExecStatus'),
+            {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(statusContagem),
+                    datasets: [{
+                        label: 'Expedições',
+                        data: Object.values(statusContagem)
+                    }]
+                }
+            }
+        );
+
+        const variedades = {};
+
+        expedicoes.forEach(e => {
+            if (e.variedade1) {
+                variedades[e.variedade1] = (variedades[e.variedade1] || 0) + 1;
+            }
+
+            if (e.variedade2) {
+                variedades[e.variedade2] = (variedades[e.variedade2] || 0) + 1;
+            }
+        });
+
+        if (graficoExecVariedades) graficoExecVariedades.destroy();
+
+        graficoExecVariedades = new Chart(
+            document.getElementById('graficoExecVariedades'),
+            {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(variedades),
+                    datasets: [{
+                        data: Object.values(variedades)
+                    }]
+                }
+            }
+        );
+
+        const rankingProdutores = {};
+
+        expedicoes.forEach(e => {
+            const produtor = e.produtor || 'Não informado';
+            rankingProdutores[produtor] = (rankingProdutores[produtor] || 0) + 1;
+        });
+
+        const rankingOrdenado = Object.entries(rankingProdutores)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5);
+
+        const rankingBox = document.getElementById('rankingProdutoresExecutivo');
+
+        if (rankingBox) {
+            rankingBox.innerHTML = '';
+
+            rankingOrdenado.forEach(([produtor, total], index) => {
+                rankingBox.innerHTML += `
+                    <div class="ranking-item">
+                        <strong>${index + 1}º ${produtor}</strong>
+                        <span>${total} expedições</span>
+                    </div>
+                `;
+            });
+        }
+
+    } catch (erro) {
+        console.error('Erro dashboard executivo:', erro);
+    }
+}
+
+function editarLinhaExpedicao(id) {
+    alert('Função de edição ainda não foi encontrada no script. ID: ' + id);
+}
+
+function editarLinhaExpedicao(id) {
+    const linha = document.getElementById(`linha-${id}`);
+
+    if (!linha) {
+        alert('Linha não encontrada.');
+        return;
+    }
+
+    const colunas = linha.querySelectorAll('td');
+
+    const dados = {
+        produtor: colunas[0].innerText.trim(),
+        motorista: colunas[1].innerText.trim(),
+        placa_cavalo: colunas[2].innerText.trim(),
+        origem: colunas[3].innerText.trim(),
+        destino: colunas[4].innerText.trim(),
+        veiculo: colunas[5].innerText.trim(),
+        placa_carreta1: colunas[6].innerText.trim(),
+        variedade1: colunas[7].innerText.trim(),
+        placa_carreta2: colunas[8].innerText.trim(),
+        variedade2: colunas[9].innerText.trim(),
+        peso: colunas[10].innerText.trim()
+    };
+
+    colunas[0].innerHTML = `<input id="edit-produtor-${id}" value="${dados.produtor}">`;
+    colunas[1].innerHTML = `<input id="edit-motorista-${id}" value="${dados.motorista}">`;
+    colunas[2].innerHTML = `<input id="edit-placa-cavalo-${id}" value="${dados.placa_cavalo}">`;
+    colunas[3].innerHTML = `<input id="edit-origem-${id}" value="${dados.origem}">`;
+    colunas[4].innerHTML = `<input id="edit-destino-${id}" value="${dados.destino}">`;
+    colunas[5].innerHTML = `<input id="edit-veiculo-${id}" value="${dados.veiculo}">`;
+    colunas[6].innerHTML = `<input id="edit-placa-carreta1-${id}" value="${dados.placa_carreta1}">`;
+    colunas[7].innerHTML = `<input id="edit-variedade1-${id}" value="${dados.variedade1}">`;
+    colunas[8].innerHTML = `<input id="edit-placa-carreta2-${id}" value="${dados.placa_carreta2}">`;
+    colunas[9].innerHTML = `<input id="edit-variedade2-${id}" value="${dados.variedade2}">`;
+    colunas[10].innerHTML = `<input id="edit-peso-${id}" value="${dados.peso}">`;
+
+    colunas[15].innerHTML = `
+        <div class="acoes-botoes">
+            <button type="button" class="btn-editar" onclick="salvarEdicaoExpedicao(${id})">
+                💾 Salvar
+            </button>
+
+            <button type="button" class="btn-excluir" onclick="carregarHistorico()">
+                ❌ Cancelar
+            </button>
+        </div>
+    `;
+}
+
+async function salvarEdicaoExpedicao(id) {
+    const dados = {
+        produtor: document.getElementById(`edit-produtor-${id}`).value,
+        motorista: document.getElementById(`edit-motorista-${id}`).value,
+        placa_cavalo: document.getElementById(`edit-placa-cavalo-${id}`).value,
+        origem: document.getElementById(`edit-origem-${id}`).value,
+        destino: document.getElementById(`edit-destino-${id}`).value,
+        veiculo: document.getElementById(`edit-veiculo-${id}`).value,
+        placa_carreta1: document.getElementById(`edit-placa-carreta1-${id}`).value,
+        variedade1: document.getElementById(`edit-variedade1-${id}`).value,
+        placa_carreta2: document.getElementById(`edit-placa-carreta2-${id}`).value,
+        variedade2: document.getElementById(`edit-variedade2-${id}`).value,
+        peso: document.getElementById(`edit-peso-${id}`).value
+    };
+
+    const resposta = await fetch(`/expedicoes/${id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(dados)
+    });
+
+    if (!resposta.ok) {
+        alert('Erro ao salvar edição.');
+        return;
+    }
+
+    await carregarHistorico();
+    alert('Expedição atualizada com sucesso!');
 }
