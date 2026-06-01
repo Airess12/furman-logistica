@@ -1113,6 +1113,45 @@ app.get('/auditoria', protegerApi, async (req, res) => {
     }
 });
 
+app.get('/exportar-analises-csv', async (req, res) => {
+    try {
+        const db = await conectar();
+
+        const dados = await db.all(`
+            SELECT *
+            FROM analises_qualidade
+            ORDER BY id DESC
+        `);
+
+        if (!dados.length) {
+            return res.status(404).send('Nenhuma análise encontrada.');
+        }
+
+        const colunas = Object.keys(dados[0]);
+        let csv = colunas.join(',') + '\n';
+
+        dados.forEach(linha => {
+            csv += colunas.map(coluna =>
+                `"${String(linha[coluna] ?? '').replace(/"/g, '""')}"`
+            ).join(',') + '\n';
+        });
+
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader(
+            'Content-Disposition',
+            'attachment; filename=analises_qualidade.csv'
+        );
+
+        res.send(csv);
+
+    } catch (erro) {
+        console.error('Erro ao exportar CSV:', erro);
+        res.status(500).send('Erro ao exportar CSV');
+    }
+});
+
+
+
     app.listen(PORT, () => {
         console.log(`🚀 Rodando em http://localhost:${PORT}`);
     });
