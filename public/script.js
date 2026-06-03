@@ -4,6 +4,16 @@ const usuarioLogado = JSON.parse(
     '{}'
 );
 
+function sanitizar(texto) {
+    if (texto === null || texto === undefined) return '';
+    return String(texto)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 const nomesCargos = {
     master: 'Administrador Master',
     admin: 'Administrador',
@@ -504,18 +514,18 @@ async function carregarHistorico() {
 
             <tr id="linha-${e.id}">
 
-                <td>${e.produtor || ''}</td>
-                <td>${e.motorista || ''}</td>
-                <td>${e.placa_cavalo || ''}</td>
-                <td>${e.origem || ''}</td>
-                <td>${e.destino || ''}</td>
-                <td>${e.veiculo || ''}</td>
-                <td>${e.placa_carreta1 || ''}</td>
-                <td>${e.variedade1 || ''}</td>
-                <td>${e.placa_carreta2 || ''}</td>
-                <td>${e.variedade2 || ''}</td>
-                <td>${e.peso || ''}</td>
-                <td>${e.saida || ''}</td>
+                <td>${sanitizar(e.produtor)}</td>
+                <td>${sanitizar(e.motorista)}</td>
+                <td>${sanitizar(e.placa_cavalo)}</td>
+                <td>${sanitizar(e.origem)}</td>
+                <td>${sanitizar(e.destino)}</td>
+                <td>${sanitizar(e.veiculo)}</td>
+                <td>${sanitizar(e.placa_carreta1)}</td>
+                <td>${sanitizar(e.variedade1)}</td>
+                <td>${sanitizar(e.placa_carreta2)}</td>
+                <td>${sanitizar(e.variedade2)}</td>
+                <td>${sanitizar(e.peso)}</td>
+                <td>${sanitizar(e.saida)}</td>
 
                 <td>
 
@@ -1493,19 +1503,14 @@ formData.append(
     tabela.innerHTML += `
         <tr>
 
-            <td>${item.placa || '-'}</td>
+                <td>${sanitizar(item.placa) || '-'}</td>
+                <td>${sanitizar(item.variedade) || '-'}</td>
+                <td>${sanitizar(item.solidos) || '-'}</td>
+                <td>${sanitizar(item.peso_agua) || '-'}</td>
+                <td>${sanitizar(item.peso_total) || '-'}</td>
+                <td>${new Date(item.criado_em).toLocaleString('pt-BR')}</td>
 
-            <td>${item.variedade || '-'}</td>
-
-            <td>${item.solidos || '-'}</td>
-
-            <td>${item.peso_agua || '-'}</td>
-
-            <td>${item.peso_total || '-'}</td>
-
-            <td>${new Date(item.criado_em).toLocaleString('pt-BR')}</td>
-
-           <td>
+                <td>
                 <div class="acoes-botoes">
 
             <button
@@ -2458,8 +2463,8 @@ async function carregarUsuarios() {
                     gap: 12px;
                 ">
                     <div>
-                        <strong>${usuario.usuario}</strong><br>
-                        <span>Tipo: ${usuario.tipo}</span>
+                        <strong>${sanitizar(usuario.usuario)}</strong><br>
+                        <span>Tipo: ${sanitizar(usuario.tipo)}</span>
                     </div>
 
                     <div style="display:flex; gap:8px;">
@@ -3250,10 +3255,6 @@ const expedicoesMes = expedicoes.filter(e => {
 }
 
 function editarLinhaExpedicao(id) {
-    alert('Função de edição ainda não foi encontrada no script. ID: ' + id);
-}
-
-function editarLinhaExpedicao(id) {
     const linha = document.getElementById(`linha-${id}`);
 
     if (!linha) {
@@ -3277,17 +3278,17 @@ function editarLinhaExpedicao(id) {
         peso: colunas[10].innerText.trim()
     };
 
-    colunas[0].innerHTML = `<input id="edit-produtor-${id}" value="${dados.produtor}">`;
-    colunas[1].innerHTML = `<input id="edit-motorista-${id}" value="${dados.motorista}">`;
-    colunas[2].innerHTML = `<input id="edit-placa-cavalo-${id}" value="${dados.placa_cavalo}">`;
-    colunas[3].innerHTML = `<input id="edit-origem-${id}" value="${dados.origem}">`;
-    colunas[4].innerHTML = `<input id="edit-destino-${id}" value="${dados.destino}">`;
-    colunas[5].innerHTML = `<input id="edit-veiculo-${id}" value="${dados.veiculo}">`;
-    colunas[6].innerHTML = `<input id="edit-placa-carreta1-${id}" value="${dados.placa_carreta1}">`;
-    colunas[7].innerHTML = `<input id="edit-variedade1-${id}" value="${dados.variedade1}">`;
-    colunas[8].innerHTML = `<input id="edit-placa-carreta2-${id}" value="${dados.placa_carreta2}">`;
-    colunas[9].innerHTML = `<input id="edit-variedade2-${id}" value="${dados.variedade2}">`;
-    colunas[10].innerHTML = `<input id="edit-peso-${id}" value="${dados.peso}">`;
+    colunas[0].innerHTML = `<input id="edit-produtor-${id}" value="${sanitizar(dados.produtor)}">`;
+    colunas[1].innerHTML = `<input id="edit-motorista-${id}" value="${sanitizar(dados.motorista)}">`;
+    colunas[2].innerHTML = `<input id="edit-placa-cavalo-${id}" value="${sanitizar(dados.placa_cavalo)}">`;
+    colunas[3].innerHTML = `<input id="edit-origem-${id}" value="${sanitizar(dados.origem)}">`;
+    colunas[4].innerHTML = `<input id="edit-destino-${id}" value="${sanitizar(dados.destino)}">`;
+    colunas[5].innerHTML = `<input id="edit-veiculo-${id}" value="${sanitizar(dados.veiculo)}">`;
+    colunas[6].innerHTML = `<input id="edit-placa-carreta1-${id}" value="${sanitizar(dados.placa_carreta1)}">`;
+    colunas[7].innerHTML = `<input id="edit-variedade1-${id}" value="${sanitizar(dados.variedade1)}">`;
+    colunas[8].innerHTML = `<input id="edit-placa-carreta2-${id}" value="${sanitizar(dados.placa_carreta2)}">`;
+    colunas[9].innerHTML = `<input id="edit-variedade2-${id}" value="${sanitizar(dados.variedade2)}">`;
+    colunas[10].innerHTML = `<input id="edit-peso-${id}" value="${sanitizar(dados.peso)}">`;
 
     colunas[15].innerHTML = `
         <div class="acoes-botoes">
