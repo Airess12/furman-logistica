@@ -60,6 +60,34 @@ function somenteMaster(req, res, next) {
     next();
 }
 
+function somenteQualidade(req, res, next) {
+    const tipo = req.session.usuario?.tipo;
+    const permitidos = ['master', 'gerente', 'qualidade', 'laboratorio'];
+
+    if (!permitidos.includes(tipo)) {
+        return res.status(403).json({
+            status: 'erro',
+            mensagem: 'Acesso não permitido'
+        });
+    }
+
+    next();
+}
+
+function somenteExpedicao(req, res, next) {
+    const tipo = req.session.usuario?.tipo;
+    const permitidos = ['master', 'gerente', 'admin', 'expedicao'];
+
+    if (!permitidos.includes(tipo)) {
+        return res.status(403).json({
+            status: 'erro',
+            mensagem: 'Acesso não permitido'
+        });
+    }
+
+    next();
+}
+
 async function auditarAlteracoes(req, tabela, id, antes, depois) {
     for (const campo in depois) {
         const valorAntigo = antes?.[campo] ?? '';
@@ -318,7 +346,7 @@ app.get('/carretas', protegerApi, async (req, res) => {
     res.json(carretas);
 });
 
-app.post('/expedicoes', protegerApi, async (req, res) => {
+app.post('/expedicoes', protegerApi, somenteExpedicao, async (req, res) => {
     const db = await conectar();
 
     const {
@@ -384,7 +412,8 @@ app.post('/expedicoes', protegerApi, async (req, res) => {
     res.json({ status: 'ok' });
 });
 
-app.put('/expedicoes/:id', protegerApi, async (req, res) => {
+app.put('/expedicoes/:id', protegerApi, somenteExpedicao, async (req, res) => {
+
     const db = await conectar();
     const id = req.params.id;
 
@@ -580,7 +609,8 @@ app.put('/expedicoes/:id/qualidade', protegerApi, async (req, res) => {
     res.json({ status: 'ok' });
 });
 
-app.delete('/expedicoes/:id', protegerApi, async (req, res) => {
+app.delete('/expedicoes/:id', protegerApi, somenteExpedicao, async (req, res) => {
+
     const db = await conectar();
     const id = req.params.id;
 
@@ -692,7 +722,7 @@ app.get('/dashboard', protegerApi, async (req, res) => {
     });
 });
 
-app.post('/analises-qualidade', protegerApi, upload.single('foto_analise'), async (req, res) => {
+app.post('/analises-qualidade', protegerApi, somenteQualidade, upload.single('foto_analise'), async (req, res) => {
     const db = await conectar();
 
     const foto_analise = req.file ? '/uploads/' + req.file.filename : '';
@@ -749,10 +779,7 @@ app.get('/analises-qualidade', protegerApi, async (req, res) => {
     res.json(analises);
 });
 
-app.delete('/analises-qualidade/:id', protegerApi, async (req, res) => {
-    const db = await conectar();
-
-    // ✅ Auditoria no DELETE de análise
+app.delete('/analises-qualidade/:id', protegerApi, somenteQualidade, async (req, res) => {    const db = await conectar();
     const antes = await db.get(
         `SELECT * FROM analises_qualidade WHERE id = ?`,
         [req.params.id]
@@ -778,7 +805,7 @@ app.delete('/analises-qualidade/:id', protegerApi, async (req, res) => {
 });
 
 // ✅ OPÇÃO C: Auditoria no PUT de análises de qualidade
-app.put('/analises-qualidade/:id', protegerApi, upload.single('foto_analise'), async (req, res) => {
+app.put('/analises-qualidade/:id', protegerApi, somenteQualidade, upload.single('foto_analise'), async (req, res) => {
     const db = await conectar();
     const id = req.params.id;
 
