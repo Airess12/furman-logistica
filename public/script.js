@@ -1,8 +1,27 @@
-const usuarioLogado = JSON.parse(
-    localStorage.getItem('usuarioLogado') ||
-    localStorage.getItem('usuario') ||
-    '{}'
-);
+let usuarioLogado = {};
+
+fetch('/me')
+    .then(r => r.json())
+    .then(dados => {
+        if (dados.status === 'ok') {
+            usuarioLogado = dados.usuario;
+
+            const nomePerfil = document.getElementById('nomePerfil');
+            const cargoPerfil = document.getElementById('cargoPerfil');
+            const fotoPerfil = document.getElementById('fotoPerfil');
+            const menuUsuarios = document.getElementById('menu-usuarios');
+
+            if (nomePerfil) nomePerfil.textContent = usuarioLogado.nome || usuarioLogado.usuario || 'Usuário';
+            if (cargoPerfil) cargoPerfil.innerText = nomesCargos[usuarioLogado.tipo] || 'Usuário';
+            if (fotoPerfil) fotoPerfil.src = usuarioLogado.foto || '/img/LOGO.jpeg';
+            if (menuUsuarios && usuarioLogado.tipo !== 'master') menuUsuarios.remove();
+
+            aplicarPermissoesUsuario();
+        } else {
+            window.location.href = '/login';
+        }
+    })
+    .catch(() => window.location.href = '/login');
 
 function sanitizar(texto) {
     if (texto === null || texto === undefined) return '';
@@ -23,33 +42,6 @@ const nomesCargos = {
     laboratorio: 'Laboratório',
     visualizacao: 'Visualização'
 };
-
-document.addEventListener('DOMContentLoaded', () => {
-    const menuUsuarios = document.getElementById('menu-usuarios');
-    const nomePerfil = document.getElementById('nomePerfil');
-    const cargoPerfil = document.getElementById('cargoPerfil');
-    const fotoPerfil = document.getElementById('fotoPerfil');
-
-    if (menuUsuarios && usuarioLogado.tipo !== 'master') {
-        menuUsuarios.remove();
-    }
-
-    if (nomePerfil) {
-        nomePerfil.textContent =
-            usuarioLogado.nome ||
-            usuarioLogado.usuario ||
-            'Usuário';
-    }
-
-    if (cargoPerfil) {
-        cargoPerfil.innerText =
-            nomesCargos[usuarioLogado.tipo] || 'Usuário';
-    }
-
-    if (fotoPerfil) {
-        fotoPerfil.src = usuarioLogado.foto || '/img/LOGO.jpeg';
-    }
-});
 
 function el(...ids) {
     for (const id of ids) {

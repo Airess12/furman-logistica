@@ -200,6 +200,10 @@ app.post('/logout', (req, res) => {
     });
 });
 
+app.get('/me', protegerApi, (req, res) => {
+    res.json({ status: 'ok', usuario: req.session.usuario });
+});
+
 app.get('/', proteger, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
