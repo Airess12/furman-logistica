@@ -106,7 +106,7 @@ async function registrarAuditoria(req, dados) {
     }
 }
 
-// ✅ Lê destinatários do .env — formato: "Nome1:email1,Nome2:email2"
+// Lê destinatários do .env — formato: "Nome1:email1,Nome2:email2"
 function getDestinatarios() {
     const raw = process.env.EMAIL_DESTINATARIOS || '';
 
@@ -752,6 +752,23 @@ app.get('/analises-qualidade', protegerApi, async (req, res) => {
 app.delete('/analises-qualidade/:id', protegerApi, async (req, res) => {
     const db = await conectar();
 
+    // ✅ Auditoria no DELETE de análise
+    const antes = await db.get(
+        `SELECT * FROM analises_qualidade WHERE id = ?`,
+        [req.params.id]
+    );
+
+    if (antes) {
+        await registrarAuditoria(req, {
+            acao: 'EXCLUSÃO',
+            tabela: 'analises_qualidade',
+            registro_id: req.params.id,
+            campo: 'registro',
+            valor_antigo: JSON.stringify(antes),
+            valor_novo: ''
+        });
+    }
+
     await db.run(`
         DELETE FROM analises_qualidade
         WHERE id = ?
@@ -760,8 +777,16 @@ app.delete('/analises-qualidade/:id', protegerApi, async (req, res) => {
     res.json({ status: 'ok' });
 });
 
+// ✅ OPÇÃO C: Auditoria no PUT de análises de qualidade
 app.put('/analises-qualidade/:id', protegerApi, upload.single('foto_analise'), async (req, res) => {
     const db = await conectar();
+    const id = req.params.id;
+
+    // Busca o estado antes da edição
+    const antes = await db.get(
+        `SELECT * FROM analises_qualidade WHERE id = ?`,
+        [id]
+    );
 
     const foto_analise = req.file ? '/uploads/' + req.file.filename : null;
 
@@ -801,8 +826,26 @@ app.put('/analises-qualidade/:id', protegerApi, upload.single('foto_analise'), a
         mais150_qtd, mais150_peso,
         defeito, pontos,
         foto_analise,
-        req.params.id
+        id
     ]);
+
+    // Registra auditoria campo a campo
+    if (antes) {
+        const depois = {
+            variedade, solidos, peso_agua, placa,
+            peso_total, peso_lavado,
+            classificacao_fritura: classificacao_fritura || '',
+            quantidade_palitos: quantidade_palitos || '',
+            diametro_35, diametro_35_45, diametro_45,
+            menos75_qtd, menos75_peso,
+            mais75_qtd, mais75_peso,
+            mais100_qtd, mais100_peso,
+            mais150_qtd, mais150_peso,
+            defeito, pontos
+        };
+
+        await auditarAlteracoes(req, 'analises_qualidade', id, antes, depois);
+    }
 
     res.json({ status: 'ok' });
 });
@@ -922,7 +965,6 @@ app.post('/enviar-relatorio-qualidade', protegerApi, async (req, res) => {
     try {
         const { pdfBase64, placa } = req.body;
 
-        // ✅ Destinatários lidos do .env
         const destinatarios = getDestinatarios();
 
         if (!destinatarios.length) {
