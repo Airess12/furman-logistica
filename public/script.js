@@ -1632,8 +1632,6 @@ function verDetalhesQualidade(item) {
             ">
                 ${status.texto}
             </div>
-<p><strong>Pontos:</strong> ${item.pontos || '0'}</p>
-                
                 
                 <p><strong>Pontos:</strong> ${item.pontos || '0'}</p>
             </div>
