@@ -589,20 +589,27 @@ async function gerarRelatorio(event) {
             ? `${dados.variedade1} / ${dados.variedade2}`
             : dados.variedade1;
 
-        const textoRelatorio = `
-🌱 Produtor: ${dados.produtor}
-👤 Motorista: ${dados.motorista}
-🚛 Cavalo: ${dados.placa_cavalo}
-🚛 Carreta 1: ${dados.placa_carreta1} - ${dados.variedade1}
-${dados.placa_carreta2 ? `🚛 Carreta 2: ${dados.placa_carreta2} - ${dados.variedade2}` : ''}
-🚚 Veículo: ${dados.veiculo}
-🥔 Variedade: ${variedadeBatata}
-⚖️ Peso NF: ${dados.peso} kg
-📍 Origem: ${dados.origem}
-🏭 Destino: ${dados.destino}
-🕒 Saída: ${dados.saida}
-        `.trim();
+const textoRelatorio = `
+🌱 *Produtor:* ${dados.produtor}
 
+👤 *Motorista:* ${dados.motorista}
+
+🚛 *Cavalo:* ${dados.placa_cavalo}
+
+🚛 *Carreta 1:* ${dados.placa_carreta1} - ${dados.variedade1}
+${dados.placa_carreta2 ? `🚛 *Carreta 2:* ${dados.placa_carreta2} - ${dados.variedade2}\n` : ''}
+🚚 *Veículo:* ${dados.veiculo}
+
+🥔 *Variedade:* ${variedadeBatata}
+
+⚖️ *Peso NF:* ${dados.peso} kg
+
+📍 *Origem:* ${dados.origem}
+
+🏭 *Destino:* ${dados.destino}
+
+🕒 *Saída:* ${dados.saida}
+`.trim();
         const relatorio = el('relatorioGerado');
         if (relatorio) {
             relatorio.classList.remove('relatorio-vazio');
