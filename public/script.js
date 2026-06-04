@@ -122,10 +122,6 @@ function toast(mensagem, tipo = 'sucesso') {
     }, 3000);
 }
 
-function confirmar(mensagem) {
-    return window.confirm(mensagem);
-}
-
 const nomesCargos = {
     master: 'Administrador Master',
     admin: 'Administrador',
@@ -541,64 +537,53 @@ ${dados.placa_carreta2 ? `🚛 Carreta 2: ${dados.placa_carreta2} - ${dados.vari
    HISTÓRICO
 ========================= */
 
-async function carregarHistorico() {
+let paginaAtual = 1;
+const itensPorPagina = 20;
+let dadosFiltrados = [];
 
+async function carregarHistorico() {
     const resposta = await fetch('/expedicoes');
     const dados = await resposta.json();
 
-    const busca =
-        document.getElementById('filtroBusca')?.value.toLowerCase() || '';
+    const busca = document.getElementById('filtroBusca')?.value.toLowerCase() || '';
+    const statusFiltro = document.getElementById('filtroStatus')?.value || '';
+    const variedadeFiltro = document.getElementById('filtroVariedade')?.value || '';
 
-    const statusFiltro =
-        document.getElementById('filtroStatus')?.value || '';
-
-    const variedadeFiltro =
-        document.getElementById('filtroVariedade')?.value || '';
-
-    const tabela = el('tabelaHistorico');
-
-    if (!tabela) return;
-
-    tabela.innerHTML = '';
-
-    dados
-    .filter(e => {
-
+    dadosFiltrados = dados.filter(e => {
         const textoBusca = `
-            ${e.produtor || ''}
-            ${e.motorista || ''}
-            ${e.placa_cavalo || ''}
-            ${e.placa_carreta1 || ''}
+            ${e.produtor || ''} ${e.motorista || ''}
+            ${e.placa_cavalo || ''} ${e.placa_carreta1 || ''}
             ${e.placa_carreta2 || ''}
         `.toLowerCase();
 
-        const correspondeBusca =
-            !busca || textoBusca.includes(busca);
-
-        const correspondeStatus =
-            !statusFiltro || e.status === statusFiltro;
-
-        const correspondeVariedade =
-            !variedadeFiltro ||
-            e.variedade1 === variedadeFiltro ||
-            e.variedade2 === variedadeFiltro;
-
         return (
-            correspondeBusca &&
-            correspondeStatus &&
-            correspondeVariedade
+            (!busca || textoBusca.includes(busca)) &&
+            (!statusFiltro || e.status === statusFiltro) &&
+            (!variedadeFiltro || e.variedade1 === variedadeFiltro || e.variedade2 === variedadeFiltro)
         );
+    });
 
-    })
+    paginaAtual = 1;
+    renderizarTabela();
+}
 
-    .forEach(e => {
+function renderizarTabela() {
+    const tabela = el('tabelaHistorico');
+    if (!tabela) return;
 
+    const total = dadosFiltrados.length;
+    const totalPaginas = Math.ceil(total / itensPorPagina);
+    const inicio = (paginaAtual - 1) * itensPorPagina;
+    const fim = inicio + itensPorPagina;
+    const paginados = dadosFiltrados.slice(inicio, fim);
+
+    tabela.innerHTML = '';
+
+    paginados.forEach(e => {
         const temCarreta2 = !!e.placa_carreta2;
 
         tabela.innerHTML += `
-
             <tr id="linha-${e.id}">
-
                 <td>${sanitizar(e.produtor)}</td>
                 <td>${sanitizar(e.motorista)}</td>
                 <td>${sanitizar(e.placa_cavalo)}</td>
@@ -611,167 +596,97 @@ async function carregarHistorico() {
                 <td>${sanitizar(e.variedade2)}</td>
                 <td>${sanitizar(e.peso)}</td>
                 <td>${sanitizar(e.saida)}</td>
-
                 <td>
-
-                    <select
-                        class="status-select"
-                        data-status="${e.status || 'Em viagem'}"
-                        id="status-${e.id}"
-                        onchange="atualizarQualidadeCarretas(${e.id}); this.setAttribute('data-status', this.value)"
-                    >
-
-                        <option ${e.status === 'Em viagem' ? 'selected' : ''}>
-                            Em viagem
-                        </option>
-
-                        <option ${e.status === 'Na McCain' ? 'selected' : ''}>
-                            Na McCain
-                        </option>
-
-                        <option ${e.status === 'Lavando' ? 'selected' : ''}>
-                            Lavando
-                        </option>
-
-                        <option ${e.status === 'Reapresentado' ? 'selected' : ''}>
-                            Reapresentado
-                        </option>
-
-                        <option ${e.status === 'Finalizado' ? 'selected' : ''}>
-                            Finalizado
-                        </option>
-
+                    <select class="status-select" data-status="${e.status || 'Em viagem'}" id="status-${e.id}"
+                        onchange="atualizarQualidadeCarretas(${e.id}); this.setAttribute('data-status', this.value)">
+                        <option ${e.status === 'Em viagem' ? 'selected' : ''}>Em viagem</option>
+                        <option ${e.status === 'Na McCain' ? 'selected' : ''}>Na McCain</option>
+                        <option ${e.status === 'Lavando' ? 'selected' : ''}>Lavando</option>
+                        <option ${e.status === 'Reapresentado' ? 'selected' : ''}>Reapresentado</option>
+                        <option ${e.status === 'Finalizado' ? 'selected' : ''}>Finalizado</option>
                     </select>
-
                 </td>
-
                 <td>
-
                     <strong>C1</strong>
-
-                    <select
-                            class="resultado-select"
-                            data-resultado="${e.resultado_c1 || 'Pendente'}"
-                            id="resultado-c1-${e.id}"
-                            onchange="atualizarQualidadeCarretas(${e.id}); this.setAttribute('data-resultado', this.value)"
-                        >
-
-                        <option ${e.resultado_c1 === 'Pendente' ? 'selected' : ''}>
-                            Pendente
-                        </option>
-
-                        <option ${e.resultado_c1 === 'Aprovado' ? 'selected' : ''}>
-                            Aprovado
-                        </option>
-
-                        <option ${e.resultado_c1 === 'Aprovado com Restrição' ? 'selected' : ''}>
-                            Aprovado com Restrição
-                        </option>
-
-                        <option ${e.resultado_c1 === 'Reprovado' ? 'selected' : ''}>
-                            Reprovado
-                        </option>
-
-                        <option ${e.resultado_c1 === 'Lavagem' ? 'selected' : ''}>
-                            Lavagem
-                        </option>
-
-                        <option ${e.resultado_c1 === 'Aprovado após lavagem' ? 'selected' : ''}>
-                            Aprovado após lavagem
-                        </option>
-
+                    <select class="resultado-select" data-resultado="${e.resultado_c1 || 'Pendente'}" id="resultado-c1-${e.id}"
+                        onchange="atualizarQualidadeCarretas(${e.id}); this.setAttribute('data-resultado', this.value)">
+                        <option ${e.resultado_c1 === 'Pendente' ? 'selected' : ''}>Pendente</option>
+                        <option ${e.resultado_c1 === 'Aprovado' ? 'selected' : ''}>Aprovado</option>
+                        <option ${e.resultado_c1 === 'Aprovado com Restrição' ? 'selected' : ''}>Aprovado com Restrição</option>
+                        <option ${e.resultado_c1 === 'Reprovado' ? 'selected' : ''}>Reprovado</option>
+                        <option ${e.resultado_c1 === 'Lavagem' ? 'selected' : ''}>Lavagem</option>
+                        <option ${e.resultado_c1 === 'Aprovado após lavagem' ? 'selected' : ''}>Aprovado após lavagem</option>
                     </select>
-
-                    <input
-                        class="motivo-input"
-                        type="text"
-                        id="motivo-c1-${e.id}"
+                    <input class="motivo-input" type="text" id="motivo-c1-${e.id}"
                         value="${e.resultado_c1 === 'Aprovado' ? '' : (e.motivo_c1 || '')}"
                         placeholder="${e.resultado_c1 === 'Aprovado com Restrição' ? 'Restrição C1' : 'Motivo C1'}"
                         ${e.resultado_c1 === 'Aprovado' ? 'disabled' : ''}
-                        onchange="atualizarQualidadeCarretas(${e.id})"
-                    >
-
+                        onchange="atualizarQualidadeCarretas(${e.id})">
                 </td>
-
                 <td>
-
                     ${temCarreta2 ? `
-
                         <strong>C2</strong>
-
-                       <select
-                        class="resultado-select"
-                        data-resultado="${e.resultado_c2 || 'Pendente'}"
-                        id="resultado-c2-${e.id}"
-                        onchange="atualizarQualidadeCarretas(${e.id}); this.setAttribute('data-resultado', this.value)"
->
-                            <option ${e.resultado_c2 === 'Pendente' ? 'selected' : ''}>
-                                Pendente
-                            </option>
-
-                            <option ${e.resultado_c2 === 'Aprovado' ? 'selected' : ''}>
-                                Aprovado
-                            </option>
-
-                            <option ${e.resultado_c2 === 'Aprovado com Restrição' ? 'selected' : ''}>
-                                Aprovado com Restrição
-                            </option>
-
-                            <option ${e.resultado_c2 === 'Reprovado' ? 'selected' : ''}>
-                                Reprovado
-                            </option>
-
-                            <option ${e.resultado_c2 === 'Lavagem' ? 'selected' : ''}>
-                                Lavagem
-                            </option>
-
-                            <option ${e.resultado_c2 === 'Aprovado após lavagem' ? 'selected' : ''}>
-                                Aprovado após lavagem
-                            </option>
-
+                        <select class="resultado-select" data-resultado="${e.resultado_c2 || 'Pendente'}" id="resultado-c2-${e.id}"
+                            onchange="atualizarQualidadeCarretas(${e.id}); this.setAttribute('data-resultado', this.value)">
+                            <option ${e.resultado_c2 === 'Pendente' ? 'selected' : ''}>Pendente</option>
+                            <option ${e.resultado_c2 === 'Aprovado' ? 'selected' : ''}>Aprovado</option>
+                            <option ${e.resultado_c2 === 'Aprovado com Restrição' ? 'selected' : ''}>Aprovado com Restrição</option>
+                            <option ${e.resultado_c2 === 'Reprovado' ? 'selected' : ''}>Reprovado</option>
+                            <option ${e.resultado_c2 === 'Lavagem' ? 'selected' : ''}>Lavagem</option>
+                            <option ${e.resultado_c2 === 'Aprovado após lavagem' ? 'selected' : ''}>Aprovado após lavagem</option>
                         </select>
-
-                        <input
-                            class="motivo-input"
-                            type="text"
-                            id="motivo-c2-${e.id}"
+                        <input class="motivo-input" type="text" id="motivo-c2-${e.id}"
                             value="${e.resultado_c2 === 'Aprovado' ? '' : (e.motivo_c2 || '')}"
                             placeholder="${e.resultado_c2 === 'Aprovado com Restrição' ? 'Restrição C2' : 'Motivo C2'}"
                             ${e.resultado_c2 === 'Aprovado' ? 'disabled' : ''}
-                            onchange="atualizarQualidadeCarretas(${e.id})"
-                        >
-
+                            onchange="atualizarQualidadeCarretas(${e.id})">
                     ` : '—'}
-
                 </td>
-
                 <td>
                     <div class="acoes-botoes">
-
-                        <button
-                            type="button"
-                            class="btn-editar"
-                            onclick="editarLinhaExpedicao(${e.id})"
-                        >
-                            ✏️ Editar
-                        </button>
-
-                        <button
-                            type="button"
-                            class="btn-excluir"
-                            onclick="excluirExpedicao(${e.id})"
-                        >
-                            🗑️ Excluir
-                        </button>
-
+                        <button type="button" class="btn-editar" onclick="editarLinhaExpedicao(${e.id})">✏️ Editar</button>
+                        <button type="button" class="btn-excluir" onclick="excluirExpedicao(${e.id})">🗑️ Excluir</button>
                     </div>
                 </td>
-
             </tr>
-
         `;
     });
+
+    // Paginação
+    const container = document.getElementById('paginacaoExpedicoes');
+    if (!container) return;
+
+    if (totalPaginas <= 1) {
+        container.innerHTML = `<span style="color:#94a3b8; font-size:13px;">${total} registro(s)</span>`;
+        return;
+    }
+
+    let html = `<div class="paginacao-info">Página ${paginaAtual} de ${totalPaginas} — ${total} registro(s)</div><div class="paginacao-btns">`;
+
+    html += `<button class="btn-pag" onclick="irPagina(1)" ${paginaAtual === 1 ? 'disabled' : ''}>«</button>`;
+    html += `<button class="btn-pag" onclick="irPagina(${paginaAtual - 1})" ${paginaAtual === 1 ? 'disabled' : ''}>‹</button>`;
+
+    for (let i = Math.max(1, paginaAtual - 2); i <= Math.min(totalPaginas, paginaAtual + 2); i++) {
+        html += `<button class="btn-pag ${i === paginaAtual ? 'ativo' : ''}" onclick="irPagina(${i})">${i}</button>`;
+    }
+
+    html += `<button class="btn-pag" onclick="irPagina(${paginaAtual + 1})" ${paginaAtual === totalPaginas ? 'disabled' : ''}>›</button>`;
+    html += `<button class="btn-pag" onclick="irPagina(${totalPaginas})" ${paginaAtual === totalPaginas ? 'disabled' : ''}>»</button>`;
+    html += `</div>`;
+
+    container.innerHTML = html;
+}
+
+function irPagina(pagina) {
+    paginaAtual = pagina;
+    renderizarTabela();
+}
+
+function limparFiltrosRelatorios() {
+    document.getElementById('filtroBusca').value = '';
+    document.getElementById('filtroStatus').value = '';
+    document.getElementById('filtroVariedade').value = '';
+    carregarHistorico();
 }
 
 /* =========================
@@ -2357,14 +2272,8 @@ document.addEventListener(
     carregarDefeitosMcCain
 );
 function aplicarPermissoesUsuario() {
-
-    const usuario = JSON.parse(
-        localStorage.getItem('usuarioLogado')
-    );
-
-    if (!usuario) return;
-
-    const tipo = usuario.tipo;
+    if (!usuarioLogado || !usuarioLogado.tipo) return;
+    const tipo = usuarioLogado.tipo;
     function esconderAbas(ids) {
 
     ids.forEach(id => {

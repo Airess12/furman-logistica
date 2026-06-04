@@ -1149,3 +1149,41 @@ textarea {
     from { opacity: 1; transform: translateX(0); }
     to   { opacity: 0; transform: translateX(60px); }
 }
+.paginacao-info {
+    color: #94a3b8;
+    font-size: 13px;
+}
+
+.paginacao-btns {
+    display: flex;
+    gap: 6px;
+}
+
+.btn-pag {
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: 10px;
+    background: rgba(255,255,255,.04);
+    color: #cbd5e1;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    transition: .2s ease;
+}
+
+.btn-pag:hover:not(:disabled) {
+    background: rgba(33,255,157,.12);
+    border-color: #21ff9d;
+    color: #21ff9d;
+}
+
+.btn-pag.ativo {
+    background: linear-gradient(135deg, #7c3aed, #21ff9d);
+    border-color: transparent;
+    color: #ffffff;
+}
+
+.btn-pag:disabled {
+    opacity: 0.3;
+    cursor: default;
+}
