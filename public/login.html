@@ -75,9 +75,13 @@
 
                 window.location.href = '/';
             } else {
-                document.getElementById('erroLogin').innerText =
-                    'Usuário ou senha incorretos';
-            }
+    if (resposta.status === 429) {
+        document.getElementById('erroLogin').innerText =
+            'Muitas tentativas. Tente novamente em 15 minutos.';
+    } else {
+        document.getElementById('erroLogin').innerText =
+            'Usuário ou senha incorretos.';
+    }
         }
 
         document.addEventListener('keydown', function(e) {
@@ -86,7 +90,7 @@
         }
     });
 
-
+}
     </script>
 
 </body>

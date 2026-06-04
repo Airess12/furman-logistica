@@ -88,6 +88,41 @@ function somenteExpedicao(req, res, next) {
     next();
 }
 
+// ===== RATE LIMITING LOGIN =====
+const tentativasLogin = new Map();
+
+function verificarRateLimit(ip) {
+    const agora = Date.now();
+    const dados = tentativasLogin.get(ip);
+
+    if (!dados) return true;
+
+    if (agora - dados.ultimaTentativa > 15 * 60 * 1000) {
+        tentativasLogin.delete(ip);
+        return true;
+    }
+
+    if (dados.tentativas >= 5) {
+        return false;
+    }
+
+    return true;
+}
+
+function registrarTentativaFalha(ip) {
+    const agora = Date.now();
+    const dados = tentativasLogin.get(ip) || { tentativas: 0, ultimaTentativa: agora };
+
+    dados.tentativas++;
+    dados.ultimaTentativa = agora;
+
+    tentativasLogin.set(ip, dados);
+}
+
+function limparTentativas(ip) {
+    tentativasLogin.delete(ip);
+}
+
 async function auditarAlteracoes(req, tabela, id, antes, depois) {
     for (const campo in depois) {
         const valorAntigo = antes?.[campo] ?? '';
@@ -155,6 +190,16 @@ app.get('/login.html', (req, res) => {
 });
 
 app.post('/login', async (req, res) => {
+    // ✅ Rate limiting
+    const ip = req.ip || req.connection.remoteAddress;
+
+    if (!verificarRateLimit(ip)) {
+        return res.status(429).json({
+            status: 'erro',
+            mensagem: 'Muitas tentativas. Tente novamente em 15 minutos.'
+        });
+    }
+
     const db = await conectar();
 
     const { usuario, senha } = req.body;
@@ -165,14 +210,18 @@ app.post('/login', async (req, res) => {
     );
 
     if (!usuarioBanco) {
+        registrarTentativaFalha(ip);
         return res.status(401).json({ status: 'erro' });
     }
 
     const senhaCorreta = await bcrypt.compare(senha, usuarioBanco.senha);
 
     if (!senhaCorreta) {
+        registrarTentativaFalha(ip);
         return res.status(401).json({ status: 'erro' });
     }
+
+    limparTentativas(ip);
 
     req.session.usuario = {
         id: usuarioBanco.id,
