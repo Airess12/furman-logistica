@@ -3288,3 +3288,12 @@ async function salvarEdicaoExpedicao(id) {
     await carregarHistorico();
     toast('Expedição atualizada!');
 }
+const fotoAnalise = document.getElementById('q_foto_analise');
+if (fotoAnalise) {
+    fotoAnalise.addEventListener('change', function () {
+        const nome = this.files.length
+            ? this.files[0].name
+            : 'Nenhuma foto selecionada';
+        document.getElementById('nomeFotoAnalise').textContent = nome;
+    });
+}
