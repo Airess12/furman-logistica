@@ -24,51 +24,21 @@ fetch('/me')
     .catch(() => window.location.href = '/login');
 
 
-function toast(mensagem, tipo = 'sucesso') {
-    const cores = {
-        sucesso: { fundo: 'rgba(34,197,94,.15)', borda: '#22c55e', icone: '✅' },
-        erro:    { fundo: 'rgba(239,68,68,.15)', borda: '#ef4444', icone: '❌' },
-        aviso:   { fundo: 'rgba(245,158,11,.15)', borda: '#fbbf24', icone: '⚠️' },
-        info:    { fundo: 'rgba(56,189,248,.15)', borda: '#38bdf8', icone: 'ℹ️' }
-    };
-
-    const c = cores[tipo] || cores.sucesso;
-
-    const div = document.createElement('div');
-    div.style.cssText = `
-        position: fixed;
-        bottom: 28px;
-        right: 28px;
-        z-index: 9999;
-        padding: 16px 22px;
-        border-radius: 16px;
-        background: ${c.fundo};
-        border: 1px solid ${c.borda};
-        color: #ffffff;
-        font-size: 15px;
-        font-weight: 700;
-        box-shadow: 0 12px 30px rgba(0,0,0,.35);
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        max-width: 380px;
-        backdrop-filter: blur(12px);
-        animation: slideIn .3s ease;
-    `;
-
-    div.innerHTML = `<span>${c.icone}</span><span>${mensagem}</span>`;
-    document.body.appendChild(div);
-
-    setTimeout(() => {
-        div.style.animation = 'fadeOut .3s ease forwards';
-        setTimeout(() => div.remove(), 300);
-    }, 3000);
-}
-
 function confirmarDialog(mensagem) {
     return new Promise(resolve => {
         resolve(window.confirm(mensagem));
     });
+}
+
+function btnLoading(botao, texto = 'Aguarde...') {
+    botao.disabled = true;
+    botao.dataset.textoOriginal = botao.innerHTML;
+    botao.innerHTML = `<span style="opacity:.7">${texto}</span>`;
+}
+
+function btnRestore(botao) {
+    botao.disabled = false;
+    botao.innerHTML = botao.dataset.textoOriginal;
 }
 
 function sanitizar(texto) {
@@ -121,6 +91,7 @@ function toast(mensagem, tipo = 'sucesso') {
         setTimeout(() => div.remove(), 300);
     }, 3000);
 }
+
 
 const nomesCargos = {
     master: 'Administrador Master',
@@ -285,22 +256,28 @@ async function buscarMotorista() {
 async function cadastrarMotorista(event) {
     if (event) event.preventDefault();
 
+    const btn = event?.target;
+    if (btn) btnLoading(btn, 'Cadastrando...');
+
     const placaCampo = el('placaCadastro', 'placa');
     const motoristaCampo = el('motoristaCadastro', 'motoristaCadastroNome');
     const fotoCampo = el('fotoCadastro', 'foto');
 
-    if (!placaCampo || !motoristaCampo) return;
+    if (!placaCampo || !motoristaCampo) {
+        if (btn) btnRestore(btn);
+        return;
+    }
 
     const placa = placaCampo.value.toUpperCase().trim();
     const motorista = motoristaCampo.value.trim();
 
     if (!placa || !motorista) {
         toast('Preencha todos os campos.', 'aviso');
+        if (btn) btnRestore(btn);
         return;
     }
 
     const formData = new FormData();
-
     formData.append('placa', placa);
     formData.append('motorista', motorista);
 
@@ -316,13 +293,15 @@ async function cadastrarMotorista(event) {
     const dados = await resposta.json();
 
     if (dados.status === 'ok') {
-        toast('Motorista cadastrado!')
+        toast('Motorista cadastrado!');
         placaCampo.value = '';
         motoristaCampo.value = '';
         if (fotoCampo) fotoCampo.value = '';
     } else {
-        toast('Erro ao cadastrar motorista.', 'erro')
+        toast('Erro ao cadastrar motorista.', 'erro');
     }
+
+    if (btn) btnRestore(btn);
 }
 
 async function cadastrarProdutor() {
@@ -461,6 +440,9 @@ function definirPeso() {
 async function gerarRelatorio(event) {
     if (event) event.preventDefault();
 
+    const btn = document.querySelector('#formExpedicao button[type="submit"]');
+    if (btn) btnLoading(btn, '⏳ Gerando...');
+
     const dados = {
         produtor: el('produtor')?.value || '',
         placa_cavalo: el('placa_cavalo', 'placaCavalo')?.value || '',
@@ -491,48 +473,36 @@ async function gerarRelatorio(event) {
 
         const textoRelatorio = `
 🌱 Produtor: ${dados.produtor}
-
 👤 Motorista: ${dados.motorista}
-
 🚛 Cavalo: ${dados.placa_cavalo}
-
 🚛 Carreta 1: ${dados.placa_carreta1} - ${dados.variedade1}
-
 ${dados.placa_carreta2 ? `🚛 Carreta 2: ${dados.placa_carreta2} - ${dados.variedade2}` : ''}
-
 🚚 Veículo: ${dados.veiculo}
-
 🥔 Variedade: ${variedadeBatata}
-
 ⚖️ Peso NF: ${dados.peso} kg
-
 📍 Origem: ${dados.origem}
-
 🏭 Destino: ${dados.destino}
-
 🕒 Saída: ${dados.saida}
         `.trim();
 
         const relatorio = el('relatorioGerado');
-
         if (relatorio) {
             relatorio.classList.remove('relatorio-vazio');
             relatorio.innerText = textoRelatorio;
         }
 
-        toast('Expedição cadastrada!')
-
+        toast('Expedição cadastrada!');
         const form = el('formExpedicao');
         if (form) form.reset();
-
         definirPeso();
         carregarHistorico();
         carregarDashboard();
     } else {
-        toast('Erro ao salvar.', 'erro')
+        toast('Erro ao salvar.', 'erro');
     }
-}
 
+    if (btn) btnRestore(btn);
+}
 /* =========================
    HISTÓRICO
 ========================= */
@@ -1355,8 +1325,10 @@ window.onload = async () => {
 };
 
 async function salvarAnaliseQualidade() {
-    const resultado = document.getElementById('q_resultado');
+    const btn = document.querySelector('button[onclick="salvarAnaliseQualidade()"]');
+    if (btn) btnLoading(btn, '⏳ Salvando...');
 
+    const resultado = document.getElementById('q_resultado');
     const formData = new FormData();
 
     formData.append('variedade', document.getElementById('q_variedade')?.value || '');
@@ -1368,30 +1340,13 @@ async function salvarAnaliseQualidade() {
     formData.append('fazenda', document.getElementById('q_fazenda')?.value || '');
     formData.append('temperatura_agua', document.getElementById('q_temperatura_agua')?.value || '');
     formData.append('temperatura_media', document.getElementById('q_temperatura_media')?.value || '');
-    
-    const frituraTipo =
-    document.getElementById('q_fritura_tipo')?.value || '';
 
-const frituraQuantidade =
-    document.getElementById('q_fritura_quantidade')?.value || '';
+    const frituraTipo = document.getElementById('q_fritura_tipo')?.value || '';
+    const frituraQuantidade = document.getElementById('q_fritura_quantidade')?.value || '';
 
-formData.append(
-    'fritura',
-    frituras
-        .map(item => `${item.tipo} - ${item.quantidade} palitos`)
-        .join(' | ')
-);
-
-formData.append(
-    'classificacao_fritura',
-    frituraTipo
-);
-
-formData.append(
-    'quantidade_palitos',
-    frituraQuantidade
-);
-
+    formData.append('fritura', frituras.map(item => `${item.tipo} - ${item.quantidade} palitos`).join(' | '));
+    formData.append('classificacao_fritura', frituraTipo);
+    formData.append('quantidade_palitos', frituraQuantidade);
 
     formData.append('diametro_35', document.getElementById('q_diametro_35')?.value || '');
     formData.append('diametro_35_45', document.getElementById('q_diametro_35_45')?.value || '');
@@ -1399,45 +1354,34 @@ formData.append(
 
     formData.append('menos75_qtd', document.getElementById('q_menos75_qtd')?.value || '');
     formData.append('menos75_peso', document.getElementById('q_menos75_peso')?.value || '');
-
     formData.append('mais75_qtd', document.getElementById('q_mais75_qtd')?.value || '');
     formData.append('mais75_peso', document.getElementById('q_mais75_peso')?.value || '');
-
     formData.append('mais100_qtd', document.getElementById('q_mais100_qtd')?.value || '');
     formData.append('mais100_peso', document.getElementById('q_mais100_peso')?.value || '');
-
     formData.append('mais150_qtd', document.getElementById('q_mais150_qtd')?.value || '');
     formData.append('mais150_peso', document.getElementById('q_mais150_peso')?.value || '');
 
     formData.append('defeito', document.getElementById('q_defeito')?.value || '');
     formData.append('pontos', document.getElementById('q_pontos')?.value || '');
 
-    
-
     const foto = document.getElementById('q_foto_analise')?.files[0];
-
-    if (foto) {
-        formData.append('foto_analise', foto);
-    }
+    if (foto) formData.append('foto_analise', foto);
 
     try {
         const url = analiseEditandoId
-    ? `/analises-qualidade/${analiseEditandoId}`
-    : '/analises-qualidade';
+            ? `/analises-qualidade/${analiseEditandoId}`
+            : '/analises-qualidade';
 
-    const metodo = analiseEditandoId ? 'PUT' : 'POST';
+        const metodo = analiseEditandoId ? 'PUT' : 'POST';
 
-    const resposta = await fetch(url, {
-    method: metodo,
-    body: formData
-});
+        const resposta = await fetch(url, {
+            method: metodo,
+            body: formData
+        });
 
-        if (!resposta.ok) {
-            throw new Error('Erro ao salvar análise');
-        }
+        if (!resposta.ok) throw new Error('Erro ao salvar análise');
 
         resultado.classList.remove('relatorio-vazio');
-
         resultado.innerHTML = `
             <h3>✅ Análise salva com sucesso</h3>
             <p><strong>Placa:</strong> ${formData.get('placa')}</p>
@@ -1447,15 +1391,15 @@ formData.append(
         `;
 
         await carregarAnalisesQualidade();
-        
         analiseEditandoId = null;
-        
-        toast('Análise salva com sucesso!')
+        toast('Análise salva com sucesso!');
 
     } catch (erro) {
-    console.error('ERRO AO SALVAR ANÁLISE:', erro);
-    toast('Erro ao salvar análise.', 'erro');
-}
+        console.error('ERRO AO SALVAR ANÁLISE:', erro);
+        toast('Erro ao salvar análise.', 'erro');
+    } finally {
+        if (btn) btnRestore(btn);
+    }
 }
 
     async function carregarAnalisesQualidade() {
@@ -1704,10 +1648,14 @@ async function excluirAnaliseQualidade(id) {
 
 
 async function gerarPDFQualidade() {
+    const btn = document.querySelector('button[onclick="gerarPDFQualidade()"]');
+    if (btn) btnLoading(btn, '⏳ Gerando PDF...');
+
     const elemento = document.getElementById('q_resultado');
 
     if (!elemento || elemento.classList.contains('relatorio-vazio')) {
         toast('Abra uma análise antes de gerar o PDF.', 'aviso');
+        if (btn) btnRestore(btn);
         return;
     }
 
@@ -1715,7 +1663,6 @@ async function gerarPDFQualidade() {
 
     await Promise.all([...imagens].map(img => {
         if (img.complete) return Promise.resolve();
-
         return new Promise(resolve => {
             img.onload = resolve;
             img.onerror = resolve;
@@ -1723,16 +1670,15 @@ async function gerarPDFQualidade() {
     }));
 
     const canvas = await html2canvas(elemento, {
-    scale: 1,
-    backgroundColor: '#111827',
-    useCORS: true,
-    allowTaint: true
-});
+        scale: 1,
+        backgroundColor: '#111827',
+        useCORS: true,
+        allowTaint: true
+    });
 
-   const imgData = canvas.toDataURL('image/jpeg', 0.5);
+    const imgData = canvas.toDataURL('image/jpeg', 0.5);
 
     const { jsPDF } = window.jspdf;
-
     const pdf = new jsPDF('p', 'mm', 'a4');
 
     const pageWidth = 210;
@@ -1749,19 +1695,12 @@ async function gerarPDFQualidade() {
     logo.src = '/img/LOGO.jpeg';
 
     await new Promise(resolve => {
-    logo.onload = resolve;
-    logo.onerror = resolve;
-});
+        logo.onload = resolve;
+        logo.onerror = resolve;
+    });
 
-pdf.addImage(
-    logo,
-    'JPEG',
-    10,
-    8,
-    24,
-    24
-);
-   
+    pdf.addImage(logo, 'JPEG', 10, 8, 24, 24);
+
     const agora = new Date().toLocaleString('pt-BR');
 
     pdf.setTextColor(255, 255, 255);
@@ -1772,42 +1711,36 @@ pdf.addImage(
     pdf.text('Furman Agronegócios • Sistema de Qualidade', 42, 23);
 
     pdf.setFontSize(9);
-
     pdf.text('Laboratorista: Luiz Aires', 42, 29);
-
     pdf.text('Laboratório: Palmas - PR', 42, 34);
-
     pdf.text(`Emitido em: ${agora}`, 42, 39);
 
     pdf.addImage(imgData, 'PNG', 10, 42, imgWidth, imgHeight);
 
     const pdfBase64 = pdf.output('datauristring');
 
-const placaRelatorio =
-    document.querySelector('#q_resultado')?.innerText
-        .match(/Placa:\s*(.*)/)?.[1]
-        ?.split('\n')[0] || 'carga';
+    const placaRelatorio =
+        document.querySelector('#q_resultado')?.innerText
+            .match(/Placa:\s*(.*)/)?.[1]
+            ?.split('\n')[0] || 'carga';
 
-const respostaEmail = await fetch('/enviar-relatorio-qualidade', {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-        pdfBase64,
-        placa: placaRelatorio
-    })
-});
+    const respostaEmail = await fetch('/enviar-relatorio-qualidade', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pdfBase64, placa: placaRelatorio })
+    });
 
-const retornoEmail = await respostaEmail.json();
+    const retornoEmail = await respostaEmail.json();
 
-if (retornoEmail.status === 'ok') {
-    toast('PDF gerado e enviado por e-mail!');
-} else {
-    toast('PDF gerado, mas erro ao enviar e-mail.', 'aviso');
-}
+    if (retornoEmail.status === 'ok') {
+        toast('PDF gerado e enviado por e-mail!');
+    } else {
+        toast('PDF gerado, mas erro ao enviar e-mail.', 'aviso');
+    }
 
-pdf.save(`relatorio-qualidade-${placaRelatorio}.pdf`);
+    pdf.save(`relatorio-qualidade-${placaRelatorio}.pdf`);
+
+    if (btn) btnRestore(btn);
 }
 
 
