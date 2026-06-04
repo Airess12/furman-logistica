@@ -23,6 +23,54 @@ fetch('/me')
     })
     .catch(() => window.location.href = '/login');
 
+
+function toast(mensagem, tipo = 'sucesso') {
+    const cores = {
+        sucesso: { fundo: 'rgba(34,197,94,.15)', borda: '#22c55e', icone: '✅' },
+        erro:    { fundo: 'rgba(239,68,68,.15)', borda: '#ef4444', icone: '❌' },
+        aviso:   { fundo: 'rgba(245,158,11,.15)', borda: '#fbbf24', icone: '⚠️' },
+        info:    { fundo: 'rgba(56,189,248,.15)', borda: '#38bdf8', icone: 'ℹ️' }
+    };
+
+    const c = cores[tipo] || cores.sucesso;
+
+    const div = document.createElement('div');
+    div.style.cssText = `
+        position: fixed;
+        bottom: 28px;
+        right: 28px;
+        z-index: 9999;
+        padding: 16px 22px;
+        border-radius: 16px;
+        background: ${c.fundo};
+        border: 1px solid ${c.borda};
+        color: #ffffff;
+        font-size: 15px;
+        font-weight: 700;
+        box-shadow: 0 12px 30px rgba(0,0,0,.35);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        max-width: 380px;
+        backdrop-filter: blur(12px);
+        animation: slideIn .3s ease;
+    `;
+
+    div.innerHTML = `<span>${c.icone}</span><span>${mensagem}</span>`;
+    document.body.appendChild(div);
+
+    setTimeout(() => {
+        div.style.animation = 'fadeOut .3s ease forwards';
+        setTimeout(() => div.remove(), 300);
+    }, 3000);
+}
+
+function confirmarDialog(mensagem) {
+    return new Promise(resolve => {
+        resolve(window.confirm(mensagem));
+    });
+}
+
 function sanitizar(texto) {
     if (texto === null || texto === undefined) return '';
     return String(texto)
@@ -31,6 +79,51 @@ function sanitizar(texto) {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
+}
+
+function toast(mensagem, tipo = 'sucesso') {
+    const cores = {
+        sucesso: { fundo: 'rgba(34,197,94,.15)', borda: '#22c55e', icone: '✅' },
+        erro:    { fundo: 'rgba(239,68,68,.15)', borda: '#ef4444', icone: '❌' },
+        aviso:   { fundo: 'rgba(245,158,11,.15)', borda: '#fbbf24', icone: '⚠️' },
+        info:    { fundo: 'rgba(56,189,248,.15)', borda: '#38bdf8', icone: 'ℹ️' }
+    };
+
+    const c = cores[tipo] || cores.sucesso;
+
+    const div = document.createElement('div');
+    div.style.cssText = `
+        position: fixed;
+        bottom: 28px;
+        right: 28px;
+        z-index: 9999;
+        padding: 16px 22px;
+        border-radius: 16px;
+        background: ${c.fundo};
+        border: 1px solid ${c.borda};
+        color: #ffffff;
+        font-size: 15px;
+        font-weight: 700;
+        box-shadow: 0 12px 30px rgba(0,0,0,.35);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        max-width: 380px;
+        backdrop-filter: blur(12px);
+        animation: slideIn .3s ease;
+    `;
+
+    div.innerHTML = `<span>${c.icone}</span><span>${mensagem}</span>`;
+    document.body.appendChild(div);
+
+    setTimeout(() => {
+        div.style.animation = 'fadeOut .3s ease forwards';
+        setTimeout(() => div.remove(), 300);
+    }, 3000);
+}
+
+function confirmar(mensagem) {
+    return window.confirm(mensagem);
 }
 
 const nomesCargos = {
@@ -206,7 +299,7 @@ async function cadastrarMotorista(event) {
     const motorista = motoristaCampo.value.trim();
 
     if (!placa || !motorista) {
-        alert('Preencha todos os campos.');
+        toast('Preencha todos os campos.', 'aviso');
         return;
     }
 
@@ -227,12 +320,12 @@ async function cadastrarMotorista(event) {
     const dados = await resposta.json();
 
     if (dados.status === 'ok') {
-        alert('Motorista cadastrado!');
+        toast('Motorista cadastrado!')
         placaCampo.value = '';
         motoristaCampo.value = '';
         if (fotoCampo) fotoCampo.value = '';
     } else {
-        alert('Erro ao cadastrar motorista.');
+        toast('Erro ao cadastrar motorista.', 'erro')
     }
 }
 
@@ -243,7 +336,7 @@ async function cadastrarProdutor() {
     const nome = campo.value.trim();
 
     if (!nome) {
-        alert('Digite o produtor.');
+        toast('Digite o produtor.', 'aviso');
         return;
     }
 
@@ -256,11 +349,11 @@ async function cadastrarProdutor() {
     const dados = await resposta.json();
 
     if (dados.status === 'ok') {
-        alert('Produtor cadastrado!');
+        toast('Produtor cadastrado!')
         campo.value = '';
         carregarProdutores();
     } else {
-        alert('Erro ao cadastrar produtor.');
+        toast('Erro ao cadastrar produtor.', 'erro')
     }
 }
 
@@ -289,7 +382,7 @@ async function cadastrarCarreta() {
     const placa = campo.value.toUpperCase().trim();
 
     if (!placa) {
-        alert('Digite a placa.');
+        toast('Digite a placa.', 'aviso');
         return;
     }
 
@@ -302,11 +395,11 @@ async function cadastrarCarreta() {
     const dados = await resposta.json();
 
     if (dados.status === 'ok') {
-        alert('Carreta cadastrada!');
+        toast('Carreta cadastrada!')
         campo.value = '';
         carregarCarretas();
     } else {
-        alert('Erro ao cadastrar carreta.');
+        toast('Erro ao cadastrar carreta.', 'erro')
     }
 }
 
@@ -431,7 +524,7 @@ ${dados.placa_carreta2 ? `🚛 Carreta 2: ${dados.placa_carreta2} - ${dados.vari
             relatorio.innerText = textoRelatorio;
         }
 
-        alert('Expedição cadastrada!');
+        toast('Expedição cadastrada!')
 
         const form = el('formExpedicao');
         if (form) form.reset();
@@ -440,7 +533,7 @@ ${dados.placa_carreta2 ? `🚛 Carreta 2: ${dados.placa_carreta2} - ${dados.vari
         carregarHistorico();
         carregarDashboard();
     } else {
-        alert('Erro ao salvar.');
+        toast('Erro ao salvar.', 'erro')
     }
 }
 
@@ -752,7 +845,7 @@ async function atualizarQualidadeCarretas(id) {
 ========================= */
 
 async function excluirExpedicao(id) {
-    const confirmar = confirm('Excluir expedição?');
+   const confirmar = await confirmarDialog('Excluir expedição?');
 
     if (!confirmar) return;
 
@@ -1296,12 +1389,12 @@ function copiarRelatorio() {
     const relatorio = el('relatorioGerado');
 
     if (!relatorio || relatorio.classList.contains('relatorio-vazio')) {
-        alert('Gere um relatório primeiro.');
+        toast('Gere um relatório primeiro.', 'aviso')
         return;
     }
 
     navigator.clipboard.writeText(relatorio.innerText);
-    alert('Relatório copiado!');
+    toast('Relatório copiado!')
 }
 
 function abrirWhatsapp() {
@@ -1442,11 +1535,11 @@ formData.append(
         
         analiseEditandoId = null;
         
-        alert('Análise salva no banco com foto!');
+        toast('Análise salva com sucesso!')
 
     } catch (erro) {
     console.error('ERRO AO SALVAR ANÁLISE:', erro);
-    alert('Erro ao salvar análise no banco. Veja o Console F12.');
+    toast('Erro ao salvar análise.', 'erro');
 }
 }
 
@@ -1672,7 +1765,7 @@ function verDetalhesQualidade(item) {
     resultado.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 async function excluirAnaliseQualidade(id) {
-    const confirmar = confirm('Deseja excluir esta análise?');
+    const confirmar = await confirmarDialog('Deseja excluir esta análise?');
 
     if (!confirmar) return;
 
@@ -1685,12 +1778,12 @@ async function excluirAnaliseQualidade(id) {
             throw new Error('Erro ao excluir');
         }
 
-        alert('Análise excluída com sucesso!');
+        toast('Análise excluída!');
         await carregarAnalisesQualidade();
 
     } catch (erro) {
         console.error(erro);
-        alert('Erro ao excluir análise.');
+        toast('Erro ao excluir análise.', 'erro');
     }
 }
 
@@ -1699,7 +1792,7 @@ async function gerarPDFQualidade() {
     const elemento = document.getElementById('q_resultado');
 
     if (!elemento || elemento.classList.contains('relatorio-vazio')) {
-        alert('Abra uma análise no botão Ver antes de gerar o PDF.');
+        toast('Abra uma análise antes de gerar o PDF.', 'aviso');
         return;
     }
 
@@ -1794,9 +1887,9 @@ const respostaEmail = await fetch('/enviar-relatorio-qualidade', {
 const retornoEmail = await respostaEmail.json();
 
 if (retornoEmail.status === 'ok') {
-    alert('PDF gerado e enviado por e-mail!');
+    toast('PDF gerado e enviado por e-mail!');
 } else {
-    alert('PDF gerado, mas houve erro ao enviar por e-mail.');
+    toast('PDF gerado, mas erro ao enviar e-mail.', 'aviso');
 }
 
 pdf.save(`relatorio-qualidade-${placaRelatorio}.pdf`);
@@ -2111,7 +2204,7 @@ function adicionarDefeitoMcCain() {
 
     if (!defeito || !pontos) {
 
-        alert('Selecione o defeito e a pontuação.');
+        toast('Selecione defeito e pontuação.', 'aviso');
 
         return;
     }
@@ -2365,12 +2458,12 @@ async function cadastrarUsuario() {
     const tipo = document.getElementById('tipoUsuario').value;
 
     if (!usuario || !tipo) {
-        alert('Preencha usuário e tipo.');
+        toast('Preencha usuário e tipo.', 'aviso');
         return;
     }
 
     if (!usuarioEditandoId && !senha) {
-        alert('Informe uma senha para novo usuário.');
+        toast('Informe uma senha.', 'aviso');
         return;
     }
 
@@ -2389,7 +2482,7 @@ async function cadastrarUsuario() {
     const dados = await resposta.json();
 
     if (dados.status === 'ok') {
-        alert(usuarioEditandoId ? 'Usuário atualizado!' : 'Usuário cadastrado!');
+        toast(usuarioEditandoId ? 'Usuário atualizado!' : 'Usuário cadastrado!');
 
         usuarioEditandoId = null;
 
@@ -2399,7 +2492,7 @@ async function cadastrarUsuario() {
 
         carregarUsuarios();
     } else {
-        alert('Erro ao salvar usuário.');
+        toast('Erro ao salvar usuário.', 'erro');
     }
 }
 
@@ -2490,11 +2583,11 @@ function editarUsuario(usuario) {
     document.getElementById('novaSenha').value = '';
     document.getElementById('tipoUsuario').value = usuario.tipo;
 
-    alert('Altere os dados e clique em Cadastrar Usuário para salvar.');
+    toast('Edite os dados e salve.', 'info');
 }
 
 async function excluirUsuario(id) {
-    const confirmar = confirm('Deseja excluir este usuário?');
+    const confirmar = await confirmarDialog('Deseja excluir este usuário?');
 
     if (!confirmar) return;
 
@@ -2505,10 +2598,10 @@ async function excluirUsuario(id) {
     const dados = await resposta.json();
 
     if (dados.status === 'ok') {
-        alert('Usuário excluído!');
+        toast('Usuário excluído!');
         carregarUsuarios();
     } else {
-        alert('Erro ao excluir usuário.');
+        toast('Erro ao excluir usuário.', 'erro');
     }
 }
 
@@ -2519,7 +2612,7 @@ function adicionarFritura() {
     const quantidade = document.getElementById('q_fritura_quantidade')?.value || '';
 
     if (!tipo || !quantidade) {
-        alert('Selecione a classificação e informe a quantidade.');
+        toast('Selecione classificação e quantidade.', 'aviso');
         return;
     }
 
@@ -2712,7 +2805,7 @@ async function cadastrarOrigem() {
     const nome = campo.value.trim();
 
     if (!nome) {
-        alert('Digite a origem.');
+        toast('Digite a origem.', 'aviso');
         return;
     }
 
@@ -2780,7 +2873,7 @@ function limparAnaliseQualidade() {
         resultado.innerHTML = 'Nenhuma análise selecionada.';
     }
 
-    alert('Análise limpa!');
+    toast('Análise limpa!', 'info');
 }
 const tabelaSolidos = {
     153: 13.00, 154: 13.08, 155: 13.14, 156: 13.21, 157: 13.27,
@@ -2878,7 +2971,7 @@ document
                 JSON.stringify(usuarioLogado)
             );
 
-            alert('Foto atualizada com sucesso!');
+            toast('Foto atualizada!');
         }
     });
 
@@ -3317,10 +3410,10 @@ async function salvarEdicaoExpedicao(id) {
     });
 
     if (!resposta.ok) {
-        alert('Erro ao salvar edição.');
+        toast('Erro ao salvar edição.', 'erro');
         return;
     }
 
     await carregarHistorico();
-    alert('Expedição atualizada com sucesso!');
+    toast('Expedição atualizada!');
 }
