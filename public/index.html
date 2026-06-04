@@ -1,1021 +1,459 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <link rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <title>Furman Agronegócios</title>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" type="image/png" href="img/favicon.png">
 </head>
 <body>
-
 <div class="layout">
 
-    <aside class="sidebar">
-
+<aside class="sidebar">
     <div class="sidebar-logo">
         <img src="img/LOGO.jpeg" alt="Furman">
         <h2>Furman Agronegócios</h2>
         <span>PAINEL OPERACIONAL</span>
     </div>
-
     <div class="perfil-mini">
-
-                <img
-                id="fotoPerfil"
-                src="/img/LOGO.jpeg"
-                class="foto-perfil"
-            >
-
-            <input
-                type="file"
-                id="inputFotoPerfil"
-                accept="image/*"
-                style="display:none"
-            >
-
-            <button
-                class="btn-foto"
-                onclick="document.getElementById('inputFotoPerfil').click()">
-                📷 Alterar Foto
-            </button>
-
+        <img id="fotoPerfil" src="/img/LOGO.jpeg" class="foto-perfil">
+        <input type="file" id="inputFotoPerfil" accept="image/*" style="display:none">
+        <button class="btn-foto" onclick="document.getElementById('inputFotoPerfil').click()">📷 Alterar Foto</button>
         <strong id="nomePerfil">Usuário</strong>
-
         <small id="cargoPerfil">USUARIO</small>
-        <div class="status-online">
-        <span></span>
-        Online
-        </div>
-
+        <div class="status-online"><span></span>Online</div>
     </div>
-
     <nav>
-
-    <button class="menu-btn ativo" onclick="mostrarAba('dashboard', this)">
-    <span class="menu-icon">
-        <i class="fas fa-chart-pie"></i>
-    </span>
-    <span class="menu-text">Dashboard</span>
-    </button>
-
-    <button class="menu-btn" onclick="mostrarAba('indicadores', this)">
-        <span class="menu-icon">
-            <i class="fas fa-chart-line"></i>
-        </span>
-        <span class="menu-text">Indicadores</span>
+        <button class="menu-btn ativo" onclick="mostrarAba('dashboard', this)">
+            <span class="menu-icon"><i class="fas fa-chart-pie"></i></span>
+            <span class="menu-text">Dashboard</span>
         </button>
+        <button class="menu-btn" onclick="mostrarAba('indicadores', this)">
+            <span class="menu-icon"><i class="fas fa-chart-line"></i></span>
+            <span class="menu-text">Indicadores</span>
+        </button>
+        <button class="menu-btn" onclick="mostrarAba('cadastros', this)">
+            <span class="menu-icon"><i class="fas fa-users-cog"></i></span>
+            <span class="menu-text">Cadastros</span>
+        </button>
+        <button class="menu-btn" onclick="mostrarAba('expedicao', this)">
+            <span class="menu-icon"><i class="fas fa-truck"></i></span>
+            <span class="menu-text">Expedição</span>
+        </button>
+        <button class="menu-btn" onclick="mostrarAba('relatorios', this)">
+            <span class="menu-icon"><i class="fas fa-file-alt"></i></span>
+            <span class="menu-text">Relatórios</span>
+        </button>
+        <button class="menu-btn" onclick="mostrarAba('qualidade', this)">
+            <span class="menu-icon"><i class="fas fa-flask"></i></span>
+            <span class="menu-text">Qualidade</span>
+        </button>
+        <button class="menu-btn" onclick="mostrarAba('auditoria', this)">
+            <span class="menu-icon"><i class="fas fa-shield-halved"></i></span>
+            <span class="menu-text">Auditoria</span>
+        </button>
+        <button id="menu-usuarios" class="menu-btn" onclick="mostrarAba('usuarios', this)">
+            <span class="menu-icon"><i class="fas fa-user"></i></span>
+            <span class="menu-text">Usuários</span>
+        </button>
+        <button class="menu-btn logout-btn" onclick="logout()">
+            <span class="menu-icon"><i class="fas fa-power-off"></i></span>
+            <span class="menu-text">Sair</span>
+        </button>
+    </nav>
+</aside>
 
+<main class="main">
 
-    <button class="menu-btn" onclick="mostrarAba('cadastros', this)">
-    <span class="menu-icon">
-        <i class="fas fa-users-cog"></i>
-    </span>
-    <span class="menu-text">Cadastros</span>
-    </button>
-
-    <button class="menu-btn" onclick="mostrarAba('expedicao', this)">
-    <span class="menu-icon">
-        <i class="fas fa-truck"></i>
-    </span>
-    <span class="menu-text">Expedição</span>
-    </button>
-
-    <button class="menu-btn" onclick="mostrarAba('relatorios', this)">
-    <span class="menu-icon">
-        <i class="fas fa-file-alt"></i>
-    </span>
-    <span class="menu-text">Relatórios</span>
-    </button>
-
-    <button class="menu-btn" onclick="mostrarAba('qualidade', this)">
-    <span class="menu-icon">
-        <i class="fas fa-flask"></i>
-    </span>
-    <span class="menu-text">Qualidade</span>
-</button>
-
-<button class="menu-btn" onclick="mostrarAba('auditoria', this)">
-    <span class="menu-icon">
-        <i class="fas fa-shield-halved"></i>
-    </span>
-    <span class="menu-text">Auditoria</span>
-</button>
-
-<button id="menu-usuarios" class="menu-btn" onclick="mostrarAba('usuarios', this)">
-    <span class="menu-icon">
-        <i class="fas fa-user"></i>
-    </span>
-    <span class="menu-text">Usuários</span>
-</button>
-
-<button class="menu-btn logout-btn" onclick="logout()">
-    <span class="menu-icon">
-        <i class="fas fa-power-off"></i>
-    </span>
-    <span class="menu-text">Sair</span>
-</button>
-
-        </nav>
-    </aside>
-
-    <main class="main">
-
-        <section id="dashboard" class="aba ativa">
-            <div class="dashboard-premium">
-
-                <div class="dash-header">
-                    <div>
-                        <p class="dash-subtitle">Furman Agronegócios</p>
-                        <h1>Dashboard Operacional</h1>
-                    </div>
-
-                    <div class="dash-user">
-                        <span>🌱 Agro Negócios</span>
-                        <strong>Online</strong>
-                    </div>
-                </div>
-
-                <div class="dash-banner">
-                    <div>
-                        <p>Controle de Expedições</p>
-                        <h2>Monitoramento em tempo real</h2>
-                        <span>Acompanhe cargas, pesos, aprovações e reprovações.</span>
-                    </div>
-                </div>
-
-                <div class="quick-actions">
-
-    <button type="button" class="atalho-btn" onclick="mostrarAba('expedicao', document.querySelector('[onclick*=expedicao]'))">
-        <span class="atalho-icone">📦</span>
-        <div class="atalho-texto">
-            <strong>Nova Expedição</strong>
-            <small>Criar carga</small>
-        </div>
-    </button>
-
-    <button type="button" class="atalho-btn" onclick="mostrarAba('relatorios', document.querySelector('[onclick*=relatorios]'))">
-        <span class="atalho-icone">📄</span>
-        <div class="atalho-texto">
-            <strong>Relatórios</strong>
-            <small>Consultar cargas</small>
-        </div>
-    </button>
-
-    <button type="button" class="atalho-btn" onclick="mostrarAba('cadastros', document.querySelector('[onclick*=cadastros]'))">
-        <span class="atalho-icone">🚛</span>
-        <div class="atalho-texto">
-            <strong>Cadastros</strong>
-            <small>Motoristas e placas</small>
-        </div>
-    </button>
-
-    <button type="button" class="atalho-btn" onclick="carregarDashboard()">
-        <span class="atalho-icone">🔄</span>
-        <div class="atalho-texto">
-            <strong>Atualizar</strong>
-            <small>Sincronizar dados</small>
-        </div>
-    </button>
-
-</div>
-                <div class="dashboard-grid premium-grid">
-
-                    <div class="kpi premium-kpi destaque">
-                        <span>📦</span>
-                        <div>
-                            <p>Total Expedições</p>
-                            <h2 id="totalCarretas">0</h2>
-                        </div>
-                    </div>
-
-                    <div class="kpi premium-kpi">
-                        <span>⚖️</span>
-                        <div>
-                            <p>Peso Estimado</p>
-                            <h2 id="totalBags">0 kg</h2>
-                        </div>
-                    </div>
-
-                    <div class="kpi premium-kpi">
-                        <span>✅</span>
-                        <div>
-                            <p>Taxa Aprovação</p>
-                            <h2 id="taxaAprovacao">0%</h2>
-                        </div>
-                    </div>
-
-                    <div class="kpi premium-kpi">
-                        <span>❌</span>
-                        <div>
-                            <p>Taxa Reprovação</p>
-                            <h2 id="taxaReprovacao">0%</h2>
-                        </div>
-                    </div>
-
-                    <div class="kpi premium-kpi">
-                        <span>🟢</span>
-                        <div>
-                            <p>Aprovados</p>
-                            <h2 id="totalAprovados">0</h2>
-                        </div>
-                    </div>
-
-                    <div class="kpi premium-kpi">
-                    <span>🔵</span>
-                    <div>
-                        <p>Aprovado c/ Restrição</p>
-                         <h2 id="totalRestricao">0</h2>
-                </div>
-</div>
-
-                    <div class="kpi premium-kpi">
-                        <span>🔴</span>
-                        <div>
-                            <p>Reprovados</p>
-                            <h2 id="totalReprovados">0</h2>
-                        </div>
-                    </div>
-
-                </div>
-
-                <div class="dash-bottom">
-
-                    <div class="chart-card chart-expedicoes">
-                        <div class="card-title">
-                            <h3>📈 Resumo Operacional</h3>
-                            <span>Expedições</span>
-                        </div>
-                        <canvas id="graficoExpedicoes"></canvas>
-                    </div>
-
-                    <div class="chart-card status-card">
-                        <div class="card-title">
-                            <h3>🎯 Qualidade</h3>
-                            <span>Status geral</span>
-                        </div>
-
-                        <div class="donut-chart-container">
-                            <canvas id="graficoQualidade"></canvas>
-                            <div class="donut-center">
-                                <strong id="taxaAprovacaoCircle">0%</strong>
-                                <span>Aprovado</span>
-                            </div>
-                        </div>
-
-                        <div class="status-line">
-                            <span>Aprovados</span>
-                            <strong id="totalAprovadosResumo">0</strong>
-                        </div>
-
-                        <div class="status-line blue">
-                        <span>Aprovado c/ Restrição</span>
-                        <strong id="totalRestricaoResumo">0</strong>
-                        </div>
-
-                        <div class="status-line red">
-                            <span>Reprovados</span>
-                            <strong id="totalReprovadosResumo">0</strong>
-                        </div>
-                    </div>
-
-                    <div class="chart-card chart-status">
-                        <div class="card-title">
-                            <h3>🚛 Status Operacional</h3>
-                            <span>Tempo real</span>
-                        </div>
-                        <canvas id="graficoStatus"></canvas>
-                    </div>
-
-                    <div class="chart-card alertas-card">
-                        <div class="card-title">
-                            <h3>⚠️ Alertas Operacionais</h3>
-                            <span>Atualizado agora</span>
-                        </div>
-
-                        <div id="listaAlertas" class="lista-alertas">
-                            Nenhum alerta no momento.
-                        </div>
-                    </div>
-
-                </div>
-
-            </div>
-        </section>
-
-        <section id="indicadores" class="aba">
-    <div class="dashboard-premium">
-
-        <div class="dash-header">
-            <div>
-                <p class="dash-subtitle">Visão Gerencial</p>
-                <h1>Dashboard Executivo</h1>
-            </div>
-        </div>
-
-        <div class="dashboard-grid premium-grid">
-            <div class="kpi premium-kpi destaque">
-                <span>🚚</span>
+    <!-- DASHBOARD -->
+    <section id="dashboard" class="aba ativa">
+        <div class="dashboard-premium">
+            <div class="dash-header">
                 <div>
-                    <p>Total de Expedições</p>
-                    <h2 id="exec-total-expedicoes">0</h2>
+                    <p class="dash-subtitle">Furman Agronegócios</p>
+                    <h1>Dashboard Operacional</h1>
+                </div>
+                <div class="dash-user">
+                    <span>🌱 Agro Negócios</span>
+                    <strong>Online</strong>
                 </div>
             </div>
-
-            <div class="kpi premium-kpi">
-                <span>✅</span>
+            <div class="dash-banner">
                 <div>
-                    <p>Aprovadas</p>
-                    <h2 id="exec-aprovadas">0</h2>
+                    <p>Controle de Expedições</p>
+                    <h2>Monitoramento em tempo real</h2>
+                    <span>Acompanhe cargas, pesos, aprovações e reprovações.</span>
                 </div>
             </div>
-
-            <div class="kpi premium-kpi">
-                <span>❌</span>
-                <div>
-                    <p>Reprovadas</p>
-                    <h2 id="exec-reprovadas">0</h2>
-                </div>
+            <div class="quick-actions">
+                <button type="button" class="atalho-btn" onclick="mostrarAba('expedicao', document.querySelector('[onclick*=expedicao]'))">
+                    <span class="atalho-icone">📦</span>
+                    <div class="atalho-texto"><strong>Nova Expedição</strong><small>Criar carga</small></div>
+                </button>
+                <button type="button" class="atalho-btn" onclick="mostrarAba('relatorios', document.querySelector('[onclick*=relatorios]'))">
+                    <span class="atalho-icone">📄</span>
+                    <div class="atalho-texto"><strong>Relatórios</strong><small>Consultar cargas</small></div>
+                </button>
+                <button type="button" class="atalho-btn" onclick="mostrarAba('cadastros', document.querySelector('[onclick*=cadastros]'))">
+                    <span class="atalho-icone">🚛</span>
+                    <div class="atalho-texto"><strong>Cadastros</strong><small>Motoristas e placas</small></div>
+                </button>
+                <button type="button" class="atalho-btn" onclick="carregarDashboard()">
+                    <span class="atalho-icone">🔄</span>
+                    <div class="atalho-texto"><strong>Atualizar</strong><small>Sincronizar dados</small></div>
+                </button>
             </div>
-
-            <div class="kpi premium-kpi">
-            <span>🧼</span>
-            <div>
-            <p>Lavagens</p>
-            <h2 id="exec-lavagens">0</h2>
-        </div>
-    </div>
-
-            <div class="kpi premium-kpi">
-                <span>📊</span>
-                <div>
-                    <p>Taxa Aprovação</p>
-                    <h2 id="exec-taxa-aprovacao">0%</h2>
-                </div>
+            <div class="dashboard-grid premium-grid">
+                <div class="kpi premium-kpi destaque"><span>📦</span><div><p>Total Expedições</p><h2 id="totalCarretas">0</h2></div></div>
+                <div class="kpi premium-kpi"><span>⚖️</span><div><p>Peso Estimado</p><h2 id="totalBags">0 kg</h2></div></div>
+                <div class="kpi premium-kpi"><span>✅</span><div><p>Taxa Aprovação</p><h2 id="taxaAprovacao">0%</h2></div></div>
+                <div class="kpi premium-kpi"><span>❌</span><div><p>Taxa Reprovação</p><h2 id="taxaReprovacao">0%</h2></div></div>
+                <div class="kpi premium-kpi"><span>🟢</span><div><p>Aprovados</p><h2 id="totalAprovados">0</h2></div></div>
+                <div class="kpi premium-kpi"><span>🔵</span><div><p>Aprovado c/ Restrição</p><h2 id="totalRestricao">0</h2></div></div>
+                <div class="kpi premium-kpi"><span>🔴</span><div><p>Reprovados</p><h2 id="totalReprovados">0</h2></div></div>
             </div>
-
-             <div class="kpi premium-kpi">
-                <span>🏁</span>
-                <div>
-                <p>Finalizadas</p>
-                    <h2 id="exec-finalizadas">0</h2>
+            <div class="dash-bottom">
+                <div class="chart-card chart-expedicoes">
+                    <div class="card-title"><h3>📈 Resumo Operacional</h3><span>Expedições</span></div>
+                    <canvas id="graficoExpedicoes"></canvas>
+                </div>
+                <div class="chart-card status-card">
+                    <div class="card-title"><h3>🎯 Qualidade</h3><span>Status geral</span></div>
+                    <div class="donut-chart-container">
+                        <canvas id="graficoQualidade"></canvas>
+                        <div class="donut-center">
+                            <strong id="taxaAprovacaoCircle">0%</strong>
+                            <span>Aprovado</span>
+                        </div>
                     </div>
+                    <div class="status-line"><span>Aprovados</span><strong id="totalAprovadosResumo">0</strong></div>
+                    <div class="status-line blue"><span>Aprovado c/ Restrição</span><strong id="totalRestricaoResumo">0</strong></div>
+                    <div class="status-line red"><span>Reprovados</span><strong id="totalReprovadosResumo">0</strong></div>
                 </div>
-                <div class="kpi premium-kpi">
-    <span>📅</span>
-    <div>
-        <p>Expedições Hoje</p>
-        <h2 id="exec-expedicoes-hoje">0</h2>
-    </div>
-</div>
-
-<div class="kpi premium-kpi">
-    <span>📆</span>
-    <div>
-        <p>Expedições no Mês</p>
-        <h2 id="exec-expedicoes-mes">0</h2>
-    </div>
-</div>
-        </div>
-
-        <div class="dash-bottom">
-            <div class="chart-card">
-                <div class="card-title">
-                    <h3>🚛 Status das Expedições</h3>
-                    <span>Resumo executivo</span>
+                <div class="chart-card chart-status">
+                    <div class="card-title"><h3>🚛 Status Operacional</h3><span>Tempo real</span></div>
+                    <canvas id="graficoStatus"></canvas>
                 </div>
-                <canvas id="graficoExecStatus"></canvas>
+                <div class="chart-card alertas-card">
+                    <div class="card-title"><h3>⚠️ Alertas Operacionais</h3><span>Atualizado agora</span></div>
+                    <div id="listaAlertas" class="lista-alertas">Nenhum alerta no momento.</div>
+                </div>
             </div>
+        </div>
+    </section>
 
-            <div class="chart-card">
-                <div class="card-title">
-                    <h3>🥔 Variedades</h3>
-                    <span>Distribuição por variedade</span>
+    <!-- INDICADORES -->
+    <section id="indicadores" class="aba">
+        <div class="dashboard-premium">
+            <div class="dash-header">
+                <div>
+                    <p class="dash-subtitle">Visão Gerencial</p>
+                    <h1>Dashboard Executivo</h1>
                 </div>
-                <canvas id="graficoExecVariedades"></canvas>
-                </div>
+            </div>
+            <div class="dashboard-grid premium-grid">
+                <div class="kpi premium-kpi destaque"><span>🚚</span><div><p>Total de Expedições</p><h2 id="exec-total-expedicoes">0</h2></div></div>
+                <div class="kpi premium-kpi"><span>✅</span><div><p>Aprovadas</p><h2 id="exec-aprovadas">0</h2></div></div>
+                <div class="kpi premium-kpi"><span>❌</span><div><p>Reprovadas</p><h2 id="exec-reprovadas">0</h2></div></div>
+                <div class="kpi premium-kpi"><span>🧼</span><div><p>Lavagens</p><h2 id="exec-lavagens">0</h2></div></div>
+                <div class="kpi premium-kpi"><span>📊</span><div><p>Taxa Aprovação</p><h2 id="exec-taxa-aprovacao">0%</h2></div></div>
+                <div class="kpi premium-kpi"><span>🏁</span><div><p>Finalizadas</p><h2 id="exec-finalizadas">0</h2></div></div>
+                <div class="kpi premium-kpi"><span>📅</span><div><p>Expedições Hoje</p><h2 id="exec-expedicoes-hoje">0</h2></div></div>
+                <div class="kpi premium-kpi"><span>📆</span><div><p>Expedições no Mês</p><h2 id="exec-expedicoes-mes">0</h2></div></div>
+            </div>
+            <div class="dash-bottom">
+                <div class="chart-card">
+                    <div class="card-title"><h3>🚛 Status das Expedições</h3><span>Resumo executivo</span></div>
+                    <canvas id="graficoExecStatus"></canvas>
                 </div>
                 <div class="chart-card">
-            
-            <div class="card-title">
-        <h3>🏆 Top Produtores</h3>
-        <span>Maior volume de expedições</span>
-    </div>
-
-    <div id="rankingProdutoresExecutivo"></div>
-</div>
-
-    </div>
-</section>
-
-      <section id="cadastros" class="aba">
-
-    <div class="card">
-
-        <h2>📁 Cadastros</h2>
-
-        <div class="cadastros-grid">
-
-            <!-- MOTORISTA -->
-
-            <div class="cadastro-card">
-
-                <h3>🚛 Cavalo / Motorista</h3>
-
-                <input type="text"
-                    id="placaCadastro"
-                    placeholder="Placa do cavalo">
-
-                <input type="text"
-                    id="motoristaCadastro"
-                    placeholder="Nome do motorista">
-
-                <input
-                type="file"
-                id="fotoCadastro"
-                hidden
->
-                <label for="fotoCadastro" class="upload-foto-btn">
-                📷 Selecionar Foto
-                </label>
-                <span id="nomeArquivoFoto">
-                Nenhuma foto selecionada
-                </span>
-                
-                <button
-                    type="button"
-                    class="primary-btn"
-                    onclick="cadastrarMotorista(event)">
-
-                    Cadastrar Motorista
-
-                </button>
-
-            </div>
-
-            <!-- PRODUTOR -->
-
-            <div class="cadastro-card">
-
-                <h3>🌱 Produtor</h3>
-
-                <input type="text"
-                    id="novoProdutor"
-                    placeholder="Nome do produtor">
-
-                <button
-                    type="button"
-                    class="primary-btn"
-                    onclick="cadastrarProdutor()">
-
-                    Cadastrar Produtor
-
-                </button>
-
-            </div>
-
-            <!-- CARRETA -->
-
-            <div class="cadastro-card">
-
-                <h3>🚛 Carreta</h3>
-
-                <input type="text"
-                    id="novaCarreta"
-                    placeholder="Placa da carreta">
-
-                <button
-                    type="button"
-                    class="primary-btn"
-                    onclick="cadastrarCarreta()">
-
-                    Cadastrar Carreta
-
-                </button>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</section>
-
-        <section id="expedicao" class="aba">
-            <div class="card">
-               <h2>
-                📦 Nova Expedição
-            <span class="subtitulo-expedicao">
-                Cadastro e envio de cargas para McCain
-            </span>
-                </h2>
-                <form id="formExpedicao" onsubmit="gerarRelatorio(event)">
-                    <div class="form-grid">
-
-    <!-- LINHA 1 -->
-
-                <select id="produtor">
-                    <option value="">Selecione o produtor</option>
-                </select>
-
-                <input
-                    type="text"
-                    id="placa_cavalo"
-                    placeholder="Placa do cavalo"
-                    oninput="buscarMotorista()"
-                >
-
-                <input
-                    type="text"
-                    id="motorista"
-                    placeholder="Motorista"
-                    readonly
-                >
-
-                <select id="origem">
-                    <option value="">Origem</option>
-                </select>
-
-            <!-- LINHA 2 -->
-
-                <div class="origem-box">
-
-                <input
-                    id="novaOrigem"
-                    placeholder="Cadastrar nova origem"
-                >
-
-                <button
-                    type="button"
-                    class="btn-origem"
-                    onclick="cadastrarOrigem()"
->
-                        ➕ Adicionar Origem
-                    </button>
-
-    </div>
-
-    <select id="veiculo" onchange="definirPeso()">
-        <option value="">Tipo de veículo</option>
-        <option>4º Eixo</option>
-        <option>Rodo Caçamba</option>
-    </select>
-
-    <input
-        type="text"
-        id="peso"
-        placeholder="Peso em kg conforme NF"
-    >
-
-    <!-- LINHA 3 -->
-
-    <select id="placa_carreta1">
-        <option value="">Carreta 1</option>
-    </select>
-
-    <select id="variedade1">
-        <option value="">Variedade 1</option>
-        <option>ROYAL</option>
-        <option>MARKIES</option>
-        <option>ASTERIX</option>
-    </select>
-
-    <select id="placa_carreta2" class="campo-extra">
-        <option value="">Carreta 2</option>
-    </select>
-
-    <select id="variedade2" class="campo-extra">
-        <option value="">Variedade 2</option>
-        <option>ROYAL</option>
-        <option>MARKIES</option>
-        <option>ASTERIX</option>
-    </select>
-
-</div>
-
-                    <div id="fotoBox" class="foto-box escondido">
-                        <p>Foto do caminhão</p>
-                        <img id="fotoMotorista" src="" alt="Foto do caminhão">
-                    </div>
-
-                    <div class="buttons">
-                        <button type="submit" class="primary-btn">📦 Gerar Relatório</button>
-                        <button type="button" class="primary-btn" onclick="copiarRelatorio()">📋 Copiar Relatório</button>
-                        <button type="button" class="primary-btn" onclick="abrirWhatsapp()">📲 Abrir WhatsApp</button>
-                    </div>
-
-                   <div id="relatorioGerado" class="relatorio-card relatorio-vazio">
-                        📄 Gere uma expedição para visualizar o relatório
-                    </div>
-
-                </form>
-            </div>
-        </section>
-
-        <section id="relatorios" class="aba">
-
-            <div class="card relatorios-card">
-                <h2>📄 Relatórios</h2>
-
-                <div class="filtros-relatorios">
-    <input type="text" id="filtroBusca" placeholder="Buscar produtor, motorista, placa...">
-
-    <select id="filtroStatus">
-        <option value="">Todos os status</option>
-        <option>Em viagem</option>
-        <option>Na McCain</option>
-        <option>Lavando</option>
-        <option>Reapresentado</option>
-        <option>Finalizado</option>
-    </select>
-
-    <select id="filtroVariedade">
-        <option value="">Todas as variedades</option>
-        <option>ROYAL</option>
-        <option>MARKIES</option>
-        <option>ASTERIX</option>
-    </select>
-
-    <input type="date" id="filtroDataInicio" title="Data início">
-    <input type="date" id="filtroDataFim" title="Data fim">
-
-    <button type="button" class="primary-btn" onclick="limparFiltrosRelatorios()">
-        Limpar Filtros
-    </button>
-</div>
-
-                <div class="table-container">
-                    <table class="relatorios-table">
-                        <thead>
-                            <tr>
-                                <th>Produtor</th>
-                                <th>Motorista</th>
-                                <th>Cavalo</th>
-                                <th>Origem</th>
-                                <th>Destino</th>
-                                <th>Veículo</th>
-                                <th>Carreta 1</th>
-                                <th>Variedade 1</th>
-                                <th>Carreta 2</th>
-                                <th>Variedade 2</th>
-                                <th>Peso</th>
-                                <th>Saída</th>
-                                <th>Status</th>
-                                <th>Qualidade C1</th>
-                                <th>Qualidade C2</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-
-                        <tbody id="tabelaHistorico"></tbody>
-                    </table>
+                    <div class="card-title"><h3>🥔 Variedades</h3><span>Distribuição por variedade</span></div>
+                    <canvas id="graficoExecVariedades"></canvas>
                 </div>
-                <div id="paginacaoExpedicoes" style="
-                    display: flex;
-                    flex-wrap: wrap;
-                    align-items: center;
-                    gap: 10px;
-                    padding: 18px;
-                    justify-content: space-between;
-                    "></div>
             </div>
-        
-        
-        </section>
+            <div class="dash-bottom">
+                <div class="chart-card">
+                    <div class="card-title"><h3>🏆 Top Produtores</h3><span>Por volume de expedições</span></div>
+                    <canvas id="graficoProdutores"></canvas>
+                </div>
+                <div class="chart-card">
+                    <div class="card-title"><h3>📅 Expedições por Mês</h3><span>Evolução mensal</span></div>
+                    <canvas id="graficoExpedicoesMes"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
 
-                    <section id="auditoria" class="aba">
-                    <h2>Auditoria do Sistema</h2>
-                    <div class="filtros-relatorios">
-                 <input type="text" id="filtroAuditoriaBusca" placeholder="Buscar usuário, campo, valor...">
+    <!-- CADASTROS -->
+    <section id="cadastros" class="aba">
+        <div class="card">
+            <h2>📁 Cadastros</h2>
+            <div class="cadastros-grid">
+                <div class="cadastro-card">
+                    <h3>🚛 Cavalo / Motorista</h3>
+                    <input type="text" id="placaCadastro" placeholder="Placa do cavalo">
+                    <input type="text" id="motoristaCadastro" placeholder="Nome do motorista">
+                    <input type="file" id="fotoCadastro" hidden>
+                    <label for="fotoCadastro" class="upload-foto-btn">📷 Selecionar Foto</label>
+                    <span id="nomeArquivoFoto">Nenhuma foto selecionada</span>
+                    <button type="button" class="primary-btn" onclick="cadastrarMotorista(event)">Cadastrar Motorista</button>
+                </div>
+                <div class="cadastro-card">
+                    <h3>🌱 Produtor</h3>
+                    <input type="text" id="novoProdutor" placeholder="Nome do produtor">
+                    <button type="button" class="primary-btn" onclick="cadastrarProdutor()">Cadastrar Produtor</button>
+                </div>
+                <div class="cadastro-card">
+                    <h3>🚛 Carreta</h3>
+                    <input type="text" id="novaCarreta" placeholder="Placa da carreta">
+                    <button type="button" class="primary-btn" onclick="cadastrarCarreta()">Cadastrar Carreta</button>
+                </div>
+            </div>
+        </div>
+    </section>
 
+    <!-- EXPEDIÇÃO -->
+    <section id="expedicao" class="aba">
+        <div class="card">
+            <h2>📦 Nova Expedição <span class="subtitulo-expedicao">Cadastro e envio de cargas para McCain</span></h2>
+            <form id="formExpedicao" onsubmit="gerarRelatorio(event)">
+                <div class="form-grid">
+                    <select id="produtor"><option value="">Selecione o produtor</option></select>
+                    <input type="text" id="placa_cavalo" placeholder="Placa do cavalo" oninput="buscarMotorista()">
+                    <input type="text" id="motorista" placeholder="Motorista" readonly>
+                    <select id="origem"><option value="">Origem</option></select>
+                    <div class="origem-box">
+                        <input id="novaOrigem" placeholder="Cadastrar nova origem">
+                        <button type="button" class="btn-origem" onclick="cadastrarOrigem()">➕ Adicionar Origem</button>
+                    </div>
+                    <select id="veiculo" onchange="definirPeso()">
+                        <option value="">Tipo de veículo</option>
+                        <option>4º Eixo</option>
+                        <option>Rodo Caçamba</option>
+                    </select>
+                    <input type="text" id="peso" placeholder="Peso em kg conforme NF">
+                    <select id="placa_carreta1"><option value="">Carreta 1</option></select>
+                    <select id="variedade1">
+                        <option value="">Variedade 1</option>
+                        <option>ROYAL</option><option>MARKIES</option><option>ASTERIX</option>
+                    </select>
+                    <select id="placa_carreta2" class="campo-extra"><option value="">Carreta 2</option></select>
+                    <select id="variedade2" class="campo-extra">
+                        <option value="">Variedade 2</option>
+                        <option>ROYAL</option><option>MARKIES</option><option>ASTERIX</option>
+                    </select>
+                </div>
+                <div id="fotoBox" class="foto-box escondido">
+                    <p>Foto do caminhão</p>
+                    <img id="fotoMotorista" src="" alt="Foto do caminhão">
+                </div>
+                <div class="buttons">
+                    <button type="submit" class="primary-btn">📦 Gerar Relatório</button>
+                    <button type="button" class="primary-btn" onclick="copiarRelatorio()">📋 Copiar Relatório</button>
+                    <button type="button" class="primary-btn" onclick="abrirWhatsapp()">📲 Abrir WhatsApp</button>
+                </div>
+                <div id="relatorioGerado" class="relatorio-card relatorio-vazio">📄 Gere uma expedição para visualizar o relatório</div>
+            </form>
+        </div>
+    </section>
+
+    <!-- RELATÓRIOS -->
+    <section id="relatorios" class="aba">
+        <div class="card relatorios-card">
+            <h2>📄 Relatórios</h2>
+            <div class="filtros-relatorios">
+                <input type="text" id="filtroBusca" placeholder="Buscar produtor, motorista, placa...">
+                <select id="filtroStatus">
+                    <option value="">Todos os status</option>
+                    <option>Em viagem</option><option>Na McCain</option><option>Lavando</option>
+                    <option>Reapresentado</option><option>Finalizado</option>
+                </select>
+                <select id="filtroVariedade">
+                    <option value="">Todas as variedades</option>
+                    <option>ROYAL</option><option>MARKIES</option><option>ASTERIX</option>
+                </select>
+                <input type="date" id="filtroDataInicio" title="Data início">
+                <input type="date" id="filtroDataFim" title="Data fim">
+                <button type="button" class="primary-btn" onclick="limparFiltrosRelatorios()">Limpar Filtros</button>
+                <button type="button" class="primary-btn" onclick="exportarExpeditcoesExcel()">📊 Exportar Excel</button>
+            </div>
+            <div class="table-container">
+                <table class="relatorios-table">
+                    <thead>
+                        <tr>
+                            <th>Produtor</th><th>Motorista</th><th>Cavalo</th><th>Origem</th><th>Destino</th>
+                            <th>Veículo</th><th>Carreta 1</th><th>Variedade 1</th><th>Carreta 2</th><th>Variedade 2</th>
+                            <th>Peso</th><th>Saída</th><th>Status</th><th>Qualidade C1</th><th>Qualidade C2</th><th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaHistorico"></tbody>
+                </table>
+            </div>
+            <div id="paginacaoExpedicoes" style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:18px;justify-content:space-between;"></div>
+        </div>
+    </section>
+
+    <!-- AUDITORIA -->
+    <section id="auditoria" class="aba">
+        <h2>Auditoria do Sistema</h2>
+        <div class="filtros-relatorios">
+            <input type="text" id="filtroAuditoriaBusca" placeholder="Buscar usuário, campo, valor...">
             <select id="filtroAuditoriaAcao">
                 <option value="">Todas as ações</option>
                 <option value="ALTERAÇÃO">ALTERAÇÃO</option>
                 <option value="EXCLUSÃO">EXCLUSÃO</option>
-                </select>
-
-                <button type="button" class="primary-btn" onclick="limparFiltrosAuditoria()">
-                Limpar Filtros
-                </button>
-                
-                <button type="button" class="primary-btn" onclick="exportarAuditoriaExcel()">
-                 Exportar Excel
-                </button>
-            </div>
-
-                    <div class="tabela-container">
-                    <table>
-                    <thead>
-                        <tr>
-                            <th>Data/Hora</th>
-                            <th>Usuário</th>
-                            <th>Ação</th>
-                            <th>Registro</th>
-                            <th>Campo</th>
-                            <th>Antes</th>
-                            <th>Depois</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabela-auditoria"></tbody>
-                    </table>
-                    </div>
+            </select>
+            <button type="button" class="primary-btn" onclick="limparFiltrosAuditoria()">Limpar Filtros</button>
+            <button type="button" class="primary-btn" onclick="exportarAuditoriaExcel()">Exportar Excel</button>
+        </div>
+        <div class="tabela-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data/Hora</th><th>Usuário</th><th>Ação</th><th>Registro</th>
+                        <th>Campo</th><th>Antes</th><th>Depois</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela-auditoria"></tbody>
+            </table>
+        </div>
     </section>
 
-
-
-
-        <section id="qualidade" class="aba">
-    <div class="card">
-
-        <h2>🔬 Análise de Qualidade</h2>
-
-        <!-- CARDS -->
-        <div class="dashboard-grid premium-grid">
-
-            <div class="kpi premium-kpi">
-                <span>🔬</span>
-                <div>
-                    <p>Total de Análises</p>
-                    <h2 id="qtdAnalisesQualidade">0</h2>
-                </div>
+    <!-- QUALIDADE -->
+    <section id="qualidade" class="aba">
+        <div class="card">
+            <h2>🔬 Análise de Qualidade</h2>
+            <div class="dashboard-grid premium-grid">
+                <div class="kpi premium-kpi"><span>🔬</span><div><p>Total de Análises</p><h2 id="qtdAnalisesQualidade">0</h2></div></div>
+                <div class="kpi premium-kpi"><span>🧪</span><div><p>Média de Sólidos</p><h2 id="mediaSolidosQualidade">0%</h2></div></div>
+                <div class="kpi premium-kpi"><span>⚖️</span><div><p>Média Peso Total</p><h2 id="mediaPesoQualidade">0</h2></div></div>
+                <div class="kpi premium-kpi"><span>⚠️</span><div><p>Total de Pontos</p><h2 id="totalPontosQualidade">0</h2></div></div>
             </div>
-
-            <div class="kpi premium-kpi">
-                <span>🧪</span>
-                <div>
-                    <p>Média de Sólidos</p>
-                    <h2 id="mediaSolidosQualidade">0%</h2>
-                </div>
+            <div class="chart-card qualidade-chart-card">
+                <div class="card-title"><h3>📈 Evolução de Sólidos</h3><span>Últimas análises</span></div>
+                <canvas id="graficoSolidosQualidade"></canvas>
             </div>
-
-            <div class="kpi premium-kpi">
-                <span>⚖️</span>
-                <div>
-                    <p>Média Peso Total</p>
-                    <h2 id="mediaPesoQualidade">0</h2>
-                </div>
+            <h3>🟩 Inserção de dados</h3>
+            <div class="form-grid">
+                <input id="q_fazenda" type="text" placeholder="Fazenda">
+                <input id="q_variedade" type="text" placeholder="Variedade">
+                <input id="q_solido_1" placeholder="Sólido 1 - peso balança" oninput="calcularSolidosAutomatico()">
+                <input id="q_solido_2" placeholder="Sólido 2 - peso balança" oninput="calcularSolidosAutomatico()">
+                <input id="q_solido_3" placeholder="Sólido 3 - peso balança" oninput="calcularSolidosAutomatico()">
+                <input id="q_temperatura_agua" type="text" placeholder="Temperatura da água">
+                <input id="q_temperatura_media" type="text" placeholder="Temperatura média de três tubérculos">
+                <input id="q_peso_agua" placeholder="Peso água médio" readonly>
+                <input id="q_solidos" placeholder="% sólidos médio" readonly>
+                <input id="q_placa" type="text" placeholder="Placa">
+                <input id="q_peso_total" type="text" placeholder="Peso total">
+                <input id="q_peso_lavado" type="text" placeholder="Peso lavado">
             </div>
-
-            <div class="kpi premium-kpi">
-                <span>⚠️</span>
-                <div>
-                    <p>Total de Pontos</p>
-                    <h2 id="totalPontosQualidade">0</h2>
-                </div>
+            <br>
+            <h3>📏 Classificação por diâmetro</h3>
+            <div class="form-grid">
+                <input type="text" id="q_diametro_35" placeholder="&lt;35 peso">
+                <input type="text" id="q_diametro_35_45" placeholder="35-45mm peso">
+                <input type="text" id="q_diametro_45" placeholder="&gt;45mm peso">
             </div>
-
-        </div>
-
-        <!-- GRÁFICO -->
-        <div class="chart-card qualidade-chart-card">
-
-            <div class="card-title">
-                <h3>📈 Evolução de Sólidos</h3>
-                <span>Últimas análises</span>
+            <br>
+            <h3>📐 Classificação por comprimento</h3>
+            <div class="form-grid">
+                <input type="number" id="q_menos75_qtd" placeholder="&lt;75 quantidade">
+                <input type="text" id="q_menos75_peso" placeholder="&lt;75 peso">
+                <input type="number" id="q_mais75_qtd" placeholder="&gt;75 quantidade">
+                <input type="text" id="q_mais75_peso" placeholder="&gt;75 peso">
+                <input type="number" id="q_mais100_qtd" placeholder="&gt;100 quantidade">
+                <input type="text" id="q_mais100_peso" placeholder="&gt;100 peso">
+                <input type="number" id="q_mais150_qtd" placeholder="&gt;150 quantidade">
+                <input type="text" id="q_mais150_peso" placeholder="&gt;150 peso">
             </div>
-
-            <canvas id="graficoSolidosQualidade"></canvas>
-
+            <div class="campo">
+                <label>🍟 Classificação da Fritura</label>
+                <select id="q_fritura_tipo">
+                    <option value="">Selecione a classificação</option>
+                    <option value="C00">C00</option><option value="C0">C0</option>
+                    <option value="C1">C1</option><option value="C2">C2</option>
+                    <option value="C3">C3</option><option value="C4">C4</option>
+                </select>
+            </div>
+            <div class="campo">
+                <label>Quantidade de Palitos</label>
+                <input type="number" id="q_fritura_quantidade" placeholder="Quantidade de palitos">
+            </div>
+            <button type="button" class="btn-add-fritura" onclick="adicionarFritura()">+ Adicionar fritura</button>
+            <div id="lista-fritura"></div>
+            <br><br>
+            <h3>⚠️ Defeitos McCain</h3>
+            <div class="form-grid">
+                <select id="q_defeito_select" onchange="carregarOpcoesDefeito()">
+                    <option value="">Selecione o defeito</option>
+                </select>
+                <select id="q_opcao_defeito">
+                    <option value="">Selecione a dimensão/pontuação</option>
+                </select>
+                <button type="button" class="primary-btn" onclick="adicionarDefeitoMcCain()">➕ Adicionar Defeito</button>
+            </div>
+            <div id="listaDefeitosSelecionados" class="relatorio-card relatorio-vazio">Nenhum defeito adicionado.</div>
+            <textarea id="q_defeito" style="display:none;"></textarea>
+            <br><br>
+            <input type="number" id="q_pontos" placeholder="Total de pontos">
+            <br>
+            <h3>📷 Foto da análise</h3>
+            <input type="file" id="q_foto_analise" accept="image/*" hidden>
+            <label for="q_foto_analise" class="upload-foto-btn">📷 Selecionar Foto</label>
+            <span id="nomeFotoAnalise" style="text-align:center;color:#94a3b8;font-size:13px;display:block;margin-top:6px;">Nenhuma foto selecionada</span>
+            <br><br>
+            <button type="button" class="primary-btn" onclick="salvarAnaliseQualidade()">💾 Salvar Análise</button>
+            <button type="button" class="primary-btn" onclick="limparAnaliseQualidade()">🧹 Limpar</button>
+            <button type="button" class="primary-btn" onclick="gerarPDFQualidade()">📄 Gerar PDF e Enviar por E-mail</button>
+            <div id="q_resultado" class="relatorio-card relatorio-vazio">Nenhuma análise salva ainda.</div>
+            <br><br>
+            <h3>📋 Histórico de análises</h3>
+            <div class="table-container">
+                <table class="relatorios-table">
+                    <thead>
+                        <tr>
+                            <th>Placa</th><th>Variedade</th><th>Sólidos</th>
+                            <th>Peso Água</th><th>Peso Total</th><th>Data</th><th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaQualidade"></tbody>
+                </table>
+            </div>
+            <div id="paginacaoQualidade" style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:18px;justify-content:space-between;"></div>
         </div>
+    </section>
 
-        <h3>🟩 Inserção de dados</h3>
-
-        <div class="form-grid">
-            <input id="q_fazenda" type="text" placeholder="Fazenda">
-            <input id="q_variedade" type="text" placeholder="Variedade">
-            <input id="q_solido_1" placeholder="Sólido 1 - peso balança" oninput="calcularSolidosAutomatico()">
-            <input id="q_solido_2" placeholder="Sólido 2 - peso balança" oninput="calcularSolidosAutomatico()">
-            <input id="q_solido_3" placeholder="Sólido 3 - peso balança" oninput="calcularSolidosAutomatico()">
-            <input id="q_temperatura_agua" type="text" placeholder="Temperatura da água">
-            <input id="q_temperatura_media" type="text" placeholder="Temperatura média de três tubérculos">
-            <input id="q_peso_agua" placeholder="Peso água médio" readonly>
-            <input id="q_solidos" placeholder="% sólidos médio" readonly>
-            <input id="q_placa" type="text" placeholder="Placa">
-            <input id="q_peso_total" type="text" placeholder="Peso total">
-            <input id="q_peso_lavado" type="text" placeholder="Peso lavado">
+    <!-- USUÁRIOS -->
+    <section id="usuarios" class="aba">
+        <div class="card">
+            <h2>👤 Usuários</h2>
+            <div class="form-grid">
+                <input type="text" id="novoUsuario" placeholder="Usuário">
+                <input type="password" id="novaSenha" placeholder="Senha">
+                <select id="tipoUsuario">
+                    <option value="">Tipo de usuário</option>
+                    <option value="admin">Administrador</option>
+                    <option value="qualidade">Qualidade</option>
+                    <option value="expedicao">Expedição</option>
+                    <option value="visualizacao">Visualização</option>
+                </select>
+            </div>
+            <br>
+            <button type="button" class="primary-btn" onclick="cadastrarUsuario()">👤 Cadastrar Usuário</button>
+            <br><br>
+            <div id="listaUsuarios"></div>
         </div>
-
-        <br>
-
-        <h3>📏 Classificação por diâmetro</h3>
-        <div class="form-grid">
-            <input type="text" id="q_diametro_35" placeholder="<35 peso">
-            <input type="text" id="q_diametro_35_45" placeholder="35-45mm peso">
-            <input type="text" id="q_diametro_45" placeholder=">45mm peso">
-        </div>
-
-        <br>
-
-        <h3>📐 Classificação por comprimento</h3>
-        <div class="form-grid">
-            <input type="number" id="q_menos75_qtd" placeholder="<75 quantidade">
-            <input type="text" id="q_menos75_peso" placeholder="<75 peso">
-
-            <input type="number" id="q_mais75_qtd" placeholder=">75 quantidade">
-            <input type="text" id="q_mais75_peso" placeholder=">75 peso">
-
-            <input type="number" id="q_mais100_qtd" placeholder=">100 quantidade">
-            <input type="text" id="q_mais100_peso" placeholder=">100 peso">
-
-            <input type="number" id="q_mais150_qtd" placeholder=">150 quantidade">
-            <input type="text" id="q_mais150_peso" placeholder=">150 peso">
-        </div>
-        
-       <div class="campo">
-    <label>🍟 Classificação da Fritura</label>
-
-    <select id="q_fritura_tipo">
-        <option value="">Selecione a classificação</option>
-        <option value="C00">C00</option>
-        <option value="C0">C0</option>
-        <option value="C1">C1</option>
-        <option value="C2">C2</option>
-        <option value="C3">C3</option>
-        <option value="C4">C4</option>
-    </select>
-</div>
-
-<div class="campo">
-    <label>Quantidade de Palitos</label>
-    <input type="number" id="q_fritura_quantidade" placeholder="Quantidade de palitos">
-</div>
-
-<button type="button" class="btn-add-fritura" onclick="adicionarFritura()">
-    + Adicionar fritura
-</button>
-
-<div id="lista-fritura"></div>
-<br>
-        <br>
-
-        <h3>⚠️ Defeitos McCain</h3>
-
-<div class="form-grid">
-    <select id="q_defeito_select" onchange="carregarOpcoesDefeito()">
-        <option value="">Selecione o defeito</option>
-    </select>
-
-    <select id="q_opcao_defeito">
-        <option value="">Selecione a dimensão/pontuação</option>
-    </select>
-
-    <button type="button" class="primary-btn" onclick="adicionarDefeitoMcCain()">
-        ➕ Adicionar Defeito
-    </button>
-</div>
-
-<div id="listaDefeitosSelecionados" class="relatorio-card relatorio-vazio">
-    Nenhum defeito adicionado.
-</div>
-
-<textarea 
-    id="q_defeito" 
-    style="display:none;">
-</textarea>
-
-<br><br>
-
-<input type="number" id="q_pontos" placeholder="Total de pontos">
-        <br>
-
-        <h3>📷 Foto da análise</h3>
-        <input type="file" id="q_foto_analise" accept="image/*" hidden>
-        <label for="q_foto_analise" class="upload-foto-btn">
-                📷 Selecionar Foto
-        </label>
-        <span id="nomeFotoAnalise" style="
-            text-align: center;
-            color: #94a3b8;
-            font-size: 13px;
-            display: block;
-            margin-top: 6px;
-            ">Nenhuma foto selecionada</span>
-
-        <br><br>
-
-        <button type="button" class="primary-btn" onclick="salvarAnaliseQualidade()">
-            💾 Salvar Análise
-        </button>
-
-        <button type="button" class="primary-btn" onclick="limparAnaliseQualidade()">
-            🧹 Limpar
-        </button>
-
-        <button type="button" class="primary-btn" onclick="gerarPDFQualidade()">
-        📄 Gerar PDF e Enviar por E-mail
-        </button>
-
-        <div id="q_resultado" class="relatorio-card relatorio-vazio">   
-            Nenhuma análise salva ainda.
-        </div>
-
-        <br><br>
-
-<h3>📋 Histórico de análises</h3>
-
-<div class="table-container">
-    <table class="relatorios-table">
-
-        <thead>
-            <tr>
-                <th>Placa</th>
-                <th>Variedade</th>
-                <th>Sólidos</th>
-                <th>Peso Água</th>
-                <th>Peso Total</th>
-                <th>Data</th>
-                <th>Ações</th>
-            </tr>
-        </thead>
-
-        <tbody id="tabelaQualidade"></tbody>
-
-    </table>
-</div>
-
-</div>
-</section>
-
-<!-- USUÁRIOS COMEÇA AQUI -->
-
-<section id="usuarios" class="aba">
-
-    <div class="card">
-
-        <h2>👤 Usuários</h2>
-
-        <div class="form-grid">
-
-            <input
-                type="text"
-                id="novoUsuario"
-                placeholder="Usuário"
-            >
-
-            <input
-                type="password"
-                id="novaSenha"
-                placeholder="Senha"
-            >
-
-            <select id="tipoUsuario">
-
-                <option value="">
-                    Tipo de usuário
-                </option>
-
-                <option value="admin">
-                    Administrador
-                </option>
-
-                <option value="qualidade">
-                    Qualidade
-                </option>
-
-                <option value="expedicao">
-                    Expedição
-                </option>
-
-                <option value="visualizacao">
-                    Visualização
-                </option>
-
-            </select>
-
-        </div>
-
-        <br>
-
-        <button
-            type="button"
-            class="primary-btn"
-            onclick="cadastrarUsuario()"
-        >
-            👤 Cadastrar Usuário
-        </button>
-
-        <br><br>
-
-        <div id="listaUsuarios"></div>
-
-    </div>
-
-</section>
+    </section>
 
 </main>
-
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
 <script src="./script.js"></script>
-
 </body>
 </html>

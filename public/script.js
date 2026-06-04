@@ -26,7 +26,96 @@ fetch('/me')
 
 function confirmarDialog(mensagem) {
     return new Promise(resolve => {
-        resolve(window.confirm(mensagem));
+        document.getElementById('modalConfirm')?.remove();
+
+        const modal = document.createElement('div');
+        modal.id = 'modalConfirm';
+        modal.style.cssText = `
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,.65);
+            backdrop-filter: blur(6px);
+            animation: slideIn .2s ease;
+        `;
+
+        modal.innerHTML = `
+            <div style="
+                background: #0f172a;
+                border: 1px solid rgba(255,255,255,.12);
+                border-radius: 24px;
+                padding: 32px 36px;
+                max-width: 420px;
+                width: 90%;
+                box-shadow: 0 28px 60px rgba(0,0,0,.55);
+                text-align: center;
+            ">
+                <div style="font-size: 42px; margin-bottom: 16px;">⚠️</div>
+                <p style="
+                    color: #ffffff;
+                    font-size: 17px;
+                    font-weight: 700;
+                    margin: 0 0 28px;
+                    line-height: 1.5;
+                ">${mensagem}</p>
+                <div style="display: flex; gap: 12px; justify-content: center;">
+                    <button id="modalConfirmNao" style="
+                        flex: 1;
+                        height: 48px;
+                        border: 1px solid rgba(255,255,255,.12);
+                        border-radius: 14px;
+                        background: rgba(255,255,255,.06);
+                        color: #cbd5e1;
+                        font-size: 15px;
+                        font-weight: 700;
+                        cursor: pointer;
+                        transition: .2s ease;
+                    ">Cancelar</button>
+                    <button id="modalConfirmSim" style="
+                        flex: 1;
+                        height: 48px;
+                        border: none;
+                        border-radius: 14px;
+                        background: linear-gradient(135deg, #dc2626, #991b1b);
+                        color: #ffffff;
+                        font-size: 15px;
+                        font-weight: 700;
+                        cursor: pointer;
+                        transition: .2s ease;
+                    ">Confirmar</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        document.getElementById('modalConfirmSim').onclick = () => {
+            modal.remove();
+            resolve(true);
+        };
+
+        document.getElementById('modalConfirmNao').onclick = () => {
+            modal.remove();
+            resolve(false);
+        };
+
+        modal.addEventListener('click', e => {
+            if (e.target === modal) {
+                modal.remove();
+                resolve(false);
+            }
+        });
+
+        document.addEventListener('keydown', function handler(e) {
+            if (e.key === 'Escape') {
+                modal.remove();
+                resolve(false);
+                document.removeEventListener('keydown', handler);
+            }
+        });
     });
 }
 
@@ -539,6 +628,9 @@ ${dados.placa_carreta2 ? `🚛 Carreta 2: ${dados.placa_carreta2} - ${dados.vari
 let paginaAtual = 1;
 const itensPorPagina = 20;
 let dadosFiltrados = [];
+let paginaAtualQualidade = 1;
+const itensPorPaginaQualidade = 20;
+let analisesFiltradas = [];
 
 async function carregarHistorico() {
     const resposta = await fetch('/expedicoes');
@@ -547,10 +639,8 @@ async function carregarHistorico() {
     const busca = document.getElementById('filtroBusca')?.value.toLowerCase() || '';
     const statusFiltro = document.getElementById('filtroStatus')?.value || '';
     const variedadeFiltro = document.getElementById('filtroVariedade')?.value || '';
-    document.getElementById('filtroDataInicio')
-    ?.addEventListener('change', carregarHistorico);
-    document.getElementById('filtroDataFim')
-    ?.addEventListener('change', carregarHistorico);
+    const dataInicio = document.getElementById('filtroDataInicio')?.value || '';
+    const dataFim = document.getElementById('filtroDataFim')?.value || '';
 
     dadosFiltrados = dados.filter(e => {
         const textoBusca = `
@@ -559,7 +649,6 @@ async function carregarHistorico() {
             ${e.placa_carreta2 || ''}
         `.toLowerCase();
 
-        // Converte data de saída "dd/mm/yyyy, hh:mm:ss" para Date
         let dentroDoperiodo = true;
         if (dataInicio || dataFim) {
             const partesData = e.saida?.split(',')[0]?.trim().split('/');
@@ -812,6 +901,8 @@ async function excluirExpedicao(id) {
 let graficoExpedicoes = null;
 let graficoStatus = null;
 let chartQualidade = null;
+let graficoProdutores = null;
+let graficoExpedicoesMes = null; 
 
 function animarNumero(id, valorFinal, sufixo = '') {
     const elemento = document.getElementById(id);
@@ -1378,6 +1469,12 @@ window.onload = async () => {
         document.getElementById('filtroVariedade')
             ?.addEventListener('change', carregarHistorico);
 
+        document.getElementById('filtroDataInicio')
+            ?.addEventListener('change', carregarHistorico);
+
+        document.getElementById('filtroDataFim')
+            ?.addEventListener('change', carregarHistorico);
+
     } catch (erro) {
         console.error('Erro ao iniciar sistema:', erro);
     }
@@ -1461,101 +1558,99 @@ async function salvarAnaliseQualidade() {
     }
 }
 
-    async function carregarAnalisesQualidade() {
-
-    console.log('CARREGANDO ANALISES');
-
+async function carregarAnalisesQualidade() {
     const tabela = document.getElementById('tabelaQualidade');
+    if (!tabela) return;
 
-    if (!tabela) {
-        console.error('Tabela qualidade não encontrada');
-        return;
-    }
-
-    tabela.innerHTML = `
-        <tr>
-            <td colspan="6">Carregando...</td>
-        </tr>
-    `;
+    tabela.innerHTML = `<tr><td colspan="7">Carregando...</td></tr>`;
 
     try {
-
         const resposta = await fetch('/analises-qualidade');
+        if (!resposta.ok) throw new Error('Erro ao buscar análises');
 
-        if (!resposta.ok) {
-            throw new Error('Erro ao buscar análises');
-        }
+        analisesFiltradas = await resposta.json();
 
-        const analises = await resposta.json();
-
-        if (!analises.length) {
-
-            tabela.innerHTML = `
-                <tr>
-                    <td colspan="6">Nenhuma análise encontrada.</td>
-                </tr>
-            `;
-
+        if (!analisesFiltradas.length) {
+            tabela.innerHTML = `<tr><td colspan="7">Nenhuma análise encontrada.</td></tr>`;
             return;
         }
 
-        tabela.innerHTML = '';
+        paginaAtualQualidade = 1;
+        renderizarTabelaQualidade();
 
-        analises.forEach(item => {
+    } catch (erro) {
+        console.error(erro);
+        tabela.innerHTML = `<tr><td colspan="7">Erro ao carregar análises.</td></tr>`;
+    }
+}
 
-    tabela.innerHTML += `
-        <tr>
+function renderizarTabelaQualidade() {
+    const tabela = document.getElementById('tabelaQualidade');
+    if (!tabela) return;
 
+    const total = analisesFiltradas.length;
+    const totalPaginas = Math.ceil(total / itensPorPaginaQualidade);
+    const inicio = (paginaAtualQualidade - 1) * itensPorPaginaQualidade;
+    const paginados = analisesFiltradas.slice(inicio, inicio + itensPorPaginaQualidade);
+
+    tabela.innerHTML = '';
+
+    paginados.forEach(item => {
+        tabela.innerHTML += `
+            <tr>
                 <td>${sanitizar(item.placa) || '-'}</td>
                 <td>${sanitizar(item.variedade) || '-'}</td>
                 <td>${sanitizar(item.solidos) || '-'}</td>
                 <td>${sanitizar(item.peso_agua) || '-'}</td>
                 <td>${sanitizar(item.peso_total) || '-'}</td>
                 <td>${new Date(item.criado_em).toLocaleString('pt-BR')}</td>
-
                 <td>
-                <div class="acoes-botoes">
-
-            <button
-            type="button"
-            class="btn-ver-analise"
-            onclick='verDetalhesQualidade(${JSON.stringify(item)})'
-        >
-            👁️ Ver
-        </button>
-
-        <button
-            type="button"
-            class="btn-editar"
-            onclick='editarAnaliseQualidade(${JSON.stringify(item)})'
-        >
-            ✏️ Editar
-        </button>
-
-        <button
-            type="button"
-            class="btn-excluir"
-            onclick="excluirAnaliseQualidade(${item.id})"
-        >
-            🗑️ Excluir
-        </button>
-
-    </div>
-</td>
-        </tr>
-    `;
-});
-
-    } catch (erro) {
-
-        console.error(erro);
-
-        tabela.innerHTML = `
-            <tr>
-                <td colspan="6">Erro ao carregar análises.</td>
+                    <div class="acoes-botoes">
+                        <button type="button" class="btn-ver-analise"
+                            onclick='verDetalhesQualidade(${JSON.stringify(item)})'>
+                            👁️ Ver
+                        </button>
+                        <button type="button" class="btn-editar"
+                            onclick='editarAnaliseQualidade(${JSON.stringify(item)})'>
+                            ✏️ Editar
+                        </button>
+                        <button type="button" class="btn-excluir"
+                            onclick="excluirAnaliseQualidade(${item.id})">
+                            🗑️ Excluir
+                        </button>
+                    </div>
+                </td>
             </tr>
         `;
+    });
+
+    const container = document.getElementById('paginacaoQualidade');
+    if (!container) return;
+
+    if (totalPaginas <= 1) {
+        container.innerHTML = `<span style="color:#94a3b8; font-size:13px;">${total} análise(s)</span>`;
+        return;
     }
+
+    let html = `<div class="paginacao-info">Página ${paginaAtualQualidade} de ${totalPaginas} — ${total} análise(s)</div><div class="paginacao-btns">`;
+
+    html += `<button class="btn-pag" onclick="irPaginaQualidade(1)" ${paginaAtualQualidade === 1 ? 'disabled' : ''}>«</button>`;
+    html += `<button class="btn-pag" onclick="irPaginaQualidade(${paginaAtualQualidade - 1})" ${paginaAtualQualidade === 1 ? 'disabled' : ''}>‹</button>`;
+
+    for (let i = Math.max(1, paginaAtualQualidade - 2); i <= Math.min(totalPaginas, paginaAtualQualidade + 2); i++) {
+        html += `<button class="btn-pag ${i === paginaAtualQualidade ? 'ativo' : ''}" onclick="irPaginaQualidade(${i})">${i}</button>`;
+    }
+
+    html += `<button class="btn-pag" onclick="irPaginaQualidade(${paginaAtualQualidade + 1})" ${paginaAtualQualidade === totalPaginas ? 'disabled' : ''}>›</button>`;
+    html += `<button class="btn-pag" onclick="irPaginaQualidade(${totalPaginas})" ${paginaAtualQualidade === totalPaginas ? 'disabled' : ''}>»</button>`;
+    html += `</div>`;
+
+    container.innerHTML = html;
+}
+
+function irPaginaQualidade(pagina) {
+    paginaAtualQualidade = pagina;
+    renderizarTabelaQualidade();
 }
 function numero(valor) {
     return parseFloat(String(valor || '0').replace(',', '.')) || 0;
@@ -3222,8 +3317,7 @@ const expedicoesMes = expedicoes.filter(e => {
 
         if (rankingBox) {
             rankingBox.innerHTML = '';
-
-            rankingOrdenado.forEach(([produtor, total], index) => {
+rankingOrdenado.forEach(([produtor, total], index) => {
                 rankingBox.innerHTML += `
                     <div class="ranking-item">
                         <strong>${index + 1}º ${produtor}</strong>
@@ -3232,6 +3326,9 @@ const expedicoesMes = expedicoes.filter(e => {
                 `;
             });
         }
+
+        await carregarGraficoProdutores(expedicoes);
+        await carregarGraficoExpedicoesMes(expedicoes);
 
     } catch (erro) {
         console.error('Erro dashboard executivo:', erro);
@@ -3325,5 +3422,217 @@ if (fotoAnalise) {
             ? this.files[0].name
             : 'Nenhuma foto selecionada';
         document.getElementById('nomeFotoAnalise').textContent = nome;
+    });
+}
+function exportarExpeditcoesExcel() {
+    if (!dadosFiltrados || dadosFiltrados.length === 0) {
+        toast('Nenhuma expedição para exportar.', 'aviso');
+        return;
+    }
+
+    let tabela = `
+        <table border="1">
+            <tr>
+                <th>Produtor</th>
+                <th>Motorista</th>
+                <th>Cavalo</th>
+                <th>Origem</th>
+                <th>Destino</th>
+                <th>Veículo</th>
+                <th>Carreta 1</th>
+                <th>Variedade 1</th>
+                <th>Carreta 2</th>
+                <th>Variedade 2</th>
+                <th>Peso</th>
+                <th>Saída</th>
+                <th>Status</th>
+                <th>Resultado C1</th>
+                <th>Motivo C1</th>
+                <th>Resultado C2</th>
+                <th>Motivo C2</th>
+            </tr>
+    `;
+
+    dadosFiltrados.forEach(e => {
+        tabela += `
+            <tr>
+                <td>${e.produtor || ''}</td>
+                <td>${e.motorista || ''}</td>
+                <td>${e.placa_cavalo || ''}</td>
+                <td>${e.origem || ''}</td>
+                <td>${e.destino || ''}</td>
+                <td>${e.veiculo || ''}</td>
+                <td>${e.placa_carreta1 || ''}</td>
+                <td>${e.variedade1 || ''}</td>
+                <td>${e.placa_carreta2 || ''}</td>
+                <td>${e.variedade2 || ''}</td>
+                <td>${e.peso || ''}</td>
+                <td>${e.saida || ''}</td>
+                <td>${e.status || ''}</td>
+                <td>${e.resultado_c1 || ''}</td>
+                <td>${e.motivo_c1 || ''}</td>
+                <td>${e.resultado_c2 || ''}</td>
+                <td>${e.motivo_c2 || ''}</td>
+            </tr>
+        `;
+    });
+
+    tabela += `</table>`;
+
+    const blob = new Blob([`
+        <html>
+            <head><meta charset="UTF-8"></head>
+            <body>${tabela}</body>
+        </html>
+    `], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    const dataArquivo = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
+
+    link.href = url;
+    link.download = `expedicoes-furman-${dataArquivo}.xls`;
+    link.click();
+
+    URL.revokeObjectURL(url);
+}
+async function carregarGraficoProdutores(expedicoes) {
+    const canvas = document.getElementById('graficoProdutores');
+    if (!canvas || typeof Chart === 'undefined') return;
+
+    const contagem = {};
+    expedicoes.forEach(e => {
+        const p = e.produtor || 'Não informado';
+        contagem[p] = (contagem[p] || 0) + 1;
+    });
+
+    const ordenado = Object.entries(contagem)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 8);
+
+    const labels = ordenado.map(([nome]) => nome);
+    const dados = ordenado.map(([, qtd]) => qtd);
+
+    if (graficoProdutores) graficoProdutores.destroy();
+
+    graficoProdutores = new Chart(canvas, {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Expedições',
+                data: dados,
+                backgroundColor: 'rgba(33,255,157,0.25)',
+                borderColor: '#21ff9d',
+                borderWidth: 2,
+                borderRadius: 12,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: 'rgba(15,23,42,0.95)',
+                    titleColor: '#ffffff',
+                    bodyColor: '#cbd5e1',
+                    borderColor: 'rgba(33,255,157,.35)',
+                    borderWidth: 1,
+                    padding: 12,
+                    displayColors: false,
+                    callbacks: {
+                        label: ctx => ` ${ctx.raw} expedição(ões)`
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    ticks: { color: '#94a3b8', precision: 0 },
+                    grid: { color: 'rgba(255,255,255,.05)' }
+                },
+                y: {
+                    ticks: { color: '#a5b4fc', font: { weight: '600' } },
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+}
+async function carregarGraficoExpedicoesMes(expedicoes) {
+    const canvas = document.getElementById('graficoExpedicoesMes');
+    if (!canvas || typeof Chart === 'undefined') return;
+
+    const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    const anoAtual = new Date().getFullYear();
+    const contagem = Array(12).fill(0);
+
+    expedicoes.forEach(e => {
+        if (!e.saida) return;
+        const partes = e.saida.split(',')[0]?.trim().split('/');
+        if (!partes || partes.length !== 3) return;
+        const ano = Number(partes[2]);
+        const mes = Number(partes[1]) - 1;
+        if (ano === anoAtual) contagem[mes]++;
+    });
+
+    if (graficoExpedicoesMes) graficoExpedicoesMes.destroy();
+
+    const ctx = canvas.getContext('2d');
+    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+    gradient.addColorStop(0, 'rgba(124,58,237,0.35)');
+    gradient.addColorStop(1, 'rgba(124,58,237,0.02)');
+
+    graficoExpedicoesMes = new Chart(canvas, {
+        type: 'line',
+        data: {
+            labels: meses,
+            datasets: [{
+                label: 'Expedições',
+                data: contagem,
+                borderColor: '#7c3aed',
+                backgroundColor: gradient,
+                fill: true,
+                tension: 0.4,
+                borderWidth: 3,
+                pointRadius: 5,
+                pointBackgroundColor: '#7c3aed',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: 'rgba(15,23,42,0.95)',
+                    titleColor: '#ffffff',
+                    bodyColor: '#cbd5e1',
+                    borderColor: 'rgba(124,58,237,.35)',
+                    borderWidth: 1,
+                    padding: 12,
+                    displayColors: false,
+                    callbacks: {
+                        label: ctx => ` ${ctx.raw} expedição(ões)`
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: '#a5b4fc', font: { weight: '600' } },
+                    grid: { color: 'rgba(255,255,255,.04)' }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: { color: '#94a3b8', precision: 0 },
+                    grid: { color: 'rgba(255,255,255,.05)' }
+                }
+            }
+        }
     });
 }

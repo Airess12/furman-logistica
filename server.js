@@ -112,7 +112,7 @@ function verificarRateLimit(ip) {
     return true;
 }
 
-function registrarTentativaFalha(ip) {
+async function registrarTentativaFalha(ip, usuario = '') {
     const agora = Date.now();
     const dados = tentativasLogin.get(ip) || { tentativas: 0, ultimaTentativa: agora };
 
@@ -120,6 +120,26 @@ function registrarTentativaFalha(ip) {
     dados.ultimaTentativa = agora;
 
     tentativasLogin.set(ip, dados);
+
+    // Registra na auditoria
+    try {
+        const db = await conectar();
+        await db.run(`
+            INSERT INTO auditoria (usuario, acao, tabela, registro_id, campo, valor_antigo, valor_novo, data_hora)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        `, [
+            usuario || ip,
+            'TENTATIVA_LOGIN',
+            'usuarios',
+            null,
+            'senha',
+            null,
+            `Tentativa ${dados.tentativas} — IP: ${ip}`,
+            new Date().toISOString()
+        ]);
+    } catch (erro) {
+        console.error('Erro ao registrar tentativa:', erro);
+    }
 }
 
 function limparTentativas(ip) {
@@ -213,37 +233,37 @@ app.post('/login', async (req, res) => {
     );
 
     if (!usuarioBanco) {
-        registrarTentativaFalha(ip);
-        return res.status(401).json({ status: 'erro' });
-    }
+    await registrarTentativaFalha(ip, usuario);
+    return res.status(401).json({ status: 'erro' });
+}
 
-    const senhaCorreta = await bcrypt.compare(senha, usuarioBanco.senha);
+const senhaCorreta = await bcrypt.compare(senha, usuarioBanco.senha);
 
-    if (!senhaCorreta) {
-        registrarTentativaFalha(ip);
-        return res.status(401).json({ status: 'erro' });
-    }
+if (!senhaCorreta) {
+    await registrarTentativaFalha(ip, usuario);
+    return res.status(401).json({ status: 'erro' });
+}
 
-    limparTentativas(ip);
 
-    req.session.usuario = {
+limparTentativas(ip);
+
+req.session.usuario = {
+    id: usuarioBanco.id,
+    usuario: usuarioBanco.usuario,
+    nome: usuarioBanco.nome || usuarioBanco.usuario,
+    foto: usuarioBanco.foto || '/img/LOGO.jpeg',
+    tipo: usuarioBanco.tipo || 'usuario'
+};
+    res.json({
+    status: 'ok',
+    usuario: {
         id: usuarioBanco.id,
         usuario: usuarioBanco.usuario,
         nome: usuarioBanco.nome || usuarioBanco.usuario,
         foto: usuarioBanco.foto || '/img/LOGO.jpeg',
         tipo: usuarioBanco.tipo || 'usuario'
-    };
-
-    res.json({
-        status: 'ok',
-        usuario: {
-            id: usuarioBanco.id,
-            usuario: usuarioBanco.usuario,
-            nome: usuarioBanco.nome || usuarioBanco.usuario,
-            foto: usuarioBanco.foto || '/img/LOGO.jpeg',
-            tipo: usuarioBanco.tipo || 'usuario'
-        }
-    });
+    }
+});
 });
 
 app.post('/logout', (req, res) => {
