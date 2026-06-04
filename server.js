@@ -21,7 +21,10 @@ app.use(express.urlencoded({
 app.use(session({
     secret: process.env.SESSION_SECRET || 'furman-logistica',
     resave: false,
-    saveUninitialized: false
+    saveUninitialized: false,
+    cookie: {
+        maxAge: 30 * 60 * 1000 // 30 minutos
+    }
 }));
 
 app.use('/style.css', express.static(path.join(__dirname, 'public', 'style.css')));

@@ -41,6 +41,35 @@ function btnRestore(botao) {
     botao.innerHTML = botao.dataset.textoOriginal;
 }
 
+let timerInatividade;
+let timerAviso;
+
+function resetarTimer() {
+    clearTimeout(timerInatividade);
+    clearTimeout(timerAviso);
+
+    // Avisa 5 minutos antes de deslogar
+    timerAviso = setTimeout(() => {
+        toast('⚠️ Você será deslogado em 5 minutos por inatividade.', 'aviso');
+    }, 25 * 60 * 1000);
+
+    // Desloga após 30 minutos
+    timerInatividade = setTimeout(async () => {
+        toast('Sessão expirada. Redirecionando...', 'info');
+        await new Promise(r => setTimeout(r, 2000));
+        await fetch('/logout', { method: 'POST' });
+        window.location.href = '/login';
+    }, 30 * 60 * 1000);
+}
+
+// Reinicia o timer em qualquer interação
+['click', 'keydown', 'mousemove', 'scroll', 'touchstart'].forEach(evento => {
+    document.addEventListener(evento, resetarTimer, { passive: true });
+});
+
+// Inicia o timer
+resetarTimer();
+
 function sanitizar(texto) {
     if (texto === null || texto === undefined) return '';
     return String(texto)
