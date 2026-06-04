@@ -747,7 +747,7 @@ textarea {
     border-radius: 22px;
     padding: 18px;
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr auto;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto;
     gap: 14px;
     margin-bottom: 24px;
 }

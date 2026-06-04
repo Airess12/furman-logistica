@@ -623,28 +623,31 @@
                 <h2>📄 Relatórios</h2>
 
                 <div class="filtros-relatorios">
-                    <input type="text" id="filtroBusca" placeholder="Buscar produtor, motorista, placa...">
+    <input type="text" id="filtroBusca" placeholder="Buscar produtor, motorista, placa...">
 
-                    <select id="filtroStatus">
-                        <option value="">Todos os status</option>
-                        <option>Em viagem</option>
-                        <option>Na McCain</option>
-                        <option>Lavando</option>
-                        <option>Reapresentado</option>
-                        <option>Finalizado</option>
-                    </select>
+    <select id="filtroStatus">
+        <option value="">Todos os status</option>
+        <option>Em viagem</option>
+        <option>Na McCain</option>
+        <option>Lavando</option>
+        <option>Reapresentado</option>
+        <option>Finalizado</option>
+    </select>
 
-                    <select id="filtroVariedade">
-                        <option value="">Todas as variedades</option>
-                        <option>ROYAL</option>
-                        <option>MARKIES</option>
-                        <option>ASTERIX</option>
-                    </select>
+    <select id="filtroVariedade">
+        <option value="">Todas as variedades</option>
+        <option>ROYAL</option>
+        <option>MARKIES</option>
+        <option>ASTERIX</option>
+    </select>
 
-                    <button type="button" class="primary-btn" onclick="limparFiltrosRelatorios()">
-                        Limpar Filtros
-                    </button>
-                </div>
+    <input type="date" id="filtroDataInicio" title="Data início">
+    <input type="date" id="filtroDataFim" title="Data fim">
+
+    <button type="button" class="primary-btn" onclick="limparFiltrosRelatorios()">
+        Limpar Filtros
+    </button>
+</div>
 
                 <div class="table-container">
                     <table class="relatorios-table">

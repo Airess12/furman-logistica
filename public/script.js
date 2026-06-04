@@ -547,6 +547,10 @@ async function carregarHistorico() {
     const busca = document.getElementById('filtroBusca')?.value.toLowerCase() || '';
     const statusFiltro = document.getElementById('filtroStatus')?.value || '';
     const variedadeFiltro = document.getElementById('filtroVariedade')?.value || '';
+    document.getElementById('filtroDataInicio')
+    ?.addEventListener('change', carregarHistorico);
+    document.getElementById('filtroDataFim')
+    ?.addEventListener('change', carregarHistorico);
 
     dadosFiltrados = dados.filter(e => {
         const textoBusca = `
@@ -555,10 +559,35 @@ async function carregarHistorico() {
             ${e.placa_carreta2 || ''}
         `.toLowerCase();
 
+        // Converte data de saída "dd/mm/yyyy, hh:mm:ss" para Date
+        let dentroDoperiodo = true;
+        if (dataInicio || dataFim) {
+            const partesData = e.saida?.split(',')[0]?.trim().split('/');
+            if (partesData && partesData.length === 3) {
+                const dataSaida = new Date(
+                    Number(partesData[2]),
+                    Number(partesData[1]) - 1,
+                    Number(partesData[0])
+                );
+                if (dataInicio) {
+                    const inicio = new Date(dataInicio);
+                    if (dataSaida < inicio) dentroDoperiodo = false;
+                }
+                if (dataFim) {
+                    const fim = new Date(dataFim);
+                    fim.setHours(23, 59, 59);
+                    if (dataSaida > fim) dentroDoperiodo = false;
+                }
+            } else {
+                dentroDoperiodo = false;
+            }
+        }
+
         return (
             (!busca || textoBusca.includes(busca)) &&
             (!statusFiltro || e.status === statusFiltro) &&
-            (!variedadeFiltro || e.variedade1 === variedadeFiltro || e.variedade2 === variedadeFiltro)
+            (!variedadeFiltro || e.variedade1 === variedadeFiltro || e.variedade2 === variedadeFiltro) &&
+            dentroDoperiodo
         );
     });
 
@@ -685,9 +714,10 @@ function limparFiltrosRelatorios() {
     document.getElementById('filtroBusca').value = '';
     document.getElementById('filtroStatus').value = '';
     document.getElementById('filtroVariedade').value = '';
+    document.getElementById('filtroDataInicio').value = '';
+    document.getElementById('filtroDataFim').value = '';
     carregarHistorico();
 }
-
 /* =========================
    QUALIDADE POR CARRETA
 ========================= */
