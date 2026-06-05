@@ -798,7 +798,8 @@ app.get('/dashboard', protegerApi, async (req, res) => {
     });
 });
 
-app.post('/analises-qualidade', protegerApi, somenteQualidade, upload.single('foto_analise'), async (req, res) => {
+app.post('/analises-qualidade', protegerApi, upload.single('foto_analise'), async (req, res) => {
+
     const db = await conectar();
 
     const foto_analise = req.file ? '/uploads/' + req.file.filename : '';
@@ -843,7 +844,7 @@ app.post('/analises-qualidade', protegerApi, somenteQualidade, upload.single('fo
     res.json({ status: 'ok' });
 });
 
-app.get('/analises-qualidade', protegerApi, async (req, res) => {
+app.put('/analises-qualidade/:id', protegerApi, upload.single('foto_analise'), async (req, res) => {
     const db = await conectar();
 
     const analises = await db.all(`
