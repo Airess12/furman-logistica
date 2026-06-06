@@ -844,7 +844,7 @@ app.post('/analises-qualidade', protegerApi, upload.single('foto_analise'), asyn
     res.json({ status: 'ok' });
 });
 
-app.put('/analises-qualidade/:id', protegerApi, upload.single('foto_analise'), async (req, res) => {
+app.get('/analises-qualidade', protegerApi, async (req, res) => {
     const db = await conectar();
 
     const analises = await db.all(`
@@ -854,31 +854,6 @@ app.put('/analises-qualidade/:id', protegerApi, upload.single('foto_analise'), a
     `);
 
     res.json(analises);
-});
-
-app.delete('/analises-qualidade/:id', protegerApi, somenteQualidade, async (req, res) => {    const db = await conectar();
-    const antes = await db.get(
-        `SELECT * FROM analises_qualidade WHERE id = ?`,
-        [req.params.id]
-    );
-
-    if (antes) {
-        await registrarAuditoria(req, {
-            acao: 'EXCLUSÃO',
-            tabela: 'analises_qualidade',
-            registro_id: req.params.id,
-            campo: 'registro',
-            valor_antigo: JSON.stringify(antes),
-            valor_novo: ''
-        });
-    }
-
-    await db.run(`
-        DELETE FROM analises_qualidade
-        WHERE id = ?
-    `, [req.params.id]);
-
-    res.json({ status: 'ok' });
 });
 
 // ✅ OPÇÃO C: Auditoria no PUT de análises de qualidade
