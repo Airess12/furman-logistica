@@ -335,7 +335,6 @@ async function logout() {
 /* =========================
    MOTORISTA
 ========================= */
-
 async function buscarMotorista() {
     const placaCampo = el('placa_cavalo', 'placaCavalo');
     const motoristaCampo = el('motorista');
@@ -365,8 +364,65 @@ async function buscarMotorista() {
             fotoBox.classList.add('escondido');
         }
     }
-}
 
+    // Puxar carretas do histórico
+    try {
+        const respostaExp = await fetch('/expedicoes');
+        const expedicoes = await respostaExp.json();
+
+        const dosCavalo = expedicoes.filter(e =>
+            e.placa_cavalo?.toUpperCase() === placa
+        );
+
+        const select1 = el('placa_carreta1');
+        const select2 = el('placa_carreta2');
+        const veiculoCampo = el('veiculo');
+
+        if (dosCavalo.length > 0) {
+            // Tem histórico — usa o histórico
+            const contagemC1 = {};
+            dosCavalo.forEach(e => {
+                if (e.placa_carreta1) {
+                    contagemC1[e.placa_carreta1] = (contagemC1[e.placa_carreta1] || 0) + 1;
+                }
+            });
+
+            const maisFrequenteC1 = Object.entries(contagemC1)
+                .sort((a, b) => b[1] - a[1])[0]?.[0];
+
+            const contagemC2 = {};
+            dosCavalo.forEach(e => {
+                if (e.placa_carreta2) {
+                    contagemC2[e.placa_carreta2] = (contagemC2[e.placa_carreta2] || 0) + 1;
+                }
+            });
+
+            const maisFrequenteC2 = Object.entries(contagemC2)
+                .sort((a, b) => b[1] - a[1])[0]?.[0];
+
+            if (maisFrequenteC1 && select1) select1.value = maisFrequenteC1;
+
+            if (veiculoCampo) {
+                if (maisFrequenteC2) {
+                    veiculoCampo.value = 'Rodo Caçamba';
+                    definirPeso();
+                    if (select2) select2.value = maisFrequenteC2;
+                } else {
+                    veiculoCampo.value = '4º Eixo';
+                    definirPeso();
+                }
+            }
+
+        } else if (dados.tipo_veiculo && veiculoCampo) {
+            // Sem histórico — usa o tipo cadastrado
+            veiculoCampo.value = dados.tipo_veiculo;
+            definirPeso();
+        }
+
+    } catch (erro) {
+        console.error('Erro ao buscar histórico de carretas:', erro);
+    }
+}
 /* =========================
    CADASTROS
 ========================= */
@@ -395,9 +451,12 @@ async function cadastrarMotorista(event) {
         return;
     }
 
+    const tipoVeiculo = document.querySelector('input[name="tipoCavaloCadastro"]:checked')?.value || '4º Eixo';
+
     const formData = new FormData();
     formData.append('placa', placa);
     formData.append('motorista', motorista);
+    formData.append('tipo_veiculo', tipoVeiculo);
 
     if (fotoCampo && fotoCampo.files[0]) {
         formData.append('foto', fotoCampo.files[0]);
@@ -415,13 +474,13 @@ async function cadastrarMotorista(event) {
         placaCampo.value = '';
         motoristaCampo.value = '';
         if (fotoCampo) fotoCampo.value = '';
+        document.querySelector('input[name="tipoCavaloCadastro"][value="4º Eixo"]').checked = true;
     } else {
         toast('Erro ao cadastrar motorista.', 'erro');
     }
 
     if (btn) btnRestore(btn);
 }
-
 async function cadastrarProdutor() {
     const campo = el('novoProdutor', 'nomeProdutor');
     if (!campo) return;
@@ -502,6 +561,8 @@ async function carregarCarretas() {
 
     const select1 = el('placa_carreta1', 'placaCarreta1');
     const select2 = el('placa_carreta2', 'placaCarreta2');
+    const cadastro1 = el('carretaCadastro1');
+    const cadastro2 = el('carretaCadastro2');
 
     if (!select1 || !select2) return;
 
@@ -510,10 +571,14 @@ async function carregarCarretas() {
 
     select1.innerHTML = `<option value="">Carreta 1</option>`;
     select2.innerHTML = `<option value="">Carreta 2</option>`;
+    if (cadastro1) cadastro1.innerHTML = `<option value="">Carreta padrão (4º Eixo)</option>`;
+    if (cadastro2) cadastro2.innerHTML = `<option value="">Carreta padrão 2 (Rodo)</option>`;
 
     carretas.forEach(c => {
         select1.innerHTML += `<option value="${c.placa}">${c.placa}</option>`;
         select2.innerHTML += `<option value="${c.placa}">${c.placa}</option>`;
+        if (cadastro1) cadastro1.innerHTML += `<option value="${c.placa}">${c.placa}</option>`;
+        if (cadastro2) cadastro2.innerHTML += `<option value="${c.placa}">${c.placa}</option>`;
     });
 
     select1.value = valor1;

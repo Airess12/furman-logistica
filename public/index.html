@@ -191,15 +191,51 @@
         <div class="card">
             <h2>📁 Cadastros</h2>
             <div class="cadastros-grid">
+              
                 <div class="cadastro-card">
-                    <h3>🚛 Cavalo / Motorista</h3>
-                    <input type="text" id="placaCadastro" placeholder="Placa do cavalo">
-                    <input type="text" id="motoristaCadastro" placeholder="Nome do motorista">
-                    <input type="file" id="fotoCadastro" hidden>
-                    <label for="fotoCadastro" class="upload-foto-btn">📷 Selecionar Foto</label>
-                    <span id="nomeArquivoFoto">Nenhuma foto selecionada</span>
-                    <button type="button" class="primary-btn" onclick="cadastrarMotorista(event)">Cadastrar Motorista</button>
-                </div>
+    <h3>🚛 Cavalo / Motorista</h3>
+    <input type="text" id="placaCadastro" placeholder="Placa do cavalo">
+    <input type="text" id="motoristaCadastro" placeholder="Nome do motorista">
+    <input type="file" id="fotoCadastro" hidden>
+    <label for="fotoCadastro" class="upload-foto-btn">📷 Selecionar Foto</label>
+    <span id="nomeArquivoFoto">Nenhuma foto selecionada</span>
+
+   <div style="display:flex; flex-direction:column; gap:8px;">
+    <label style="color:#cbd5e1; font-weight:700; font-size:13px; text-transform:uppercase; letter-spacing:1px;">
+        Tipo de veículo padrão
+    </label>
+    <div style="display:flex; gap:12px;">
+        <label style="
+            display:flex; align-items:center; gap:8px;
+            padding:10px 16px;
+            border-radius:12px;
+            border:1px solid rgba(255,255,255,.10);
+            background:rgba(255,255,255,.04);
+            color:#cbd5e1;
+            cursor:pointer;
+            font-weight:600;
+            font-size:14px;
+        ">
+            <input type="radio" name="tipoCavaloCadastro" value="4º Eixo" checked> 4º Eixo
+        </label>
+        <label style="
+            display:flex; align-items:center; gap:8px;
+            padding:10px 16px;
+            border-radius:12px;
+            border:1px solid rgba(255,255,255,.10);
+            background:rgba(255,255,255,.04);
+            color:#cbd5e1;
+            cursor:pointer;
+            font-weight:600;
+            font-size:14px;
+        ">
+            <input type="radio" name="tipoCavaloCadastro" value="Rodo Caçamba"> Rodo
+        </label>
+    </div>
+</div>
+
+    <button type="button" class="primary-btn" onclick="cadastrarMotorista(event)">Cadastrar Motorista</button>
+</div>
                 <div class="cadastro-card">
                     <h3>🌱 Produtor</h3>
                     <input type="text" id="novoProdutor" placeholder="Nome do produtor">

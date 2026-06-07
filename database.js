@@ -95,6 +95,21 @@ await db.query(`
     `);
 
     await db.query(`
+    ALTER TABLE motoristas
+    ADD COLUMN IF NOT EXISTS carreta1 TEXT
+`);
+
+    await db.query(`
+    ALTER TABLE motoristas
+    ADD COLUMN IF NOT EXISTS carreta2 TEXT
+`);
+
+await db.query(`
+    ALTER TABLE motoristas
+    ADD COLUMN IF NOT EXISTS tipo_veiculo TEXT DEFAULT '4º Eixo'
+`);
+
+    await db.query(`
         CREATE TABLE IF NOT EXISTS produtores (
             id SERIAL PRIMARY KEY,
             nome TEXT UNIQUE

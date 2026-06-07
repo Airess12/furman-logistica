@@ -157,10 +157,24 @@ app.post('/motoristas', protegerApi, upload.single('foto'), async (req, res) => 
     const placa = req.body.placa.toUpperCase().trim();
     const motorista = req.body.motorista.trim();
     const foto = req.file ? '/uploads/' + req.file.filename : '';
-    await db.run(`INSERT INTO motoristas (placa, motorista, foto) VALUES (?, ?, ?) ON CONFLICT (placa) DO UPDATE SET motorista=EXCLUDED.motorista, foto=CASE WHEN EXCLUDED.foto='' THEN motoristas.foto ELSE EXCLUDED.foto END`, [placa, motorista, foto]);
+    const carreta1 = req.body.carreta1 || '';
+    const carreta2 = req.body.carreta2 || '';
+    const tipo_veiculo = req.body.tipo_veiculo || '4º Eixo';
+
+    await db.run(`
+        INSERT INTO motoristas (placa, motorista, foto, carreta1, carreta2, tipo_veiculo)
+        VALUES (?, ?, ?, ?, ?, ?)
+        ON CONFLICT (placa)
+        DO UPDATE SET
+            motorista = EXCLUDED.motorista,
+            foto = CASE WHEN EXCLUDED.foto = '' THEN motoristas.foto ELSE EXCLUDED.foto END,
+            carreta1 = EXCLUDED.carreta1,
+            carreta2 = EXCLUDED.carreta2,
+            tipo_veiculo = EXCLUDED.tipo_veiculo
+    `, [placa, motorista, foto, carreta1, carreta2, tipo_veiculo]);
+
     res.json({ status: 'ok' });
 });
-
 app.get('/motoristas/:placa', protegerApi, async (req, res) => {
     const db = await conectar();
     const motorista = await db.get(`SELECT * FROM motoristas WHERE placa = ?`, [req.params.placa.toUpperCase().trim()]);
