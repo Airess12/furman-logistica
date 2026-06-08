@@ -56,41 +56,31 @@
 
             const resposta = await fetch('/login', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    usuario,
-                    senha
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ usuario, senha })
             });
 
             const dados = await resposta.json();
 
             if (dados.status === 'ok') {
-                localStorage.setItem(
-                    'usuario',
-                    JSON.stringify(dados.usuario)
-                );
-
+                localStorage.setItem('usuario', JSON.stringify(dados.usuario));
                 window.location.href = '/';
             } else {
-    if (resposta.status === 429) {
-        document.getElementById('erroLogin').innerText =
-            'Muitas tentativas. Tente novamente em 15 minutos.';
-    } else {
-        document.getElementById('erroLogin').innerText =
-            'Usuário ou senha incorretos.';
-    }
+                if (resposta.status === 429) {
+                    document.getElementById('erroLogin').innerText =
+                        'Muitas tentativas. Tente novamente em 15 minutos.';
+                } else {
+                    document.getElementById('erroLogin').innerText =
+                        'Usuário ou senha incorretos.';
+                }
+            }
         }
 
         document.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-            login();
-        }
-    });
-
-}
+            if (e.key === 'Enter') {
+                login();
+            }
+        });
     </script>
 
 </body>

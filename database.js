@@ -107,7 +107,7 @@ await db.query(`
 await db.query(`
     ALTER TABLE motoristas
     ADD COLUMN IF NOT EXISTS tipo_veiculo TEXT DEFAULT '4º Eixo'
-`);
+`); 
 
     await db.query(`
         CREATE TABLE IF NOT EXISTS produtores (

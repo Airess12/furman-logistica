@@ -130,6 +130,23 @@ function btnRestore(botao) {
     botao.innerHTML = botao.dataset.textoOriginal;
 }
 
+function mostrarLoading() {
+    const bar = document.getElementById('loadingBar');
+    if (!bar) return;
+    bar.style.width = '70%';
+    bar.style.opacity = '1';
+}
+
+function esconderLoading() {
+    const bar = document.getElementById('loadingBar');
+    if (!bar) return;
+    bar.style.width = '100%';
+    setTimeout(() => {
+        bar.style.opacity = '0';
+        bar.style.width = '0%';
+    }, 300);
+}
+
 let timerInatividade;
 let timerAviso;
 
@@ -705,6 +722,8 @@ const itensPorPaginaQualidade = 20;
 let analisesFiltradas = [];
 
 async function carregarHistorico() {
+        mostrarLoading();
+
     const resposta = await fetch('/expedicoes');
     const dados = await resposta.json();
 
@@ -742,6 +761,7 @@ async function carregarHistorico() {
             } else {
                 dentroDoperiodo = false;
             }
+            
         }
 
         return (
@@ -754,6 +774,7 @@ async function carregarHistorico() {
 
     paginaAtual = 1;
     renderizarTabela();
+    esconderLoading();
 }
 
 function renderizarTabela() {
@@ -1000,6 +1021,8 @@ function animarNumero(id, valorFinal, sufixo = '') {
 
 
 async function carregarDashboard() {
+        mostrarLoading();
+
     try {
         const resposta = await fetch('/dashboard');
         const dados = await resposta.json();
@@ -1032,8 +1055,10 @@ async function carregarDashboard() {
         await carregarGraficoQualidade(aprovados, reprovados, taxaAprovacao, restricao);
         await carregarGraficoStatus();
 
-    } catch (erro) {
+   } catch (erro) {
         console.error('Erro ao carregar dashboard:', erro);
+    } finally {
+        esconderLoading();
     }
 }
   const glowLinePlugin = {
@@ -1631,6 +1656,7 @@ async function salvarAnaliseQualidade() {
 }
 
 async function carregarAnalisesQualidade() {
+        mostrarLoading();
     const tabela = document.getElementById('tabelaQualidade');
     if (!tabela) return;
 
@@ -1650,11 +1676,14 @@ async function carregarAnalisesQualidade() {
         paginaAtualQualidade = 1;
         renderizarTabelaQualidade();
 
-    } catch (erro) {
+   } catch (erro) {
         console.error(erro);
         tabela.innerHTML = `<tr><td colspan="7">Erro ao carregar análises.</td></tr>`;
+    } finally {
+        esconderLoading();
     }
 }
+
 
 function renderizarTabelaQualidade() {
     const tabela = document.getElementById('tabelaQualidade');
