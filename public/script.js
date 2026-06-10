@@ -699,6 +699,39 @@ ${dados.placa_carreta2 ? `🚛 *Carreta 2:* ${dados.placa_carreta2} - ${dados.va
         }
 
         toast('Expedição cadastrada!');
+        const cardImagem = document.getElementById('cardImagemExpedicao');
+const cardFoto = document.getElementById('cardFotoCaminhao');
+const cardInfos = document.getElementById('cardInfosExpedicao');
+const btnImagem = document.getElementById('btnGerarImagem');
+
+// Busca foto do motorista
+const respostaMotorista = await fetch(`/motoristas/${dados.placa_cavalo}`);
+const dadosMotorista = await respostaMotorista.json();
+
+if (dadosMotorista.foto) {
+    cardFoto.src = dadosMotorista.foto;
+    cardFoto.style.display = 'block';
+} else {
+    cardFoto.style.display = 'none';
+}
+
+cardInfos.innerHTML = `
+    <p>🌱 <strong>Produtor:</strong> ${sanitizar(dados.produtor)}</p>
+    <p>👤 <strong>Motorista:</strong> ${sanitizar(dados.motorista)}</p>
+    <p>🚛 <strong>Cavalo:</strong> ${sanitizar(dados.placa_cavalo)}</p>
+    <p>🚛 <strong>Carreta 1:</strong> ${sanitizar(dados.placa_carreta1)} - ${sanitizar(dados.variedade1)}</p>
+    ${dados.placa_carreta2 ? `<p>🚛 <strong>Carreta 2:</strong> ${sanitizar(dados.placa_carreta2)} - ${sanitizar(dados.variedade2)}</p>` : ''}
+    <p>🚚 <strong>Veículo:</strong> ${sanitizar(dados.veiculo)}</p>
+    <p>🥔 <strong>Variedade:</strong> ${sanitizar(variedadeBatata)}</p>
+    <p>⚖️ <strong>Peso NF:</strong> ${sanitizar(dados.peso)} kg</p>
+    <p>📍 <strong>Origem:</strong> ${sanitizar(dados.origem)}</p>
+    <p>🏭 <strong>Destino:</strong> ${sanitizar(dados.destino)}</p>
+    <p>🕒 <strong>Saída:</strong> ${sanitizar(dados.saida)}</p>
+`;
+
+cardImagem.style.display = 'block';
+btnImagem.style.display = 'inline-flex';
+
         const form = el('formExpedicao');
         if (form) form.reset();
         definirPeso();
@@ -3757,3 +3790,39 @@ document.querySelectorAll('.menu-btn').forEach(btn => {
         if (window.innerWidth <= 768) fecharSidebar();
     });
 });
+
+async function gerarImagemExpedicao() {
+    const btn = document.getElementById('btnGerarImagem');
+    if (btn) btnLoading(btn, '⏳ Gerando...');
+
+    const card = document.getElementById('cardImagemExpedicao');
+
+    const canvas = await html2canvas(card, {
+        scale: 2,
+        backgroundColor: '#0f172a',
+        useCORS: true,
+        allowTaint: true
+    });
+
+    canvas.toBlob(async (blob) => {
+        // Tenta compartilhar nativamente (celular)
+        if (navigator.share && navigator.canShare({ files: [new File([blob], 'expedicao.png', { type: 'image/png' })] })) {
+            const file = new File([blob], 'expedicao.png', { type: 'image/png' });
+            await navigator.share({
+                title: 'Expedição Furman',
+                files: [file]
+            });
+        } else {
+            // No PC, baixa a imagem
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `expedicao-${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.png`;
+            link.click();
+            URL.revokeObjectURL(url);
+            toast('Imagem baixada!');
+        }
+
+        if (btn) btnRestore(btn);
+    }, 'image/png');
+}
