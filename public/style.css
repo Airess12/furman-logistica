@@ -1103,43 +1103,8 @@ textarea {
     text-overflow: ellipsis;
 }
 
-/* ===== RESPONSIVO ===== */
+/* ===== ANIMAÇÕES ===== */
 
-@media (max-width: 1100px) {
-    .quick-actions,
-    .dashboard-grid,
-    .premium-grid,
-    .dash-bottom,
-    .form-grid,
-    .filtros-relatorios,
-    .cadastros-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 900px) {
-    .layout {
-        flex-direction: column;
-    }
-
-    .sidebar {
-        position: relative;
-        width: 100%;
-        min-width: 100%;
-        height: auto;
-    }
-
-    .main {
-        margin-left: 0;
-        width: 100%;
-        padding: 18px;
-    }
-
-    .dash-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-}
 @keyframes slideIn {
     from { opacity: 0; transform: translateX(60px); }
     to   { opacity: 1; transform: translateX(0); }
@@ -1149,6 +1114,9 @@ textarea {
     from { opacity: 1; transform: translateX(0); }
     to   { opacity: 0; transform: translateX(60px); }
 }
+
+/* ===== PAGINAÇÃO ===== */
+
 .paginacao-info {
     color: #94a3b8;
     font-size: 13px;
@@ -1157,6 +1125,7 @@ textarea {
 .paginacao-btns {
     display: flex;
     gap: 6px;
+    flex-wrap: wrap;
 }
 
 .btn-pag {
@@ -1187,6 +1156,7 @@ textarea {
     opacity: 0.3;
     cursor: default;
 }
+
 /* ===== HAMBURGUER MOBILE ===== */
 
 .hamburger {
@@ -1194,7 +1164,7 @@ textarea {
     position: fixed;
     top: 16px;
     left: 16px;
-    z-index: 999;
+    z-index: 9999;
     width: 48px;
     height: 48px;
     border: none;
@@ -1213,13 +1183,35 @@ textarea {
     position: fixed;
     inset: 0;
     background: rgba(0,0,0,.6);
-    z-index: 9;
+    z-index: 99;
     backdrop-filter: blur(4px);
 }
 
 .sidebar-overlay.ativo {
     display: block;
 }
+
+/* ===== RESPONSIVO 1100px ===== */
+
+@media (max-width: 1100px) {
+    .quick-actions {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .dash-bottom {
+        grid-template-columns: 1fr;
+    }
+
+    .filtros-relatorios {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+
+    .cadastros-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* ===== RESPONSIVO 768px (MOBILE) ===== */
 
 @media (max-width: 768px) {
 
@@ -1234,7 +1226,7 @@ textarea {
         height: 100vh;
         width: 280px;
         transition: left .3s ease;
-        z-index: 100;
+        z-index: 1000;
     }
 
     .sidebar.aberta {
@@ -1242,9 +1234,22 @@ textarea {
     }
 
     .main {
-        margin-left: 0;
-        width: 100%;
-        padding: 80px 16px 24px;
+        margin-left: 0 !important;
+        width: 100% !important;
+        padding: 80px 16px 24px !important;
+    }
+
+    .dash-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .dash-header h1 {
+        font-size: 24px;
+    }
+
+    .dash-user {
+        display: none;
     }
 
     .quick-actions {
@@ -1260,17 +1265,38 @@ textarea {
         grid-template-columns: 1fr;
     }
 
-    .form-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-
+    .form-grid,
     #expedicao .form-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr !important;
     }
 
     .origem-box {
-        grid-column: span 1;
+        grid-column: span 1 !important;
         flex-direction: column;
+    }
+
+    #veiculo,
+    #peso,
+    #placa_carreta1,
+    #variedade1,
+    #placa_carreta2,
+    #variedade2 {
+        grid-column: span 1 !important;
+    }
+
+    .btn-origem {
+        min-width: 100%;
+        width: 100%;
+    }
+
+    #expedicao .buttons {
+        flex-direction: column;
+    }
+
+    #expedicao .buttons .primary-btn {
+        min-width: 100% !important;
+        height: 52px;
+        font-size: 16px;
     }
 
     .filtros-relatorios {
@@ -1281,35 +1307,43 @@ textarea {
         grid-template-columns: 1fr;
     }
 
-    .dash-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .dash-header h1 {
-        font-size: 24px;
-    }
-
     .acoes-botoes {
         flex-direction: column;
+        align-items: stretch;
     }
 
-    #expedicao .buttons .primary-btn {
+    .btn-ver,
+    .btn-editar,
+    .btn-excluir,
+    .btn-ver-analise,
+    .btn-editar-analise,
+    .btn-excluir-analise {
         min-width: 100%;
-        height: 52px;
-        font-size: 16px;
+        width: 100%;
+    }
+
+    .chart-card {
+        height: 320px;
+        max-height: 320px;
     }
 
     .kpi h2 {
         font-size: 22px;
     }
 
-    .chart-card {
-        height: 320px;
+    .dash-banner {
+        padding: 18px;
+    }
+
+    .motivo-input {
+        width: 100%;
     }
 }
 
+/* ===== RESPONSIVO 480px ===== */
+
 @media (max-width: 480px) {
+
     .quick-actions {
         grid-template-columns: 1fr 1fr;
     }
@@ -1319,11 +1353,24 @@ textarea {
         grid-template-columns: 1fr;
     }
 
-    .form-grid {
-        grid-template-columns: 1fr;
-    }
-
     .dash-header h1 {
         font-size: 20px;
+    }
+
+    .kpi {
+        min-height: 90px;
+        padding: 16px;
+    }
+
+    .kpi span {
+        font-size: 22px;
+    }
+
+    .kpi h2 {
+        font-size: 20px;
+    }
+
+    .card {
+        padding: 16px;
     }
 }
