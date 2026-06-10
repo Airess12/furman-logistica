@@ -3737,3 +3737,23 @@ async function carregarGraficoExpedicoesMes(expedicoes) {
         }
     });
 }
+function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    sidebar.classList.toggle('aberta');
+    overlay.classList.toggle('ativo');
+}
+
+function fecharSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    sidebar.classList.remove('aberta');
+    overlay.classList.remove('ativo');
+}
+
+// Fecha sidebar ao clicar em qualquer menu
+document.querySelectorAll('.menu-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        if (window.innerWidth <= 768) fecharSidebar();
+    });
+});

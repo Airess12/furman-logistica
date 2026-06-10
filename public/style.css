@@ -1187,3 +1187,143 @@ textarea {
     opacity: 0.3;
     cursor: default;
 }
+/* ===== HAMBURGUER MOBILE ===== */
+
+.hamburger {
+    display: none;
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 999;
+    width: 48px;
+    height: 48px;
+    border: none;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #7c3aed, #21ff9d);
+    color: #ffffff;
+    font-size: 20px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 20px rgba(0,0,0,.35);
+}
+
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.6);
+    z-index: 9;
+    backdrop-filter: blur(4px);
+}
+
+.sidebar-overlay.ativo {
+    display: block;
+}
+
+@media (max-width: 768px) {
+
+    .hamburger {
+        display: flex;
+    }
+
+    .sidebar {
+        position: fixed;
+        left: -300px;
+        top: 0;
+        height: 100vh;
+        width: 280px;
+        transition: left .3s ease;
+        z-index: 100;
+    }
+
+    .sidebar.aberta {
+        left: 0;
+    }
+
+    .main {
+        margin-left: 0;
+        width: 100%;
+        padding: 80px 16px 24px;
+    }
+
+    .quick-actions {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .dashboard-grid,
+    .premium-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .dash-bottom {
+        grid-template-columns: 1fr;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    #expedicao .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .origem-box {
+        grid-column: span 1;
+        flex-direction: column;
+    }
+
+    .filtros-relatorios {
+        grid-template-columns: 1fr;
+    }
+
+    .cadastros-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dash-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .dash-header h1 {
+        font-size: 24px;
+    }
+
+    .acoes-botoes {
+        flex-direction: column;
+    }
+
+    #expedicao .buttons .primary-btn {
+        min-width: 100%;
+        height: 52px;
+        font-size: 16px;
+    }
+
+    .kpi h2 {
+        font-size: 22px;
+    }
+
+    .chart-card {
+        height: 320px;
+    }
+}
+
+@media (max-width: 480px) {
+    .quick-actions {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .dashboard-grid,
+    .premium-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dash-header h1 {
+        font-size: 20px;
+    }
+}
