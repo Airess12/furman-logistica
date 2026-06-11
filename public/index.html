@@ -405,40 +405,80 @@
                 <div class="card-title"><h3>📈 Evolução de Sólidos</h3><span>Últimas análises</span></div>
                 <canvas id="graficoSolidosQualidade"></canvas>
             </div>
-            <h3>🟩 Inserção de dados</h3>
-            <div class="form-grid">
-                <input id="q_fazenda" type="text" placeholder="Fazenda">
-                <input id="q_variedade" type="text" placeholder="Variedade">
-                <input id="q_solido_1" placeholder="Sólido 1 - peso balança" oninput="calcularSolidosAutomatico()">
-                <input id="q_solido_2" placeholder="Sólido 2 - peso balança" oninput="calcularSolidosAutomatico()">
-                <input id="q_solido_3" placeholder="Sólido 3 - peso balança" oninput="calcularSolidosAutomatico()">
-                <input id="q_temperatura_agua" type="text" placeholder="Temperatura da água">
-                <input id="q_temperatura_media" type="text" placeholder="Temperatura média de três tubérculos">
-                <input id="q_peso_agua" placeholder="Peso água médio" readonly>
-                <input id="q_solidos" placeholder="% sólidos médio" readonly>
-                <input id="q_placa" type="text" placeholder="Placa">
-                <input id="q_peso_total" type="text" placeholder="Peso total">
-                <input id="q_peso_lavado" type="text" placeholder="Peso lavado">
-            </div>
+<h3>🟩 Inserção de dados</h3>
+
+<!-- Tipo de amostragem -->
+<div style="display:flex; gap:12px; margin-bottom:18px;">
+    <label style="
+        display:flex; align-items:center; gap:8px;
+        padding:12px 20px;
+        border-radius:14px;
+        border:1px solid rgba(255,255,255,.10);
+        background:rgba(255,255,255,.04);
+        color:#cbd5e1;
+        cursor:pointer;
+        font-weight:700;
+        font-size:15px;
+    ">
+        <input type="radio" name="tipoAmostragem" value="carga" checked onchange="alterarTipoAmostragem()">
+        🚛 Amostragem de Carga
+    </label>
+    <label style="
+        display:flex; align-items:center; gap:8px;
+        padding:12px 20px;
+        border-radius:14px;
+        border:1px solid rgba(255,255,255,.10);
+        background:rgba(255,255,255,.04);
+        color:#cbd5e1;
+        cursor:pointer;
+        font-weight:700;
+        font-size:15px;
+    ">
+        <input type="radio" name="tipoAmostragem" value="campo" onchange="alterarTipoAmostragem()">
+        🌱 Amostragem de Campo
+    </label>
+</div>
+
+<div class="form-grid">
+    <input id="q_fazenda" type="text" placeholder="Fazenda">
+    <input id="q_variedade" type="text" placeholder="Variedade">
+    <input id="q_solido_1" placeholder="Sólido 1 - peso balança" oninput="calcularSolidosAutomatico()">
+    <input id="q_solido_2" placeholder="Sólido 2 - peso balança" oninput="calcularSolidosAutomatico()">
+    <input id="q_solido_3" placeholder="Sólido 3 - peso balança" oninput="calcularSolidosAutomatico()">
+    <input id="q_temperatura_agua" type="text" placeholder="Temperatura da água">
+    <input id="q_temperatura_media" type="text" placeholder="Temperatura média de três tubérculos">
+    <input id="q_peso_agua" placeholder="Peso água médio" readonly>
+    <input id="q_solidos" placeholder="% sólidos médio" readonly>
+
+    <!-- Campo dinâmico: Placa ou Nº Identificação -->
+    <input id="q_placa" type="text" placeholder="Placa do caminhão">
+    <input id="q_num_identificacao" type="text" placeholder="Nº Identificação (Campo)" style="display:none;">
+
+    <input id="q_peso_total" type="text" placeholder="Peso total" oninput="calcularPercentuaisTempoReal()">
+    <input id="q_peso_lavado" type="text" placeholder="Peso lavado">
+</div>
             <br>
             <h3>📏 Classificação por diâmetro</h3>
             <div class="form-grid">
-                <input type="text" id="q_diametro_35" placeholder="&lt;35 peso">
-                <input type="text" id="q_diametro_35_45" placeholder="35-45mm peso">
-                <input type="text" id="q_diametro_45" placeholder="&gt;45mm peso">
-            </div>
+    <input type="text" id="q_diametro_35" placeholder="&lt;35 peso" oninput="calcularPercentuaisTempoReal()">
+    <input type="text" id="q_diametro_35_45" placeholder="35-45mm peso" oninput="calcularPercentuaisTempoReal()">
+    <input type="text" id="q_diametro_45" placeholder="&gt;45mm peso" oninput="calcularPercentuaisTempoReal()">
+</div>
+<div id="preview_diametro"></div>
             <br>
             <h3>📐 Classificação por comprimento</h3>
             <div class="form-grid">
-                <input type="number" id="q_menos75_qtd" placeholder="&lt;75 quantidade">
-                <input type="text" id="q_menos75_peso" placeholder="&lt;75 peso">
-                <input type="number" id="q_mais75_qtd" placeholder="&gt;75 quantidade">
-                <input type="text" id="q_mais75_peso" placeholder="&gt;75 peso">
-                <input type="number" id="q_mais100_qtd" placeholder="&gt;100 quantidade">
-                <input type="text" id="q_mais100_peso" placeholder="&gt;100 peso">
-                <input type="number" id="q_mais150_qtd" placeholder="&gt;150 quantidade">
-                <input type="text" id="q_mais150_peso" placeholder="&gt;150 peso">
-            </div>
+    <input type="number" id="q_menos75_qtd" placeholder="&lt;75 quantidade" oninput="calcularPercentuaisTempoReal()">
+    <input type="text" id="q_menos75_peso" placeholder="&lt;75 peso" oninput="calcularPercentuaisTempoReal()">
+    <input type="number" id="q_mais75_qtd" placeholder="&gt;75 quantidade" oninput="calcularPercentuaisTempoReal()">
+    <input type="text" id="q_mais75_peso" placeholder="&gt;75 peso" oninput="calcularPercentuaisTempoReal()">
+    <input type="number" id="q_mais100_qtd" placeholder="&gt;100 quantidade" oninput="calcularPercentuaisTempoReal()">
+    <input type="text" id="q_mais100_peso" placeholder="&gt;100 peso" oninput="calcularPercentuaisTempoReal()">
+    <input type="number" id="q_mais150_qtd" placeholder="&gt;150 quantidade" oninput="calcularPercentuaisTempoReal()">
+    <input type="text" id="q_mais150_peso" placeholder="&gt;150 peso" oninput="calcularPercentuaisTempoReal()">
+</div>
+
+<div id="preview_comprimento"></div>
             <div class="campo">
                 <label>🍟 Classificação da Fritura</label>
                 <select id="q_fritura_tipo">

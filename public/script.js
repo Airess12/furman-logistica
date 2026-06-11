@@ -1620,7 +1620,12 @@ async function salvarAnaliseQualidade() {
     formData.append('variedade', document.getElementById('q_variedade')?.value || '');
     formData.append('solidos', document.getElementById('q_solidos')?.value || '');
     formData.append('peso_agua', document.getElementById('q_peso_agua')?.value || '');
-    formData.append('placa', document.getElementById('q_placa')?.value || '');
+    const tipoAmostragem = document.querySelector('input[name="tipoAmostragem"]:checked')?.value || 'carga';
+    const placa = tipoAmostragem === 'campo'
+    ? document.getElementById('q_num_identificacao')?.value || ''
+    : document.getElementById('q_placa')?.value || '';
+formData.append('placa', placa);
+formData.append('tipo_amostragem', tipoAmostragem);
     formData.append('peso_total', document.getElementById('q_peso_total')?.value || '');
     formData.append('peso_lavado', document.getElementById('q_peso_lavado')?.value || '');
     formData.append('fazenda', document.getElementById('q_fazenda')?.value || '');
@@ -3825,4 +3830,110 @@ async function gerarImagemExpedicao() {
 
         if (btn) btnRestore(btn);
     }, 'image/png');
+}
+
+function alterarTipoAmostragem() {
+    const tipo = document.querySelector('input[name="tipoAmostragem"]:checked')?.value;
+    const campoPlaca = document.getElementById('q_placa');
+    const campoId = document.getElementById('q_num_identificacao');
+
+    if (tipo === 'campo') {
+        campoPlaca.style.display = 'none';
+        campoPlaca.value = '';
+        campoId.style.display = 'block';
+    } else {
+        campoPlaca.style.display = 'block';
+        campoId.style.display = 'none';
+        campoId.value = '';
+    }
+}
+
+function calcularPercentuaisTempoReal() {
+    const pesoTotal = parseFloat(document.getElementById('q_peso_total')?.value?.replace(',', '.')) || 0;
+
+    // ===== DIÂMETRO =====
+    const d35 = parseFloat(document.getElementById('q_diametro_35')?.value?.replace(',', '.')) || 0;
+    const d3545 = parseFloat(document.getElementById('q_diametro_35_45')?.value?.replace(',', '.')) || 0;
+    const d45 = parseFloat(document.getElementById('q_diametro_45')?.value?.replace(',', '.')) || 0;
+
+    const pct35 = pesoTotal > 0 ? (d35 / pesoTotal * 100).toFixed(2) : '0.00';
+    const pct3545 = pesoTotal > 0 ? (d3545 / pesoTotal * 100).toFixed(2) : '0.00';
+    const pct45 = pesoTotal > 0 ? (d45 / pesoTotal * 100).toFixed(2) : '0.00';
+
+    // Grado baseado nas miúdas (35-45mm)
+    const pctMiudas = parseFloat(pct3545);
+    let grado = '', gradoCor = '';
+
+    if (pctMiudas === 0) { grado = '—'; gradoCor = '#94a3b8'; }
+    else if (pctMiudas <= 10) { grado = 'Grado A ✅'; gradoCor = '#21ff9d'; }
+    else if (pctMiudas <= 15) { grado = 'Grado B 🟡'; gradoCor = '#fbbf24'; }
+    else if (pctMiudas <= 20) { grado = 'Grado C 🟠'; gradoCor = '#f97316'; }
+    else { grado = 'Fora do padrão ⛔'; gradoCor = '#ef4444'; }
+
+    const previewDiametro = document.getElementById('preview_diametro');
+    if (previewDiametro) {
+        previewDiametro.innerHTML = `
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:10px;">
+                <div style="padding:12px; border-radius:12px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08);">
+                    <div style="color:#94a3b8; font-size:12px;">&lt;35mm</div>
+                    <div style="font-size:18px; font-weight:800;">${d35} kg</div>
+                    <div style="color:#38bdf8; font-weight:700;">${pct35}%</div>
+                </div>
+                <div style="padding:12px; border-radius:12px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08);">
+                    <div style="color:#94a3b8; font-size:12px;">35-45mm (miúdas)</div>
+                    <div style="font-size:18px; font-weight:800;">${d3545} kg</div>
+                    <div style="color:#38bdf8; font-weight:700;">${pct3545}%</div>
+                    <div style="margin-top:6px; padding:4px 8px; border-radius:8px; background:rgba(255,255,255,.06); color:${gradoCor}; font-weight:800; font-size:13px;">${grado}</div>
+                </div>
+                <div style="padding:12px; border-radius:12px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08);">
+                    <div style="color:#94a3b8; font-size:12px;">&gt;45mm</div>
+                    <div style="font-size:18px; font-weight:800;">${d45} kg</div>
+                    <div style="color:#38bdf8; font-weight:700;">${pct45}%</div>
+                </div>
+            </div>
+        `;
+    }
+
+    // ===== COMPRIMENTO =====
+    const c75pQtd = document.getElementById('q_menos75_qtd')?.value || '0';
+    const c75p = parseFloat(document.getElementById('q_menos75_peso')?.value?.replace(',', '.')) || 0;
+    const c75mQtd = document.getElementById('q_mais75_qtd')?.value || '0';
+    const c75m = parseFloat(document.getElementById('q_mais75_peso')?.value?.replace(',', '.')) || 0;
+    const c100Qtd = document.getElementById('q_mais100_qtd')?.value || '0';
+    const c100 = parseFloat(document.getElementById('q_mais100_peso')?.value?.replace(',', '.')) || 0;
+    const c150Qtd = document.getElementById('q_mais150_qtd')?.value || '0';
+    const c150 = parseFloat(document.getElementById('q_mais150_peso')?.value?.replace(',', '.')) || 0;
+
+    const pctC75p = pesoTotal > 0 ? (c75p / pesoTotal * 100).toFixed(2) : '0.00';
+    const pctC75m = pesoTotal > 0 ? (c75m / pesoTotal * 100).toFixed(2) : '0.00';
+    const pctC100 = pesoTotal > 0 ? (c100 / pesoTotal * 100).toFixed(2) : '0.00';
+    const pctC150 = pesoTotal > 0 ? (c150 / pesoTotal * 100).toFixed(2) : '0.00';
+
+    const previewComprimento = document.getElementById('preview_comprimento');
+    if (previewComprimento) {
+        previewComprimento.innerHTML = `
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:10px; margin-top:10px;">
+                <div style="padding:12px; border-radius:12px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08);">
+                    <div style="color:#94a3b8; font-size:12px;">&lt;75mm</div>
+                    <div style="font-size:14px; font-weight:800;">${c75pQtd} un | ${c75p} kg</div>
+                    <div style="color:#38bdf8; font-weight:700;">${pctC75p}%</div>
+                </div>
+                <div style="padding:12px; border-radius:12px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08);">
+                    <div style="color:#94a3b8; font-size:12px;">&gt;75mm</div>
+                    <div style="font-size:14px; font-weight:800;">${c75mQtd} un | ${c75m} kg</div>
+                    <div style="color:#38bdf8; font-weight:700;">${pctC75m}%</div>
+                </div>
+                <div style="padding:12px; border-radius:12px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08);">
+                    <div style="color:#94a3b8; font-size:12px;">&gt;100mm</div>
+                    <div style="font-size:14px; font-weight:800;">${c100Qtd} un | ${c100} kg</div>
+                    <div style="color:#38bdf8; font-weight:700;">${pctC100}%</div>
+                </div>
+                <div style="padding:12px; border-radius:12px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08);">
+                    <div style="color:#94a3b8; font-size:12px;">&gt;150mm</div>
+                    <div style="font-size:14px; font-weight:800;">${c150Qtd} un | ${c150} kg</div>
+                    <div style="color:#38bdf8; font-weight:700;">${pctC150}%</div>
+                </div>
+            </div>
+        `;
+    }
 }
