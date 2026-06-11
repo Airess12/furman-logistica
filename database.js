@@ -292,6 +292,13 @@ await db.query(`
     )
 `);
 
+await db.query(`
+    ALTER TABLE analises_qualidade
+    ADD COLUMN IF NOT EXISTS tipo_amostragem TEXT DEFAULT 'carga'
+`);
+
+
+
     console.log('✅ Banco PostgreSQL conectado');
 }
 
