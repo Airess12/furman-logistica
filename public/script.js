@@ -1670,20 +1670,21 @@ formData.append('tipo_amostragem', tipoAmostragem);
             body: formData
         });
 
-        if (!resposta.ok) throw new Error('Erro ao salvar análise');
+ if (!resposta.ok) throw new Error('Erro ao salvar análise');
 
-        resultado.classList.remove('relatorio-vazio');
-        resultado.innerHTML = `
-            <h3>✅ Análise salva com sucesso</h3>
-            <p><strong>Placa:</strong> ${formData.get('placa')}</p>
-            <p><strong>Variedade:</strong> ${formData.get('variedade')}</p>
-            <p><strong>Sólidos:</strong> ${formData.get('solidos')}</p>
-            <p><strong>Foto:</strong> ${foto ? 'Enviada' : 'Não enviada'}</p>
-        `;
+// Busca a análise mais recente para gerar PDF completo automaticamente
+const todasAnalises = await fetch('/analises-qualidade').then(r => r.json());
+const analiseSalva = todasAnalises[0];
 
-        await carregarAnalisesQualidade();
-        analiseEditandoId = null;
-        toast('Análise salva com sucesso!');
+if (analiseSalva) {
+    verDetalhesQualidade(analiseSalva);
+    await new Promise(r => setTimeout(r, 800));
+    await gerarPDFQualidade();
+}
+
+await carregarAnalisesQualidade();
+analiseEditandoId = null;
+toast('Análise salva e PDF enviado!');
 
     } catch (erro) {
         console.error('ERRO AO SALVAR ANÁLISE:', erro);

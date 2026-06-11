@@ -340,7 +340,8 @@ app.put('/analises-qualidade/:id', protegerApi, upload.single('foto_analise'), a
         const depois = { variedade, solidos, peso_agua, placa, peso_total, peso_lavado, classificacao_fritura: classificacao_fritura||'', quantidade_palitos: quantidade_palitos||'', diametro_35, diametro_35_45, diametro_45, menos75_qtd, menos75_peso, mais75_qtd, mais75_peso, mais100_qtd, mais100_peso, mais150_qtd, mais150_peso, defeito, pontos };
         await auditarAlteracoes(req, 'analises_qualidade', id, antes, depois);
     }
-    res.json({ status: 'ok' });
+    const nova = await db.get(`SELECT * FROM analises_qualidade ORDER BY id DESC LIMIT 1`);
+res.json({ status: 'ok', analise: nova });
 });
 
 app.delete('/analises-qualidade/:id', protegerApi, async (req, res) => {
