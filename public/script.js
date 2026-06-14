@@ -2409,28 +2409,39 @@ function atualizarListaDefeitos() {
 
     lista.innerHTML = '';
 
-    defeitosSelecionados.forEach(item => {
-        lista.innerHTML += `
-            <div style="
-                padding:12px;
-                margin-bottom:10px;
-                border-radius:14px;
-                background:rgba(255,255,255,.04);
-                border-left:4px solid #21ff9d;
-            ">
+    defeitosSelecionados.forEach((item, index) => {
+    lista.innerHTML += `
+        <div style="
+            padding:12px;
+            margin-bottom:10px;
+            border-radius:14px;
+            background:rgba(255,255,255,.04);
+            border-left:4px solid #21ff9d;
+            display:flex;
+            justify-content:space-between;
+            align-items:flex-start;
+        ">
+            <div>
                 <strong>${item.defeito}</strong><br>
                 ${item.descricao}
-
-                <div style="
-                    margin-top:8px;
-                    color:#21ff9d;
-                    font-weight:700;
-                ">
+                <div style="margin-top:8px; color:#21ff9d; font-weight:700;">
                     ${item.pontos} ponto(s)
                 </div>
             </div>
-        `;
-    });
+            <button type="button" onclick="removerDefeito(${index})" style="
+                border:none;
+                border-radius:10px;
+                background:rgba(239,68,68,.2);
+                color:#ef4444;
+                padding:6px 12px;
+                cursor:pointer;
+                font-weight:700;
+                font-size:13px;
+                white-space:nowrap;
+            ">🗑️ Remover</button>
+        </div>
+    `;
+});
 
     Object.keys(somaPorDefeito).forEach(defeito => {
         const limite = defeitosMcCain[defeito]?.limite || 0;
@@ -2815,6 +2826,11 @@ function removerFritura(index) {
     atualizarListaFritura();
 }
 
+function removerDefeito(index) {
+    defeitosSelecionados.splice(index, 1);
+    atualizarListaDefeitos();
+}
+
 function calcularStatusFritura() {
 
     const total = frituras.reduce((soma, item) => {
@@ -3008,6 +3024,11 @@ function limparAnaliseQualidade() {
         resultado.classList.add('relatorio-vazio');
         resultado.innerHTML = 'Nenhuma análise selecionada.';
     }
+    
+    const previewDiametro = document.getElementById('preview_diametro');
+    const previewComprimento = document.getElementById('preview_comprimento');
+    if (previewDiametro) previewDiametro.innerHTML = '';
+    if (previewComprimento) previewComprimento.innerHTML = '';
 
     toast('Análise limpa!', 'info');
 }
