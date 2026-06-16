@@ -1865,7 +1865,7 @@ function verDetalhesQualidade(item) {
             <br>
 
             <h4>⚠️ Defeitos</h4>
-            <p><strong>Identificado:</strong> ${item.defeito || '-'}</p>
+            <p><strong>Identificado:</strong> ${item.defeito || '✅ Nenhum defeito identificado'}</p>
             <div style="
                 margin: 18px 0;
                 padding: 14px 18px;
