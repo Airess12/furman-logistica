@@ -157,15 +157,15 @@ function resetarTimer() {
     // Avisa 5 minutos antes de deslogar
     timerAviso = setTimeout(() => {
         toast('⚠️ Você será deslogado em 5 minutos por inatividade.', 'aviso');
-    }, 25 * 60 * 1000);
+    }, 115 * 60 * 1000);
 
-    // Desloga após 30 minutos
+    // Desloga após 2 horas
     timerInatividade = setTimeout(async () => {
         toast('Sessão expirada. Redirecionando...', 'info');
         await new Promise(r => setTimeout(r, 2000));
         await fetch('/logout', { method: 'POST' });
         window.location.href = '/login';
-    }, 30 * 60 * 1000);
+    }, 120 * 60 * 1000);
 }
 
 // Reinicia o timer em qualquer interação
@@ -1670,7 +1670,14 @@ formData.append('tipo_amostragem', tipoAmostragem);
             body: formData
         });
 
- if (!resposta.ok) throw new Error('Erro ao salvar análise');
+ if (resposta.status === 401) {
+    toast('Sessão expirada! Faça login novamente.', 'aviso');
+    await new Promise(r => setTimeout(r, 2000));
+    window.location.href = '/login';
+    return;
+}
+
+if (!resposta.ok) throw new Error('Erro ao salvar análise');
 
 // Busca a análise mais recente para gerar PDF completo automaticamente
 const todasAnalises = await fetch('/analises-qualidade').then(r => r.json());

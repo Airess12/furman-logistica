@@ -19,7 +19,7 @@ app.use(session({
     secret: process.env.SESSION_SECRET || 'furman-logistica',
     resave: false,
     saveUninitialized: false,
-    cookie: { maxAge: 30 * 60 * 1000 }
+    cookie: { maxAge: 2 * 60 * 60 * 1000 }
 }));
 
 app.use('/style.css', express.static(path.join(__dirname, 'public', 'style.css')));
