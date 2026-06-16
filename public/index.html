@@ -373,9 +373,16 @@
         </div>
     </section>
 
-    <!-- AUDITORIA -->
-    <section id="auditoria" class="aba">
-        <h2>Auditoria do Sistema</h2>
+   <!-- AUDITORIA -->
+<section id="auditoria" class="aba">
+    <div class="card">
+        <div class="dash-header">
+            <div>
+                <p class="dash-subtitle">Furman Agronegócios</p>
+                <h1>🛡️ Auditoria do Sistema</h1>
+            </div>
+        </div>
+
         <div class="filtros-relatorios">
             <input type="text" id="filtroAuditoriaBusca" placeholder="Buscar usuário, campo, valor...">
             <select id="filtroAuditoriaAcao">
@@ -384,20 +391,27 @@
                 <option value="EXCLUSÃO">EXCLUSÃO</option>
             </select>
             <button type="button" class="primary-btn" onclick="limparFiltrosAuditoria()">Limpar Filtros</button>
-            <button type="button" class="primary-btn" onclick="exportarAuditoriaExcel()">Exportar Excel</button>
+            <button type="button" class="primary-btn" onclick="exportarAuditoriaExcel()">📊 Exportar Excel</button>
         </div>
-        <div class="tabela-container">
-            <table>
+
+        <div class="table-container">
+            <table class="relatorios-table">
                 <thead>
                     <tr>
-                        <th>Data/Hora</th><th>Usuário</th><th>Ação</th><th>Registro</th>
-                        <th>Campo</th><th>Antes</th><th>Depois</th>
+                        <th>Data/Hora</th>
+                        <th>Usuário</th>
+                        <th>Ação</th>
+                        <th>Registro</th>
+                        <th>Campo</th>
+                        <th>Antes</th>
+                        <th>Depois</th>
                     </tr>
                 </thead>
                 <tbody id="tabela-auditoria"></tbody>
             </table>
         </div>
-    </section>
+    </div>
+</section>
 
     <!-- QUALIDADE -->
     <section id="qualidade" class="aba">
