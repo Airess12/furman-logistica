@@ -3427,21 +3427,85 @@ const expedicoesMes = expedicoes.filter(e => {
             statusContagem[status] = (statusContagem[status] || 0) + 1;
         });
 
-        if (graficoExecStatus) graficoExecStatus.destroy();
+       if (graficoExecStatus) graficoExecStatus.destroy();
 
-        graficoExecStatus = new Chart(
-            document.getElementById('graficoExecStatus'),
-            {
-                type: 'bar',
-                data: {
-                    labels: Object.keys(statusContagem),
-                    datasets: [{
-                        label: 'Expedições',
-                        data: Object.values(statusContagem)
-                    }]
+const coresPorStatus = {
+    'Em viagem': 'rgba(59,130,246,0.85)',
+    'Na McCain': 'rgba(14,165,233,0.85)',
+    'Lavando': 'rgba(245,158,11,0.85)',
+    'Reapresentado': 'rgba(168,85,247,0.85)',
+    'Finalizado': 'rgba(34,197,94,0.85)'
+};
+
+const bordaPorStatus = {
+    'Em viagem': '#60a5fa',
+    'Na McCain': '#38bdf8',
+    'Lavando': '#fbbf24',
+    'Reapresentado': '#c084fc',
+    'Finalizado': '#4ade80'
+};
+
+graficoExecStatus = new Chart(
+    document.getElementById('graficoExecStatus'),
+    {
+        type: 'bar',
+        data: {
+            labels: Object.keys(statusContagem),
+            datasets: [{
+                label: 'Expedições',
+                data: Object.values(statusContagem),
+                backgroundColor: Object.keys(statusContagem).map(s => coresPorStatus[s] || 'rgba(124,58,237,0.85)'),
+                borderColor: Object.keys(statusContagem).map(s => bordaPorStatus[s] || '#7c3aed'),
+                borderWidth: 2,
+                borderRadius: 16,
+                borderSkipped: false,
+                barThickness: 40
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: {
+                duration: 1200,
+                easing: 'easeOutQuart'
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: 'rgba(15,23,42,0.95)',
+                    titleColor: '#ffffff',
+                    bodyColor: '#cbd5e1',
+                    borderColor: 'rgba(124,58,237,0.45)',
+                    borderWidth: 1,
+                    padding: 14,
+                    displayColors: false,
+                    callbacks: {
+                        label: ctx => ` ${ctx.raw} expedição(ões)`
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        color: '#a5b4fc',
+                        font: { size: 12, weight: '600' }
+                    },
+                    grid: { display: false }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        color: '#94a3b8',
+                        precision: 0
+                    },
+                    grid: {
+                        color: 'rgba(255,255,255,0.05)'
+                    }
                 }
             }
-        );
+        }
+    }
+);
 
         const variedades = {};
 
