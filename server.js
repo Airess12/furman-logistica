@@ -4,6 +4,8 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcrypt');
+const cron = require('node-cron');
+const ExcelJS = require('exceljs');
 
 const { conectar, criarTabelas } = require('./database');
 
@@ -456,6 +458,84 @@ app.get('/exportar-analises-csv', protegerApi, async (req, res) => {
         console.error('Erro ao exportar CSV:', erro);
         res.status(500).send('Erro ao exportar CSV');
     }
+});
+
+// ===== BACKUP AUTOMÁTICO =====
+cron.schedule('0 0 * * *', async () => {
+    console.log('🔄 Iniciando backup automático...');
+
+    try {
+        const db = await conectar();
+
+        const expedicoes = await db.all(`SELECT * FROM expedicoes ORDER BY id DESC`);
+        const analises = await db.all(`SELECT * FROM analises_qualidade ORDER BY id DESC`);
+
+        const ExcelJS = require('exceljs');
+        const workbook = new ExcelJS.Workbook();
+
+        // Aba Expedições
+        const sheetExp = workbook.addWorksheet('Expedições');
+        if (expedicoes.length > 0) {
+            sheetExp.columns = Object.keys(expedicoes[0]).map(key => ({
+                header: key,
+                key,
+                width: 20
+            }));
+            expedicoes.forEach(row => sheetExp.addRow(row));
+        }
+
+        // Aba Análises
+        const sheetAna = workbook.addWorksheet('Análises de Qualidade');
+        if (analises.length > 0) {
+            sheetAna.columns = Object.keys(analises[0]).map(key => ({
+                header: key,
+                key,
+                width: 20
+            }));
+            analises.forEach(row => sheetAna.addRow(row));
+        }
+
+        // Gera o arquivo em buffer
+        const buffer = await workbook.xlsx.writeBuffer();
+        const base64 = buffer.toString('base64');
+
+        const agora = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
+
+        // Envia por e-mail via Brevo
+        await fetch('https://api.brevo.com/v3/smtp/email', {
+            method: 'POST',
+            headers: {
+                accept: 'application/json',
+                'api-key': process.env.BREVO_API_KEY,
+                'content-type': 'application/json'
+            },
+            body: JSON.stringify({
+                sender: { name: 'Sistema Furman', email: process.env.EMAIL_FROM },
+                to: [{ name: 'Luiz Aires', email: 'luizguilhermeprado990@gmail.com' }],
+                subject: `Backup Automático - Furman Agronegócios - ${agora}`,
+                htmlContent: `
+                    <div style="font-family:Arial,sans-serif; padding:20px;">
+                        <h2>📦 Backup Automático</h2>
+                        <p>Segue em anexo o backup diário do sistema Furman Agronegócios.</p>
+                        <p><strong>Data:</strong> ${agora}</p>
+                        <p><strong>Expedições:</strong> ${expedicoes.length} registros</p>
+                        <p><strong>Análises:</strong> ${analises.length} registros</p>
+                    </div>
+                `,
+                attachment: [{
+                    name: `backup-furman-${agora}.xlsx`,
+                    content: base64
+                }]
+            })
+        });
+
+        console.log('✅ Backup automático enviado com sucesso!');
+
+    } catch (erro) {
+        console.error('❌ Erro no backup automático:', erro);
+    }
+}, {
+    timezone: 'America/Sao_Paulo'
 });
 
 criarTabelas()
