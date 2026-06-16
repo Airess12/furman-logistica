@@ -220,31 +220,39 @@
         Tipo de veículo padrão
     </label>
     <div style="display:flex; gap:12px;">
-        <label style="
-            display:flex; align-items:center; gap:8px;
-            padding:10px 16px;
-            border-radius:12px;
-            border:1px solid rgba(255,255,255,.10);
-            background:rgba(255,255,255,.04);
-            color:#cbd5e1;
+        <label id="label4Eixo" style="
+            display:flex; align-items:center; gap:10px;
+            padding:12px 20px;
+            border-radius:14px;
+            border:2px solid #21ff9d;
+            background:rgba(33,255,157,.08);
+            color:#21ff9d;
             cursor:pointer;
-            font-weight:600;
+            font-weight:700;
             font-size:14px;
+            transition:.2s ease;
+            flex:1;
+            justify-content:center;
         ">
-            <input type="radio" name="tipoCavaloCadastro" value="4º Eixo" checked> 4º Eixo
+            <input type="radio" name="tipoCavaloCadastro" value="4º Eixo" checked onchange="atualizarEstiloRadio()" style="display:none;">
+            🚛 4º Eixo
         </label>
-        <label style="
-            display:flex; align-items:center; gap:8px;
-            padding:10px 16px;
-            border-radius:12px;
-            border:1px solid rgba(255,255,255,.10);
+        <label id="labelRodo" style="
+            display:flex; align-items:center; gap:10px;
+            padding:12px 20px;
+            border-radius:14px;
+            border:2px solid rgba(255,255,255,.10);
             background:rgba(255,255,255,.04);
             color:#cbd5e1;
             cursor:pointer;
-            font-weight:600;
+            font-weight:700;
             font-size:14px;
+            transition:.2s ease;
+            flex:1;
+            justify-content:center;
         ">
-            <input type="radio" name="tipoCavaloCadastro" value="Rodo Caçamba"> Rodo
+            <input type="radio" name="tipoCavaloCadastro" value="Rodo Caçamba" onchange="atualizarEstiloRadio()" style="display:none;">
+            🚚 Rodo
         </label>
     </div>
 </div>

@@ -3959,3 +3959,24 @@ function calcularPercentuaisTempoReal() {
         `;
     }
 }
+function atualizarEstiloRadio() {
+    const tipo = document.querySelector('input[name="tipoCavaloCadastro"]:checked')?.value;
+    const label4 = document.getElementById('label4Eixo');
+    const labelRodo = document.getElementById('labelRodo');
+
+    if (tipo === '4º Eixo') {
+        label4.style.border = '2px solid #21ff9d';
+        label4.style.background = 'rgba(33,255,157,.08)';
+        label4.style.color = '#21ff9d';
+        labelRodo.style.border = '2px solid rgba(255,255,255,.10)';
+        labelRodo.style.background = 'rgba(255,255,255,.04)';
+        labelRodo.style.color = '#cbd5e1';
+    } else {
+        labelRodo.style.border = '2px solid #21ff9d';
+        labelRodo.style.background = 'rgba(33,255,157,.08)';
+        labelRodo.style.color = '#21ff9d';
+        label4.style.border = '2px solid rgba(255,255,255,.10)';
+        label4.style.background = 'rgba(255,255,255,.04)';
+        label4.style.color = '#cbd5e1';
+    }
+}
