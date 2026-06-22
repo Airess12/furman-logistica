@@ -90,10 +90,6 @@
                     <p class="dash-subtitle">Furman Agronegócios</p>
                     <h1>Dashboard Operacional</h1>
                 </div>
-                <div class="dash-user">
-                    <span>🌱 Agro Negócios</span>
-                    <strong>Online</strong>
-                </div>
             </div>
             <div class="dash-banner">
                 <div>
@@ -542,8 +538,15 @@
             <button type="button" class="primary-btn" onclick="gerarPDFQualidade()">📄 Gerar PDF e Enviar por E-mail</button>
             <div id="q_resultado" class="relatorio-card relatorio-vazio">Nenhuma análise salva ainda.</div>
             <br><br>
+           
             <h3>📋 Histórico de análises</h3>
-            <div class="table-container">
+            <div class="filtros-relatorios">
+            <input type="text" id="filtroQualidadePlaca" placeholder="Buscar por placa...">
+            <input type="date" id="filtroQualidadeDataInicio" title="Data início">
+            <input type="date" id="filtroQualidadeDataFim" title="Data fim">
+            <button type="button" class="primary-btn" onclick="limparFiltrosQualidade()">Limpar Filtros</button>
+            </div>
+<div class="table-container">
                 <table class="relatorios-table">
                     <thead>
                         <tr>

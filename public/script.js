@@ -1608,6 +1608,15 @@ window.onload = async () => {
     } catch (erro) {
         console.error('Erro ao iniciar sistema:', erro);
     }
+
+    document.getElementById('filtroQualidadePlaca')
+    ?.addEventListener('input', carregarAnalisesQualidade);
+
+    document.getElementById('filtroQualidadeDataInicio')
+    ?.addEventListener('change', carregarAnalisesQualidade);
+
+    document.getElementById('filtroQualidadeDataFim')
+    ?.addEventListener('change', carregarAnalisesQualidade);
 };
 
 async function salvarAnaliseQualidade() {
@@ -1702,7 +1711,7 @@ toast('Análise salva e PDF enviado!');
 }
 
 async function carregarAnalisesQualidade() {
-        mostrarLoading();
+    mostrarLoading();
     const tabela = document.getElementById('tabelaQualidade');
     if (!tabela) return;
 
@@ -1712,7 +1721,28 @@ async function carregarAnalisesQualidade() {
         const resposta = await fetch('/analises-qualidade');
         if (!resposta.ok) throw new Error('Erro ao buscar análises');
 
-        analisesFiltradas = await resposta.json();
+        const todasAnalises = await resposta.json();
+
+        const busca = document.getElementById('filtroQualidadePlaca')?.value.toLowerCase() || '';
+        const dataInicio = document.getElementById('filtroQualidadeDataInicio')?.value || '';
+        const dataFim = document.getElementById('filtroQualidadeDataFim')?.value || '';
+
+        analisesFiltradas = todasAnalises.filter(item => {
+            const passaBusca = !busca || (item.placa || '').toLowerCase().includes(busca);
+
+            let dentroDoperiodo = true;
+            if (dataInicio || dataFim) {
+                const dataItem = new Date(item.criado_em);
+                if (dataInicio && dataItem < new Date(dataInicio)) dentroDoperiodo = false;
+                if (dataFim) {
+                    const fim = new Date(dataFim);
+                    fim.setHours(23, 59, 59);
+                    if (dataItem > fim) dentroDoperiodo = false;
+                }
+            }
+
+            return passaBusca && dentroDoperiodo;
+        });
 
         if (!analisesFiltradas.length) {
             tabela.innerHTML = `<tr><td colspan="7">Nenhuma análise encontrada.</td></tr>`;
@@ -1722,12 +1752,22 @@ async function carregarAnalisesQualidade() {
         paginaAtualQualidade = 1;
         renderizarTabelaQualidade();
 
-   } catch (erro) {
+    } catch (erro) {
         console.error(erro);
         tabela.innerHTML = `<tr><td colspan="7">Erro ao carregar análises.</td></tr>`;
     } finally {
         esconderLoading();
     }
+}
+
+function limparFiltrosQualidade() {
+    const placa = document.getElementById('filtroQualidadePlaca');
+    const inicio = document.getElementById('filtroQualidadeDataInicio');
+    const fim = document.getElementById('filtroQualidadeDataFim');
+    if (placa) placa.value = '';
+    if (inicio) inicio.value = '';
+    if (fim) fim.value = '';
+    carregarAnalisesQualidade();
 }
 
 
