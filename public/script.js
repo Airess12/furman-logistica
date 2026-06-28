@@ -1620,6 +1620,36 @@ window.onload = async () => {
 };
 
 async function salvarAnaliseQualidade() {
+    const tipoAmostragemVal = document.querySelector('input[name="tipoAmostragem"]:checked')?.value || 'carga';
+
+    const camposObrigatorios = [
+        { id: 'q_fazenda', label: 'Fazenda' },
+        { id: 'q_variedade', label: 'Variedade' },
+        ...(tipoAmostragemVal === 'campo'
+            ? [{ id: 'q_num_identificacao', label: 'Nº Identificação' }]
+            : [{ id: 'q_placa', label: 'Placa do caminhão' }]),
+        { id: 'q_peso_total', label: 'Peso total' },
+        { id: 'q_solido_1', label: 'Sólido 1' },
+        { id: 'q_solido_2', label: 'Sólido 2' },
+        { id: 'q_solido_3', label: 'Sólido 3' },
+    ];
+
+    const faltando = camposObrigatorios.filter(c => !document.getElementById(c.id)?.value?.trim());
+
+    if (faltando.length > 0) {
+        const nomes = faltando.map(c => c.label).join(', ');
+        toast(`⚠️ Preencha os campos obrigatórios: ${nomes}`, 'aviso');
+
+        faltando.forEach(c => {
+            const el = document.getElementById(c.id);
+            if (el) {
+                el.style.borderColor = '#ef4444';
+                el.addEventListener('input', () => { el.style.borderColor = ''; }, { once: true });
+            }
+        });
+        return;
+    }
+
     const btn = document.querySelector('button[onclick="salvarAnaliseQualidade()"]');
     if (btn) btnLoading(btn, '⏳ Salvando...');
 
