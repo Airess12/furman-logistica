@@ -312,7 +312,7 @@ await db.query(`ALTER TABLE analises_qualidade ADD COLUMN IF NOT EXISTS safra_id
 
 const safraCount = await db.query(`SELECT COUNT(*) AS total FROM safras`);
 if (parseInt(safraCount.rows[0].total) === 0) {
-    await db.query(`INSERT INTO safras (nome, ativa) VALUES ('Safra 2025', TRUE)`);
+    await db.query(`INSERT INTO safras (nome, ativa) VALUES ('Safra 25/26', TRUE)`);
 }
 
 await db.query(`
