@@ -1,4 +1,57 @@
 let usuarioLogado = {};
+let safraSelecionada = null;
+
+function getSafraQuery() {
+    return safraSelecionada ? `safra_id=${safraSelecionada}` : '';
+}
+
+async function carregarSafras() {
+    try {
+        const [safras, ativa] = await Promise.all([
+            fetch('/safras').then(r => r.json()),
+            fetch('/safras/ativa').then(r => r.json())
+        ]);
+        safraSelecionada = ativa?.id || null;
+        const sel = document.getElementById('seletor-safra');
+        if (sel) {
+            sel.innerHTML = safras.map(s => `<option value="${s.id}" ${s.id === safraSelecionada ? 'selected' : ''}>${s.nome}${s.ativa ? ' (Ativa)' : ''}</option>`).join('');
+        }
+        const btnFechar = document.getElementById('btn-fechar-safra');
+        if (btnFechar) {
+            const tipo = usuarioLogado?.tipo;
+            btnFechar.style.display = ['master', 'gerente'].includes(tipo) ? '' : 'none';
+        }
+    } catch (e) {
+        console.error('Erro ao carregar safras:', e);
+    }
+}
+
+function trocarSafra(id) {
+    safraSelecionada = parseInt(id);
+    carregarDashboard();
+    carregarGraficoDashboard();
+    carregarGraficoStatus();
+}
+
+async function fecharSafra() {
+    const nomeSafra = prompt('Nome da nova safra (ex: Safra 2026):');
+    if (!nomeSafra?.trim()) return;
+    const ok = await confirmarDialog(`Fechar a safra atual e iniciar "${nomeSafra.trim()}"?\n\nOs dados da safra atual serão arquivados e você poderá consultá-los pelo seletor de safra.`);
+    if (!ok) return;
+    try {
+        const resp = await fetch('/safras/fechar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nome: nomeSafra.trim() })
+        });
+        if (!resp.ok) throw new Error();
+        toast('Safra fechada! Nova safra iniciada com sucesso.');
+        await carregarSafras();
+        await carregarDashboard();
+    } catch {
+        toast('Erro ao fechar safra.', 'erro');
+    }
+}
 
 fetch('/me')
     .then(r => r.json())
@@ -17,6 +70,7 @@ fetch('/me')
             if (menuUsuarios && usuarioLogado.tipo !== 'master') menuUsuarios.remove();
 
             aplicarPermissoesUsuario();
+            carregarSafras();
         } else {
             window.location.href = '/login';
         }
@@ -757,7 +811,7 @@ let analisesFiltradas = [];
 async function carregarHistorico() {
         mostrarLoading();
 
-    const resposta = await fetch('/expedicoes');
+    const resposta = await fetch('/expedicoes?' + getSafraQuery());
     const dados = await resposta.json();
 
     const busca = document.getElementById('filtroBusca')?.value.toLowerCase() || '';
@@ -1057,7 +1111,7 @@ async function carregarDashboard() {
         mostrarLoading();
 
     try {
-        const resposta = await fetch('/dashboard');
+        const resposta = await fetch('/dashboard?' + getSafraQuery());
         const dados = await resposta.json();
 
         const totalExpedicoes = dados.totalExpedicoes || 0;
@@ -1123,7 +1177,7 @@ async function carregarGraficoDashboard() {
     const canvas = document.getElementById('graficoExpedicoes');
     if (!canvas || typeof Chart === 'undefined') return;
 
-    const resposta = await fetch('/expedicoes');
+    const resposta = await fetch('/expedicoes?' + getSafraQuery());
     const expedicoes = await resposta.json();
 
     const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
@@ -1237,7 +1291,7 @@ async function carregarGraficoStatus() {
     const canvas = document.getElementById('graficoStatus');
     if (!canvas || typeof Chart === 'undefined') return;
 
-    const resposta = await fetch('/expedicoes');
+    const resposta = await fetch('/expedicoes?' + getSafraQuery());
     const expedicoes = await resposta.json();
 
     const status = {
@@ -1719,7 +1773,7 @@ formData.append('tipo_amostragem', tipoAmostragem);
 if (!resposta.ok) throw new Error('Erro ao salvar análise');
 
 // Busca a análise mais recente para gerar PDF completo automaticamente
-const todasAnalises = await fetch('/analises-qualidade').then(r => r.json());
+const todasAnalises = await fetch('/analises-qualidade?' + getSafraQuery()).then(r => r.json());
 const analiseSalva = todasAnalises[0];
 
 if (analiseSalva) {
@@ -1748,7 +1802,7 @@ async function carregarAnalisesQualidade() {
     tabela.innerHTML = `<tr><td colspan="7">Carregando...</td></tr>`;
 
     try {
-        const resposta = await fetch('/analises-qualidade');
+        const resposta = await fetch('/analises-qualidade?' + getSafraQuery());
         if (!resposta.ok) throw new Error('Erro ao buscar análises');
 
         const todasAnalises = await resposta.json();
@@ -2158,7 +2212,7 @@ function editarAnaliseQualidade(item) {
 async function carregarDashboardQualidade() {
     try {
 
-        const resposta = await fetch('/dashboard-qualidade');
+        const resposta = await fetch('/dashboard-qualidade?' + getSafraQuery());
 
         const analises = await resposta.json();
 
@@ -2224,7 +2278,7 @@ let graficoSolidosQualidade = null;
 async function carregarGraficoSolidosQualidade() {
     try {
 
-        const resposta = await fetch('/analises-qualidade');
+        const resposta = await fetch('/analises-qualidade?' + getSafraQuery());
         const analises = await resposta.json();
 
         const ultimas = analises.slice(0, 8).reverse();
@@ -3416,7 +3470,7 @@ let graficoExecVariedades;
 
 async function carregarIndicadoresExecutivos() {
     try {
-        const resposta = await fetch('/expedicoes');
+        const resposta = await fetch('/expedicoes?' + getSafraQuery());
         const expedicoes = await resposta.json();
 
         const total = expedicoes.length;

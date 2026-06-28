@@ -99,6 +99,11 @@ async function registrarAuditoria(req, dados) {
     }
 }
 
+async function getSafraAtiva(db) {
+    const safra = await db.get(`SELECT id FROM safras WHERE ativa = TRUE LIMIT 1`);
+    return safra?.id || null;
+}
+
 async function auditarAlteracoes(req, tabela, id, antes, depois) {
     for (const campo in depois) {
         const valorAntigo = antes?.[campo] ?? '';
@@ -213,19 +218,45 @@ app.get('/carretas', protegerApi, async (req, res) => {
     res.json(await db.all(`SELECT * FROM carretas ORDER BY placa ASC`));
 });
 
+app.get('/safras', protegerApi, async (req, res) => {
+    const db = await conectar();
+    res.json(await db.all(`SELECT * FROM safras ORDER BY id DESC`));
+});
+
+app.get('/safras/ativa', protegerApi, async (req, res) => {
+    const db = await conectar();
+    const safra = await db.get(`SELECT * FROM safras WHERE ativa = TRUE LIMIT 1`);
+    res.json(safra || null);
+});
+
+app.post('/safras/fechar', protegerApi, async (req, res) => {
+    const tipo = req.session.usuario?.tipo;
+    if (!['master', 'gerente'].includes(tipo)) return res.status(403).json({ status: 'erro', mensagem: 'Acesso não permitido' });
+    const db = await conectar();
+    const { nome } = req.body;
+    if (!nome?.trim()) return res.status(400).json({ status: 'erro', mensagem: 'Nome da nova safra obrigatório' });
+    await db.run(`UPDATE safras SET ativa = FALSE, data_fim = NOW() WHERE ativa = TRUE`);
+    await db.run(`INSERT INTO safras (nome, ativa) VALUES (?, TRUE)`, [nome.trim()]);
+    res.json({ status: 'ok' });
+});
+
 app.post('/expedicoes', protegerApi, somenteExpedicao, async (req, res) => {
     const db = await conectar();
     const { produtor, placa_cavalo, motorista, origem, destino, veiculo, placa_carreta1, variedade1, placa_carreta2, variedade2, peso, saida } = req.body;
+    const safraId = await getSafraAtiva(db);
     await db.run(
-        `INSERT INTO expedicoes (produtor, placa_cavalo, motorista, origem, destino, veiculo, placa_carreta1, variedade1, placa_carreta2, variedade2, peso, saida, status, resultado, motivo_reprovacao, resultado_c1, motivo_c1, resultado_c2, motivo_c2) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [produtor, placa_cavalo, motorista, origem, destino, veiculo, placa_carreta1, variedade1, placa_carreta2, variedade2, peso, saida, 'Em viagem', 'Pendente', '', 'Pendente', '', placa_carreta2 ? 'Pendente' : '', '']
+        `INSERT INTO expedicoes (produtor, placa_cavalo, motorista, origem, destino, veiculo, placa_carreta1, variedade1, placa_carreta2, variedade2, peso, saida, status, resultado, motivo_reprovacao, resultado_c1, motivo_c1, resultado_c2, motivo_c2, safra_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [produtor, placa_cavalo, motorista, origem, destino, veiculo, placa_carreta1, variedade1, placa_carreta2, variedade2, peso, saida, 'Em viagem', 'Pendente', '', 'Pendente', '', placa_carreta2 ? 'Pendente' : '', '', safraId]
     );
     res.json({ status: 'ok' });
 });
 
 app.get('/expedicoes', protegerApi, async (req, res) => {
     const db = await conectar();
-    res.json(await db.all(`SELECT * FROM expedicoes ORDER BY id DESC`));
+    const safra_id = req.query.safra_id ? parseInt(req.query.safra_id) : null;
+    const w = safra_id ? 'WHERE safra_id = ?' : '';
+    const p = safra_id ? [safra_id] : [];
+    res.json(await db.all(`SELECT * FROM expedicoes ${w} ORDER BY id DESC`, p));
 });
 
 app.put('/expedicoes/:id', protegerApi, somenteExpedicao, async (req, res) => {
@@ -289,14 +320,18 @@ app.delete('/expedicoes/:id', protegerApi, somenteExpedicao, async (req, res) =>
 
 app.get('/dashboard', protegerApi, async (req, res) => {
     const db = await conectar();
-    const totalExpedicoes = await db.get(`SELECT COUNT(*) AS total FROM expedicoes`);
-    const totalPeso = await db.get(`SELECT COUNT(*) * 38000 AS total FROM expedicoes`);
-    const aprovadasC1 = await db.get(`SELECT COUNT(*) AS total FROM expedicoes WHERE resultado_c1='Aprovado'`);
-    const reprovadasC1 = await db.get(`SELECT COUNT(*) AS total FROM expedicoes WHERE resultado_c1='Reprovado'`);
-    const restricaoC1 = await db.get(`SELECT COUNT(*) AS total FROM expedicoes WHERE resultado_c1='Aprovado com Restrição'`);
-    const aprovadasC2 = await db.get(`SELECT COUNT(*) AS total FROM expedicoes WHERE resultado_c2='Aprovado'`);
-    const reprovadasC2 = await db.get(`SELECT COUNT(*) AS total FROM expedicoes WHERE resultado_c2='Reprovado'`);
-    const restricaoC2 = await db.get(`SELECT COUNT(*) AS total FROM expedicoes WHERE resultado_c2='Aprovado com Restrição'`);
+    let safraId = req.query.safra_id ? parseInt(req.query.safra_id) : await getSafraAtiva(db);
+    const w = safraId ? 'WHERE safra_id = ?' : '';
+    const a = safraId ? "AND safra_id = ?" : '';
+    const p = safraId ? [safraId] : [];
+    const totalExpedicoes = await db.get(`SELECT COUNT(*) AS total FROM expedicoes ${w}`, p);
+    const totalPeso = await db.get(`SELECT COUNT(*) * 38000 AS total FROM expedicoes ${w}`, p);
+    const aprovadasC1 = await db.get(`SELECT COUNT(*) AS total FROM expedicoes WHERE resultado_c1='Aprovado' ${a}`, p);
+    const reprovadasC1 = await db.get(`SELECT COUNT(*) AS total FROM expedicoes WHERE resultado_c1='Reprovado' ${a}`, p);
+    const restricaoC1 = await db.get(`SELECT COUNT(*) AS total FROM expedicoes WHERE resultado_c1='Aprovado com Restrição' ${a}`, p);
+    const aprovadasC2 = await db.get(`SELECT COUNT(*) AS total FROM expedicoes WHERE resultado_c2='Aprovado' ${a}`, p);
+    const reprovadasC2 = await db.get(`SELECT COUNT(*) AS total FROM expedicoes WHERE resultado_c2='Reprovado' ${a}`, p);
+    const restricaoC2 = await db.get(`SELECT COUNT(*) AS total FROM expedicoes WHERE resultado_c2='Aprovado com Restrição' ${a}`, p);
     const aprovadosTotal = Number(aprovadasC1.total||0) + Number(aprovadasC2.total||0);
     const reprovadosTotal = Number(reprovadasC1.total||0) + Number(reprovadasC2.total||0);
     const restricaoTotal = Number(restricaoC1.total||0) + Number(restricaoC2.total||0);
@@ -314,16 +349,20 @@ app.post('/analises-qualidade', protegerApi, upload.single('foto_analise'), asyn
     const db = await conectar();
     const foto_analise = req.file ? '/uploads/' + req.file.filename : '';
     const { fazenda, variedade, solidos, temperatura_agua, temperatura_media, peso_agua, placa, peso_total, peso_lavado, fritura, classificacao_fritura, quantidade_palitos, diametro_35, diametro_35_45, diametro_45, menos75_qtd, menos75_peso, mais75_qtd, mais75_peso, mais100_qtd, mais100_peso, mais150_qtd, mais150_peso, defeito, pontos } = req.body;
+    const safraId = await getSafraAtiva(db);
     await db.run(
-        `INSERT INTO analises_qualidade (fazenda, variedade, solidos, temperatura_agua, temperatura_media, peso_agua, placa, peso_total, peso_lavado, fritura, classificacao_fritura, quantidade_palitos, diametro_35, diametro_35_45, diametro_45, menos75_qtd, menos75_peso, mais75_qtd, mais75_peso, mais100_qtd, mais100_peso, mais150_qtd, mais150_peso, defeito, pontos, foto_analise) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [fazenda||'', variedade||'', solidos||'', temperatura_agua||'', temperatura_media||'', peso_agua||'', placa||'', peso_total||'', peso_lavado||'', fritura||'', classificacao_fritura||'', quantidade_palitos||'', diametro_35||'', diametro_35_45||'', diametro_45||'', menos75_qtd||'', menos75_peso||'', mais75_qtd||'', mais75_peso||'', mais100_qtd||'', mais100_peso||'', mais150_qtd||'', mais150_peso||'', defeito||'', pontos||'', foto_analise]
+        `INSERT INTO analises_qualidade (fazenda, variedade, solidos, temperatura_agua, temperatura_media, peso_agua, placa, peso_total, peso_lavado, fritura, classificacao_fritura, quantidade_palitos, diametro_35, diametro_35_45, diametro_45, menos75_qtd, menos75_peso, mais75_qtd, mais75_peso, mais100_qtd, mais100_peso, mais150_qtd, mais150_peso, defeito, pontos, foto_analise, safra_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [fazenda||'', variedade||'', solidos||'', temperatura_agua||'', temperatura_media||'', peso_agua||'', placa||'', peso_total||'', peso_lavado||'', fritura||'', classificacao_fritura||'', quantidade_palitos||'', diametro_35||'', diametro_35_45||'', diametro_45||'', menos75_qtd||'', menos75_peso||'', mais75_qtd||'', mais75_peso||'', mais100_qtd||'', mais100_peso||'', mais150_qtd||'', mais150_peso||'', defeito||'', pontos||'', foto_analise, safraId]
     );
     res.json({ status: 'ok' });
 });
 
 app.get('/analises-qualidade', protegerApi, async (req, res) => {
     const db = await conectar();
-    res.json(await db.all(`SELECT * FROM analises_qualidade ORDER BY id DESC`));
+    const safra_id = req.query.safra_id ? parseInt(req.query.safra_id) : null;
+    const w = safra_id ? 'WHERE safra_id = ?' : '';
+    const p = safra_id ? [safra_id] : [];
+    res.json(await db.all(`SELECT * FROM analises_qualidade ${w} ORDER BY id DESC`, p));
 });
 
 app.put('/analises-qualidade/:id', protegerApi, upload.single('foto_analise'), async (req, res) => {
@@ -357,7 +396,10 @@ app.delete('/analises-qualidade/:id', protegerApi, async (req, res) => {
 app.get('/dashboard-qualidade', protegerApi, async (req, res) => {
     try {
         const db = await conectar();
-        res.json(await db.all(`SELECT * FROM analises_qualidade ORDER BY id DESC`));
+        const safra_id = req.query.safra_id ? parseInt(req.query.safra_id) : null;
+        const w = safra_id ? 'WHERE safra_id = ?' : '';
+        const p = safra_id ? [safra_id] : [];
+        res.json(await db.all(`SELECT * FROM analises_qualidade ${w} ORDER BY id DESC`, p));
     } catch (erro) {
         console.error('ERRO DASHBOARD QUALIDADE:', erro);
         res.status(500).json({ erro: 'Erro ao carregar dashboard qualidade' });

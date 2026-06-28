@@ -297,7 +297,34 @@ await db.query(`
     ADD COLUMN IF NOT EXISTS tipo_amostragem TEXT DEFAULT 'carga'
 `);
 
+await db.query(`
+    CREATE TABLE IF NOT EXISTS safras (
+        id SERIAL PRIMARY KEY,
+        nome TEXT NOT NULL,
+        data_inicio TIMESTAMP DEFAULT NOW(),
+        data_fim TIMESTAMP,
+        ativa BOOLEAN DEFAULT TRUE
+    )
+`);
 
+await db.query(`ALTER TABLE expedicoes ADD COLUMN IF NOT EXISTS safra_id INTEGER`);
+await db.query(`ALTER TABLE analises_qualidade ADD COLUMN IF NOT EXISTS safra_id INTEGER`);
+
+const safraCount = await db.query(`SELECT COUNT(*) AS total FROM safras`);
+if (parseInt(safraCount.rows[0].total) === 0) {
+    await db.query(`INSERT INTO safras (nome, ativa) VALUES ('Safra 2025', TRUE)`);
+}
+
+await db.query(`
+    UPDATE expedicoes
+    SET safra_id = (SELECT id FROM safras ORDER BY id ASC LIMIT 1)
+    WHERE safra_id IS NULL
+`);
+await db.query(`
+    UPDATE analises_qualidade
+    SET safra_id = (SELECT id FROM safras ORDER BY id ASC LIMIT 1)
+    WHERE safra_id IS NULL
+`);
 
     console.log('✅ Banco PostgreSQL conectado');
 }
