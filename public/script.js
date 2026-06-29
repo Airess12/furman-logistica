@@ -16,11 +16,12 @@ async function carregarSafras() {
         if (sel) {
             sel.innerHTML = safras.map(s => `<option value="${s.id}" ${s.id === safraSelecionada ? 'selected' : ''}>${s.nome}${s.ativa ? ' (Ativa)' : ''}</option>`).join('');
         }
+        const tipo = usuarioLogado?.tipo;
+        const isAdmin = ['master', 'gerente'].includes(tipo);
         const btnFechar = document.getElementById('btn-fechar-safra');
-        if (btnFechar) {
-            const tipo = usuarioLogado?.tipo;
-            btnFechar.style.display = ['master', 'gerente'].includes(tipo) ? '' : 'none';
-        }
+        if (btnFechar) btnFechar.style.display = isAdmin ? '' : 'none';
+        const btnEditar = document.getElementById('btn-editar-safra');
+        if (btnEditar) btnEditar.style.display = isAdmin ? '' : 'none';
     } catch (e) {
         console.error('Erro ao carregar safras:', e);
     }
@@ -31,6 +32,53 @@ function trocarSafra(id) {
     carregarDashboard();
     carregarGraficoDashboard();
     carregarGraficoStatus();
+}
+
+async function editarNomeSafra() {
+    const sel = document.getElementById('seletor-safra');
+    if (!sel) return;
+    const id = sel.value;
+    const nomeAtual = sel.options[sel.selectedIndex]?.text?.replace(' (Ativa)', '').trim() || '';
+    const novo = prompt('Novo nome da safra:', nomeAtual);
+    if (!novo?.trim() || novo.trim() === nomeAtual) return;
+    try {
+        const resp = await fetch(`/safras/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nome: novo.trim() })
+        });
+        if (!resp.ok) throw new Error();
+        toast('Safra renomeada com sucesso!');
+        await carregarSafras();
+    } catch {
+        toast('Erro ao renomear safra.', 'erro');
+    }
+}
+
+let autoRefreshInterval = null;
+let autoRefreshSegundosRestantes = 0;
+
+function iniciarAutoRefresh(minutos) {
+    if (autoRefreshInterval) { clearInterval(autoRefreshInterval); autoRefreshInterval = null; }
+    const el = document.getElementById('refresh-countdown');
+    if (!minutos || minutos === '0') { if (el) el.textContent = ''; return; }
+    const total = parseInt(minutos) * 60;
+    autoRefreshSegundosRestantes = total;
+    autoRefreshInterval = setInterval(async () => {
+        autoRefreshSegundosRestantes--;
+        const elc = document.getElementById('refresh-countdown');
+        if (elc) {
+            const min = Math.floor(autoRefreshSegundosRestantes / 60);
+            const seg = autoRefreshSegundosRestantes % 60;
+            elc.textContent = `🔄 ${min}:${String(seg).padStart(2,'0')}`;
+        }
+        if (autoRefreshSegundosRestantes <= 0) {
+            autoRefreshSegundosRestantes = total;
+            await carregarDashboard();
+            await carregarGraficoDashboard();
+            await carregarGraficoStatus();
+        }
+    }, 1000);
 }
 
 async function fecharSafra() {
@@ -709,7 +757,8 @@ async function gerarRelatorio(event) {
         placa_carreta2: el('placa_carreta2', 'placaCarreta2')?.value || '',
         variedade2: el('variedade2')?.value || '',
         peso: el('peso')?.value || '',
-        saida: new Date().toLocaleString('pt-BR')
+        saida: new Date().toLocaleString('pt-BR'),
+        observacoes: el('observacoes')?.value || ''
     };
 
     const resposta = await fetch('/expedicoes', {
@@ -1799,7 +1848,7 @@ async function carregarAnalisesQualidade() {
     const tabela = document.getElementById('tabelaQualidade');
     if (!tabela) return;
 
-    tabela.innerHTML = `<tr><td colspan="7">Carregando...</td></tr>`;
+    tabela.innerHTML = `<tr><td colspan="8">Carregando...</td></tr>`;
 
     try {
         const resposta = await fetch('/analises-qualidade?' + getSafraQuery());
@@ -1829,7 +1878,7 @@ async function carregarAnalisesQualidade() {
         });
 
         if (!analisesFiltradas.length) {
-            tabela.innerHTML = `<tr><td colspan="7">Nenhuma análise encontrada.</td></tr>`;
+            tabela.innerHTML = `<tr><td colspan="8">Nenhuma análise encontrada.</td></tr>`;
             return;
         }
 
@@ -1867,6 +1916,9 @@ function renderizarTabelaQualidade() {
     tabela.innerHTML = '';
 
     paginados.forEach(item => {
+        const fotoHtml = item.foto_analise
+            ? `<a href="${item.foto_analise}" target="_blank"><img src="${item.foto_analise}" style="width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid rgba(255,255,255,.1);" title="Ver foto"></a>`
+            : '<span style="color:#475569;font-size:12px;">—</span>';
         tabela.innerHTML += `
             <tr>
                 <td>${sanitizar(item.placa) || '-'}</td>
@@ -1875,6 +1927,7 @@ function renderizarTabelaQualidade() {
                 <td>${sanitizar(item.peso_agua) || '-'}</td>
                 <td>${sanitizar(item.peso_total) || '-'}</td>
                 <td>${new Date(item.criado_em).toLocaleString('pt-BR')}</td>
+                <td style="text-align:center">${fotoHtml}</td>
                 <td>
                     <div class="acoes-botoes">
                         <button type="button" class="btn-ver-analise"
@@ -3685,10 +3738,66 @@ rankingOrdenado.forEach(([produtor, total], index) => {
 
         await carregarGraficoProdutores(expedicoes);
         await carregarGraficoExpedicoesMes(expedicoes);
+        await carregarComparativoSafras();
+
+        // Tempo médio de viagem (expedições com data_finalizacao preenchida)
+        const comTempo = expedicoes.filter(e => e.data_finalizacao && e.saida);
+        if (comTempo.length > 0) {
+            let somaHoras = 0;
+            let validos = 0;
+            comTempo.forEach(e => {
+                const partes = e.saida.split(',')[0]?.trim().split('/');
+                if (partes?.length !== 3) return;
+                const saida = new Date(`${partes[2]}-${partes[1]}-${partes[0]}T${e.saida.split(',')[1]?.trim() || '00:00:00'}`);
+                const fin = new Date(e.data_finalizacao);
+                const horas = (fin - saida) / 3600000;
+                if (horas > 0 && horas < 720) { somaHoras += horas; validos++; }
+            });
+            if (validos > 0) {
+                const mediaH = somaHoras / validos;
+                const h = Math.floor(mediaH);
+                const m = Math.round((mediaH - h) * 60);
+                const el = document.getElementById('exec-tempo-medio');
+                if (el) el.textContent = `${h}h ${m}min`;
+            }
+        }
 
     } catch (erro) {
         console.error('Erro dashboard executivo:', erro);
     }
+}
+
+let graficoComparativo = null;
+async function carregarComparativoSafras() {
+    try {
+        const dados = await fetch('/dashboard/comparativo').then(r => r.json());
+        if (!dados?.length) return;
+        const canvas = document.getElementById('graficoComparativoSafras');
+        if (!canvas) return;
+        if (graficoComparativo) graficoComparativo.destroy();
+        graficoComparativo = new Chart(canvas, {
+            type: 'bar',
+            data: {
+                labels: dados.map(d => d.safra),
+                datasets: [
+                    { label: 'Total', data: dados.map(d => d.total), backgroundColor: 'rgba(124,58,237,0.7)', borderRadius: 8 },
+                    { label: 'Aprovadas', data: dados.map(d => d.aprovadas), backgroundColor: 'rgba(34,197,94,0.7)', borderRadius: 8 },
+                    { label: 'Reprovadas', data: dados.map(d => d.reprovadas), backgroundColor: 'rgba(239,68,68,0.7)', borderRadius: 8 }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { color: '#94a3b8' } },
+                    tooltip: { backgroundColor: 'rgba(15,23,42,0.95)', titleColor: '#fff', bodyColor: '#cbd5e1' }
+                },
+                scales: {
+                    x: { ticks: { color: '#94a3b8' }, grid: { display: false } },
+                    y: { beginAtZero: true, ticks: { color: '#94a3b8', precision: 0 }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                }
+            }
+        });
+    } catch (e) { console.error('Erro comparativo safras:', e); }
 }
 
 function editarLinhaExpedicao(id) {

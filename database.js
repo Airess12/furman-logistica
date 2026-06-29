@@ -326,6 +326,9 @@ await db.query(`
     WHERE safra_id IS NULL
 `);
 
+await db.query(`ALTER TABLE expedicoes ADD COLUMN IF NOT EXISTS observacoes TEXT DEFAULT ''`);
+await db.query(`ALTER TABLE expedicoes ADD COLUMN IF NOT EXISTS data_finalizacao TIMESTAMP`);
+
     console.log('✅ Banco PostgreSQL conectado');
 }
 

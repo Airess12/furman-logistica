@@ -229,6 +229,16 @@ app.get('/safras/ativa', protegerApi, async (req, res) => {
     res.json(safra || null);
 });
 
+app.put('/safras/:id', protegerApi, async (req, res) => {
+    const tipo = req.session.usuario?.tipo;
+    if (!['master', 'gerente'].includes(tipo)) return res.status(403).json({ status: 'erro' });
+    const db = await conectar();
+    const { nome } = req.body;
+    if (!nome?.trim()) return res.status(400).json({ status: 'erro' });
+    await db.run(`UPDATE safras SET nome = ? WHERE id = ?`, [nome.trim(), req.params.id]);
+    res.json({ status: 'ok' });
+});
+
 app.post('/safras/fechar', protegerApi, async (req, res) => {
     const tipo = req.session.usuario?.tipo;
     if (!['master', 'gerente'].includes(tipo)) return res.status(403).json({ status: 'erro', mensagem: 'Acesso não permitido' });
@@ -244,9 +254,10 @@ app.post('/expedicoes', protegerApi, somenteExpedicao, async (req, res) => {
     const db = await conectar();
     const { produtor, placa_cavalo, motorista, origem, destino, veiculo, placa_carreta1, variedade1, placa_carreta2, variedade2, peso, saida } = req.body;
     const safraId = await getSafraAtiva(db);
+    const observacoes = req.body.observacoes || '';
     await db.run(
-        `INSERT INTO expedicoes (produtor, placa_cavalo, motorista, origem, destino, veiculo, placa_carreta1, variedade1, placa_carreta2, variedade2, peso, saida, status, resultado, motivo_reprovacao, resultado_c1, motivo_c1, resultado_c2, motivo_c2, safra_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [produtor, placa_cavalo, motorista, origem, destino, veiculo, placa_carreta1, variedade1, placa_carreta2, variedade2, peso, saida, 'Em viagem', 'Pendente', '', 'Pendente', '', placa_carreta2 ? 'Pendente' : '', '', safraId]
+        `INSERT INTO expedicoes (produtor, placa_cavalo, motorista, origem, destino, veiculo, placa_carreta1, variedade1, placa_carreta2, variedade2, peso, saida, status, resultado, motivo_reprovacao, resultado_c1, motivo_c1, resultado_c2, motivo_c2, safra_id, observacoes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [produtor, placa_cavalo, motorista, origem, destino, veiculo, placa_carreta1, variedade1, placa_carreta2, variedade2, peso, saida, 'Em viagem', 'Pendente', '', 'Pendente', '', placa_carreta2 ? 'Pendente' : '', '', safraId, observacoes]
     );
     res.json({ status: 'ok' });
 });
@@ -265,13 +276,13 @@ app.put('/expedicoes/:id', protegerApi, somenteExpedicao, async (req, res) => {
     const antes = await db.get(`SELECT * FROM expedicoes WHERE id = ?`, [id]);
     if (!antes) return res.status(404).json({ status: 'erro' });
 
-    const { produtor, placa_cavalo, motorista, origem, destino, veiculo, placa_carreta1, variedade1, placa_carreta2, variedade2, peso } = req.body;
+    const { produtor, placa_cavalo, motorista, origem, destino, veiculo, placa_carreta1, variedade1, placa_carreta2, variedade2, peso, observacoes } = req.body;
     await db.run(
-        `UPDATE expedicoes SET produtor=?, placa_cavalo=?, motorista=?, origem=?, destino=?, veiculo=?, placa_carreta1=?, variedade1=?, placa_carreta2=?, variedade2=?, peso=? WHERE id=?`,
-        [produtor, placa_cavalo, motorista, origem, destino, veiculo, placa_carreta1, variedade1, placa_carreta2, variedade2, peso, id]
+        `UPDATE expedicoes SET produtor=?, placa_cavalo=?, motorista=?, origem=?, destino=?, veiculo=?, placa_carreta1=?, variedade1=?, placa_carreta2=?, variedade2=?, peso=?, observacoes=? WHERE id=?`,
+        [produtor, placa_cavalo, motorista, origem, destino, veiculo, placa_carreta1, variedade1, placa_carreta2, variedade2, peso, observacoes || '', id]
     );
 
-    const campos = { produtor, placa_cavalo, motorista, origem, destino, veiculo, placa_carreta1, variedade1, placa_carreta2, variedade2, peso };
+    const campos = { produtor, placa_cavalo, motorista, origem, destino, veiculo, placa_carreta1, variedade1, placa_carreta2, variedade2, peso, observacoes };
     for (const campo in campos) {
         if (String(antes[campo] || '') !== String(campos[campo] || ''))
             await registrarAuditoria(req, { acao: 'ALTERAÇÃO', tabela: 'expedicoes', registro_id: id, campo, valor_antigo: antes[campo], valor_novo: campos[campo] });
@@ -290,7 +301,9 @@ app.put('/expedicoes/:id/qualidade-carretas', protegerApi, async (req, res) => {
     const motivoGeral = [motivo_c1 ? `C1: ${motivo_c1}` : '', motivo_c2 ? `C2: ${motivo_c2}` : ''].filter(Boolean).join(' | ');
     const depois = { status, resultado_c1: resultado_c1 || 'Pendente', motivo_c1: motivo_c1 || '', resultado_c2: resultado_c2 || '', motivo_c2: motivo_c2 || '', resultado: resultadoGeral, motivo_reprovacao: motivoGeral };
 
-    await db.run(`UPDATE expedicoes SET status=?, resultado_c1=?, motivo_c1=?, resultado_c2=?, motivo_c2=?, resultado=?, motivo_reprovacao=? WHERE id=?`,
+    const finalizando = status === 'Finalizado' && antes?.status !== 'Finalizado';
+    const sqlFin = finalizando ? `, data_finalizacao = NOW()` : '';
+    await db.run(`UPDATE expedicoes SET status=?, resultado_c1=?, motivo_c1=?, resultado_c2=?, motivo_c2=?, resultado=?, motivo_reprovacao=?${sqlFin} WHERE id=?`,
         [depois.status, depois.resultado_c1, depois.motivo_c1, depois.resultado_c2, depois.motivo_c2, depois.resultado, depois.motivo_reprovacao, id]);
 
     if (antes) await auditarAlteracoes(req, 'expedicoes', id, antes, depois);
@@ -303,7 +316,9 @@ app.put('/expedicoes/:id/qualidade', protegerApi, async (req, res) => {
     const antes = await db.get(`SELECT * FROM expedicoes WHERE id = ?`, [id]);
     const { status, resultado, motivo_reprovacao } = req.body;
     const depois = { status, resultado, motivo_reprovacao: motivo_reprovacao || '' };
-    await db.run(`UPDATE expedicoes SET status=?, resultado=?, motivo_reprovacao=? WHERE id=?`, [depois.status, depois.resultado, depois.motivo_reprovacao, id]);
+    const finalizando = status === 'Finalizado' && antes?.status !== 'Finalizado';
+    const sqlFin = finalizando ? `, data_finalizacao = NOW()` : '';
+    await db.run(`UPDATE expedicoes SET status=?, resultado=?, motivo_reprovacao=?${sqlFin} WHERE id=?`, [depois.status, depois.resultado, depois.motivo_reprovacao, id]);
     if (antes) await auditarAlteracoes(req, 'expedicoes', id, antes, depois);
     res.json({ status: 'ok' });
 });
@@ -316,6 +331,27 @@ app.delete('/expedicoes/:id', protegerApi, somenteExpedicao, async (req, res) =>
     await registrarAuditoria(req, { acao: 'EXCLUSÃO', tabela: 'expedicoes', registro_id: id, campo: 'registro', valor_antigo: JSON.stringify(antes), valor_novo: '' });
     await db.run(`DELETE FROM expedicoes WHERE id=?`, [id]);
     res.json({ status: 'ok' });
+});
+
+app.get('/dashboard/comparativo', protegerApi, async (req, res) => {
+    const db = await conectar();
+    const safras = await db.all(`SELECT * FROM safras ORDER BY id ASC`);
+    const resultado = [];
+    for (const safra of safras) {
+        const total = await db.get(`SELECT COUNT(*) AS v FROM expedicoes WHERE safra_id = ?`, [safra.id]);
+        const aprovadas = await db.get(`SELECT COUNT(*) AS v FROM expedicoes WHERE resultado = 'Aprovado' AND safra_id = ?`, [safra.id]);
+        const reprovadas = await db.get(`SELECT COUNT(*) AS v FROM expedicoes WHERE resultado = 'Reprovado' AND safra_id = ?`, [safra.id]);
+        const finalizadas = await db.get(`SELECT COUNT(*) AS v FROM expedicoes WHERE status = 'Finalizado' AND safra_id = ?`, [safra.id]);
+        const tempoMedio = await db.get(`SELECT AVG(EXTRACT(EPOCH FROM (data_finalizacao - NOW()))::bigint * -1) AS v FROM expedicoes WHERE status = 'Finalizado' AND safra_id = ? AND data_finalizacao IS NOT NULL`, [safra.id]);
+        resultado.push({
+            safra: safra.nome,
+            total: Number(total?.v || 0),
+            aprovadas: Number(aprovadas?.v || 0),
+            reprovadas: Number(reprovadas?.v || 0),
+            finalizadas: Number(finalizadas?.v || 0)
+        });
+    }
+    res.json(resultado);
 });
 
 app.get('/dashboard', protegerApi, async (req, res) => {
@@ -354,6 +390,25 @@ app.post('/analises-qualidade', protegerApi, upload.single('foto_analise'), asyn
         `INSERT INTO analises_qualidade (fazenda, variedade, solidos, temperatura_agua, temperatura_media, peso_agua, placa, peso_total, peso_lavado, fritura, classificacao_fritura, quantidade_palitos, diametro_35, diametro_35_45, diametro_45, menos75_qtd, menos75_peso, mais75_qtd, mais75_peso, mais100_qtd, mais100_peso, mais150_qtd, mais150_peso, defeito, pontos, foto_analise, safra_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [fazenda||'', variedade||'', solidos||'', temperatura_agua||'', temperatura_media||'', peso_agua||'', placa||'', peso_total||'', peso_lavado||'', fritura||'', classificacao_fritura||'', quantidade_palitos||'', diametro_35||'', diametro_35_45||'', diametro_45||'', menos75_qtd||'', menos75_peso||'', mais75_qtd||'', mais75_peso||'', mais100_qtd||'', mais100_peso||'', mais150_qtd||'', mais150_peso||'', defeito||'', pontos||'', foto_analise, safraId]
     );
+
+    const pontosNum = parseFloat(String(pontos || '0').replace(',', '.')) || 0;
+    const limiteAlerta = parseFloat(process.env.PONTOS_ALERTA || '50');
+    if (pontosNum >= limiteAlerta) {
+        const destinatarios = getDestinatarios();
+        if (destinatarios.length) {
+            fetch('https://api.brevo.com/v3/smtp/email', {
+                method: 'POST',
+                headers: { accept: 'application/json', 'api-key': process.env.BREVO_API_KEY, 'content-type': 'application/json' },
+                body: JSON.stringify({
+                    sender: { name: 'Sistema Furman', email: process.env.EMAIL_FROM },
+                    to: destinatarios,
+                    subject: `⚠️ Alerta de Qualidade - ${placa || 'Carga'} - ${pontosNum} pontos`,
+                    htmlContent: `<div style="font-family:Arial,sans-serif;background:#0f172a;color:#ffffff;padding:30px;border-radius:18px;"><h2 style="color:#f87171;">⚠️ Alerta de Qualidade</h2><p>Uma análise com pontuação alta foi registrada.</p><div style="margin-top:20px;padding:18px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);"><p><strong>🚛 Placa:</strong> ${placa||'-'}</p><p><strong>🌱 Fazenda:</strong> ${fazenda||'-'}</p><p><strong>🌿 Variedade:</strong> ${variedade||'-'}</p><p><strong>⚠️ Pontos:</strong> <span style="color:#f87171;font-weight:bold;font-size:20px;">${pontosNum}</span></p><p><strong>🧪 Sólidos:</strong> ${solidos||'-'}%</p><p><strong>🕒 Data:</strong> ${new Date().toLocaleString('pt-BR')}</p></div></div>`
+                })
+            }).catch(e => console.error('Erro ao enviar alerta qualidade:', e));
+        }
+    }
+
     res.json({ status: 'ok' });
 });
 
